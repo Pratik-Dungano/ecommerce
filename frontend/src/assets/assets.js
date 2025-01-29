@@ -59,12 +59,18 @@ import p_img52 from './p_img52.png'
 
 
 import logo from './logo.png'
-import hero_img from './hero_img.png'
+import hero_img from './b.png'
+import hero_lady from './home_lady.png'
+import hero_circle from './home_circle.png'
+import hero_centre from './home_centre.png'
+import hero_left from './home_left.png'
+import nav_logo from './nav_logo.png'
 import cart_icon from './cart_icon.png'
 import bin_icon from './bin_icon.png'
 import dropdown_icon from './dropdown_icon.png'
 import exchange_icon from './exchange_icon.png'
 import profile_icon from './profile_icon.png'
+import heart_icon from './heart.png'
 import quality_icon from './quality_icon.png'
 import search_icon from './search_icon.png'
 import star_dull_icon from './star_dull_icon.png'
@@ -76,14 +82,24 @@ import contact_img from './contact_img.png'
 import razorpay_logo from './razorpay_logo.png'
 import stripe_logo from './stripe_logo.png'
 import cross_icon from './cross_icon.png'
+import hero_video1 from './v1.mp4'
+import hero_image_1 from './hero_image_1.png'
+import hero_image_2 from './hero_image_2.png'
+import hero_image_3 from './hero_image_3.png'
 
 export const assets = {
     logo,
     hero_img,
+    hero_lady,
+    hero_circle,
+    hero_centre,
+    hero_left,
+    nav_logo,
     cart_icon,
     dropdown_icon,
     exchange_icon,
     profile_icon,
+    heart_icon,
     quality_icon,
     search_icon,
     star_dull_icon,
@@ -95,7 +111,11 @@ export const assets = {
     contact_img,
     razorpay_logo,
     stripe_logo,
-    cross_icon
+    cross_icon,
+    hero_video1,
+    hero_image_1,
+    hero_image_2,
+    hero_image_3
 }
 
 export const products = [

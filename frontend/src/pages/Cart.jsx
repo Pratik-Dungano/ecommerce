@@ -30,7 +30,11 @@ const Cart = () => {
   };
 
   const handleRemoveItem = (itemId, size) => {
+    // Set the quantity of the item to 0, effectively removing it
     updateCart(itemId, size, 0);
+
+    // Re-fetch the cart to ensure it's correctly updated
+    getCart();  // Make sure your getCart method properly updates the cart state
   };
 
   return (

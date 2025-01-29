@@ -1,23 +1,28 @@
-import React from 'react'
-import Hero from '../components/Hero'
-import LatestCollection from '../components/LatestCollection'
-import BestSeller from '../components/BestSeller'
-import OurPolicy from '../components/OurPolicy'
-import NewsletterBox from '../components/NewsletterBox'
-
+import React, { useRef } from "react";
+import LatestCollection from "../components/LatestCollection";
+import Hero from "../components/Hero";
+import BestSeller from "../components/BestSeller";
+import OurPolicy from "../components/OurPolicy";
+import NewsletterBox from "../components/NewsletterBox";
+import CategoryListPage from "../components/CategoryListPage";
 
 const Home = () => {
-  return (
-    <div>
-        <Hero />
-        <LatestCollection />
-        <BestSeller />
-        <OurPolicy />
-        <NewsletterBox />
-        
-        
-    </div>
-  )
-}
+  const collectionRef = useRef(null);
 
-export default Home
+  return (
+    <div className="min-h-screen flex flex-col gap-10">
+      <Hero />
+      <CategoryListPage collectionRef={collectionRef} />
+      
+      <section ref={collectionRef}>
+        <LatestCollection collectionRef={collectionRef} />
+      </section>
+
+      <BestSeller />
+      <OurPolicy />
+      <NewsletterBox />
+    </div>
+  );
+};
+
+export default Home;

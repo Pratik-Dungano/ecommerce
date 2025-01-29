@@ -18,7 +18,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const App = () => {
   return (
     // Main container with padding for responsiveness
-    <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
+    <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[0vw]">
       <ToastContainer />
       {/* Navigation bar */}
       <Navbar />
@@ -54,7 +54,7 @@ const App = () => {
         <Route path="/orders" element={<Orders />} />
       </Routes>
 
-      <Footer />
+      
     </div>
   );
 };

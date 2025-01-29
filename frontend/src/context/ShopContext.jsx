@@ -15,7 +15,8 @@ const ShopContextProvider = (props) => {
   const [cartItems, setCartItems] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [token, setToken] = useState("");
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [isLoggedIn, setIsLoggedIn] = useState(!!token); // Reflect login status based on token
   const navigate = useNavigate();
 
   // Fetch products from the backend
@@ -50,23 +51,28 @@ const ShopContextProvider = (props) => {
 
   // Add item to the cart
   const addToCart = async (itemId, size) => {
-    if (!size) {
-      return; // Do nothing if size is not selected
+    if (!isLoggedIn) {
+      toast.error("Please sign in to add items to your cart.");
+      return;
     }
 
-    if (token) {
-      try {
-        const response = await axios.post(
-          `${backendUrl}/api/cart/add`,
-          { itemId, size },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (response.data.success) {
-          setCartItems(response.data.cart.items); // Sync with backend
-        }
-      } catch (error) {
-        // Handle error silently without logging or showing a toast
+    if (!size) {
+      toast.error("Please select a size.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/cart/add`,
+        { itemId, size },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        setCartItems(response.data.cart.items); // Sync with backend
+        toast.success("Item added to the cart successfully!");
       }
+    } catch (error) {
+      toast.error("Failed to add item to the cart.");
     }
   };
 
@@ -126,10 +132,11 @@ const ShopContextProvider = (props) => {
 
         if (response.data.success) {
           setCartItems([]); // Clear cart after order placement
+          toast.success("Order placed successfully!");
           navigate("/orders");
         }
       } catch (error) {
-        // Handle error silently without logging or showing a toast
+        toast.error("Failed to place the order.");
       }
     }
   };
@@ -157,15 +164,12 @@ const ShopContextProvider = (props) => {
   }, []);
 
   useEffect(() => {
-    if (!token && localStorage.getItem("token")) {
-      setToken(localStorage.getItem("token"));
-    }
-  }, []);
-
-  useEffect(() => {
     if (token) {
+      setIsLoggedIn(true); // Set logged-in status when token is available
       getCart(); // Fetch cart data when token is available
       getUserOrders(); // Fetch user orders when token is available
+    } else {
+      setIsLoggedIn(false); // Set logged-out status if token is not available
     }
   }, [token]);
 
@@ -191,6 +195,7 @@ const ShopContextProvider = (props) => {
     backendUrl,
     token,
     setToken,
+    isLoggedIn,
   };
 
   return <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>;
