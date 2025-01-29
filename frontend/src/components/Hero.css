@@ -1,0 +1,318 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+/* Hero.css */
+@keyframes rotate {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Initial appearing animation for hero_circle */
+@keyframes appearAndRotate {
+  0% {
+    opacity: 0;
+    transform: translateY(-150px); /* Start smaller */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0); /* Start rotating */
+  }
+}
+
+/* Apply combined appearing and rotating effect */
+.rotating-image {
+  animation: appearAndRotate 1.5s ease-out, rotate 20s linear infinite;
+  /* appearAndRotate runs once for 1.5s, then rotate keeps going infinitely */
+  width: 620px;
+  position: fixed;
+  bottom: 50px;
+  right: -150px;
+  z-index: 1;
+}
+
+/* Fade-in animation for the hero_lady image */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(50px); /* Start slightly below its final position */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0); /* Final position */
+  }
+}
+
+.fade-in-image {
+  animation: fadeIn 1.5s ease-out; /* Fade-in animation over 1.5 seconds */
+  position: fixed;
+  bottom: 10px;
+  right: -30px;
+  width: 340px;
+  z-index: 1;
+}
+
+/* Drop and bounce animation for center logo */
+@keyframes dropAndSlide {
+  0% {
+    opacity: 0;
+    transform: translate(200px, -200px); /* Start from top-right */
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-110px, -80px); /* Slight bounce */
+  }
+}
+
+.center-image {
+  animation: dropAndSlide 2s ease-out;
+  position: absolute;
+  top: 40%;
+  left: 45%;
+  transform: translate(-50%, -50%);
+  width: 220px;
+  z-index: 2;
+}
+
+/* Fade-in animation for center text */
+@keyframes textFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.text-animation {
+  animation: textFadeIn 2s ease-out;
+  position: absolute;
+  color: #4c522f;
+  font-size: 30px;
+  font-family: 'Anton', sans-serif;
+  text-align: center;
+  z-index: 3;
+}
+
+/* Fade-in and slide from left to right with 3D perspective for bottom-left image */
+@keyframes fadeInFromLeft3D {
+  0% {
+    opacity: 0;
+    transform: translateX(-150px) scale(0.9) rotateY(-20deg); /* Start from left with 3D tilt */
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotateY(0deg); /* Final position */
+  }
+}
+
+.bottom-left-image {
+  animation: fadeInFromLeft3D 1.5s ease-out; /* Fade-in and slide effect over 1.5 seconds */
+  position: fixed;
+  bottom: 10px;
+  left: 0px;
+  width: 500px;
+  z-index: 3;
+}
+
+/* --- Responsive Design --- */
+@media screen and (max-width: 1024px) {
+  .rotating-image {
+    width: 500px;
+    right: -100px;
+    bottom: 30px;
+  }
+
+  .fade-in-image {
+    width: 300px;
+    right: 0px;
+  }
+
+  .center-image {
+    width: 180px;
+    top: 50%;
+  }
+
+  .text-animation {
+    font-size: 24px;
+  }
+
+  .bottom-left-image {
+    width: 400px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .rotating-image {
+    width: 400px;
+    right: -80px;
+    bottom: 20px;
+  }
+
+  .fade-in-image {
+    width: 250px;
+    right: 20px;
+  }
+
+  .center-image {
+    width: 150px;
+    top: 45%;
+  }
+
+  .text-animation {
+    font-size: 20px;
+  }
+
+  .bottom-left-image {
+    width: 300px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .rotating-image {
+    width: 280px;
+    right: -50px;
+    bottom: 10px;
+  }
+
+  .fade-in-image {
+    width: 200px;
+    right: 10px;
+  }
+
+  .center-image {
+    width: 120px;
+    top: 40%;
+  }
+
+  .text-animation {
+    font-size: 16px;
+  }
+
+  .bottom-left-image {
+    width: 220px;
+  }
+}
+/* Explore button hover effect */
+.explore-button {
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.explore-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.1);
+}
+
+.carousel {
+  scroll-behavior: smooth;
+}
+
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+button:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease-in-out;
+}
+
+.hero {
+  padding: 1rem;
+
+  .main-text {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 4rem;
+    gap: 2rem;
+
+    h2 {
+      font-size: 4rem;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    button {
+      padding: 0;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      padding: 1rem 2rem;
+    }
+  }
+
+  .container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    position: relative;
+
+    .item {
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      background-size: cover !important;
+      border-radius: 1rem;
+      overflow: hidden;
+      width: 100%;
+      height: 650px;
+      position: relative;
+      transition: opacity 0.5s ease-in-out;
+
+      &.active {
+        opacity: 1;
+      }
+
+      .lower-text {
+        position: absolute;
+        bottom: 0rem;
+        left: 0rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        width: 100%;
+        padding: 2rem;
+
+        h1 {
+          text-transform: uppercase;
+        }
+
+        .lower-text-btns {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 2rem;
+
+          .slide-tag {
+            background-color: #ffffff31;
+            backdrop-filter: blur(6px);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            padding: 0.5rem 1rem;
+            font-weight: 400;
+            font-family: "Roboto Mono", monospace;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+          }
+        }
+      }
+    }
+  }
+}
