@@ -5,7 +5,15 @@ import { toast } from "react-toastify";
 
 const Orders = ({ token }) => {
   const [orderData, setOrderData] = useState([]);
-  const validStatuses = ["Order Placed", "Processing", "Shipped", "Delivered", "Cancelled"];
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("");
+  const validStatuses = [
+    "Order Placed",
+    "Processing",
+    "Shipped",
+    "Delivered",
+    "Cancelled",
+  ];
 
   // Fetch all orders
   const fetchAllOrders = async () => {
@@ -22,13 +30,30 @@ const Orders = ({ token }) => {
       );
 
       if (response.data.success) {
-        setOrderData(response.data.orders || []);
+        const orders = response.data.orders || [];
+        // Sort orders by date (most recent first)
+        const sortedOrders = orders.sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        );
+        setOrderData(sortedOrders);
+        setFilteredOrders(sortedOrders); // Initialize filtered orders
       } else {
         toast.error(response.data.message || "Failed to fetch orders.");
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast.error("Failed to fetch orders.");
+    }
+  };
+
+  // Filter orders by status
+  const filterOrders = (status) => {
+    setStatusFilter(status);
+    if (status) {
+      const filtered = orderData.filter((order) => order.status === status);
+      setFilteredOrders(filtered);
+    } else {
+      setFilteredOrders(orderData); // Reset to all orders if no filter
     }
   };
 
@@ -60,9 +85,31 @@ const Orders = ({ token }) => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h3 className="text-2xl font-bold mb-6">Orders</h3>
+
+      {/* Filter by Status */}
+      <div className="mb-6">
+        <label htmlFor="statusFilter" className="mr-2 font-semibold">
+          Filter by Status:
+        </label>
+        <select
+          id="statusFilter"
+          value={statusFilter}
+          onChange={(e) => filterOrders(e.target.value)}
+          className="bg-gray-100 border border-gray-300 text-gray-700 px-3 py-2 rounded-md"
+        >
+          <option value="">All</option>
+          {validStatuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Orders List */}
       <div className="space-y-6">
-        {orderData.length > 0 ? (
-          orderData.map((order) => (
+        {filteredOrders.length > 0 ? (
+          filteredOrders.map((order) => (
             <div
               key={order._id}
               className="p-4 border rounded-md shadow-sm bg-white"
@@ -77,20 +124,25 @@ const Orders = ({ token }) => {
                   </p>
                   <p className="text-gray-600">Total: ${order.amount}</p>
                   <p className="text-gray-600">Status: {order.status}</p>
-                  <p className="text-gray-600">Payment Method: {order.paymentMethod || "Not Provided"}</p>
-                  {/* Displaying customer name */}
                   <p className="text-gray-600">
-                    Customer Name: {order.address.firstName} {order.address.lastName}
+                    Payment Method: {order.paymentMethod || "Not Provided"}
                   </p>
-                  {/* Displaying shipping address */}
                   <p className="text-gray-600">
-                    Address: {order.address.street}, {order.address.city}, {order.address.state}, {order.address.zipCode}, {order.address.country}
+                    Customer Name: {order.address.firstName}{" "}
+                    {order.address.lastName}
+                  </p>
+                  <p className="text-gray-600">
+                    Address: {order.address.street}, {order.address.city},{" "}
+                    {order.address.state}, {order.address.zipCode},{" "}
+                    {order.address.country}
                   </p>
                 </div>
                 <div>
                   <select
                     value={order.status}
-                    onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                    onChange={(e) =>
+                      updateOrderStatus(order._id, e.target.value)
+                    }
                     className="bg-gray-100 border border-gray-300 text-gray-700 px-3 py-2 rounded-md"
                   >
                     {validStatuses.map((status) => (
