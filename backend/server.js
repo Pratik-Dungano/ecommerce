@@ -16,8 +16,8 @@ connectCloudinary();
 // ✅ CORS Middleware with Preflight Handling
 const corsOptions = {
   origin: [
-    "https://adaa-admin.vercel.app/",
-    "https://adaa.vercel.app/"
+    "https://adaa-admin.vercel.app",
+    "https://adaa.vercel.app"
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // ✅ Add OPTIONS
   allowedHeaders: ["Content-Type", "Authorization"],
