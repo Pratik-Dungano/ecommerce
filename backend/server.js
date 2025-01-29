@@ -13,18 +13,21 @@ const app = express();
 connectDB();
 connectCloudinary();
 
-// ✅ Allow CORS for Your Frontend Domain
+// ✅ CORS Middleware with Preflight Handling
 const corsOptions = {
-    origin: [
-      "https://adaa-admin.vercel.app",
-      "https://adaa.vercel.app"
-    ], // ✅ Allow both frontend domains
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // ✅ Allow cookies and authentication headers
-  };
-  
-  app.use(cors(corsOptions));
+  origin: [
+    "https://adaa-admin.vercel.app",
+    "https://adaa.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // ✅ Add OPTIONS
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // ✅ Explicitly handle OPTIONS
+
+// Middleware
 app.use(express.json());
 
 // API Endpoints
