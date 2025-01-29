@@ -34,11 +34,11 @@ const Cart = () => {
     updateCart(itemId, size, 0);
 
     // Re-fetch the cart to ensure it's correctly updated
-    getCart();  // Make sure your getCart method properly updates the cart state
+    getCart(); // Make sure your getCart method properly updates the cart state
   };
 
   return (
-    <div className="border-t pt-14">
+    <div className="border-t pt-14 px-6 sm:px-10 lg:px-20">
       <div className="text-2xl mb-3">
         <Title text1="Your" text2="Cart" />
       </div>
