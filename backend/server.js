@@ -27,5 +27,6 @@ app.get('/', (req, res) => {
     res.send("API Working");
 });
 
-// Export for Vercel
-export default app;
+// Start Server
+const port = process.env.PORT || 4000;
+app.listen(port, () => console.log(`Server started on Port: ${port}`));
