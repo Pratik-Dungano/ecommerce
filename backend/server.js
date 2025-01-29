@@ -13,9 +13,19 @@ const app = express();
 connectDB();
 connectCloudinary();
 
-// Middlewares
+// ✅ Allow CORS for Your Frontend Domain
+const corsOptions = {
+    origin: [
+      "https://adaa-admin.vercel.app",
+      "https://adaa.vercel.app"
+    ], // ✅ Allow both frontend domains
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // ✅ Allow cookies and authentication headers
+  };
+  
+  app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cors());
 
 // API Endpoints
 app.use('/api/user', useRouter);
@@ -24,9 +34,9 @@ app.use('/api/cart', cartRouter);
 app.use('/api/order', orderRouter);
 
 app.get('/', (req, res) => {
-    res.send("API Working");
+  res.send("API Working");
 });
 
-// Start Server (DO NOT export app)
+// Start Server
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server started on Port: ${port}`));
