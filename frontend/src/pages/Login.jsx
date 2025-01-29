@@ -1,11 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-
-
+import { toast } from 'react-toastify';
 
 const Login = () => {
   const [currentState, setCurrentState] = useState('Login');
@@ -17,51 +13,53 @@ const Login = () => {
   const OnSubmitHandler = async (event) => {
     event.preventDefault();
 
-    // Set the API URL based on current state (Login or Sign Up)
-    const url = currentState === 'Sign Up' ? `${backendUrl}/api/user/register` : `${backendUrl}/api/user/login`;
+    // API URL based on current state
+    const url =
+      currentState === 'Sign Up'
+        ? `${backendUrl}/api/user/register`
+        : `${backendUrl}/api/user/login`;
 
-    const body = currentState === 'Sign Up'
-      ? { name, email, password }
-      : { email, password };
+    const body =
+      currentState === 'Sign Up'
+        ? { name, email, password }
+        : { email, password };
 
     try {
-      // Make the API request using axios
       const response = await axios.post(url, body, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      // Check if the response is successful
-      if (response.status === 200) {
+      if (response.data.success) {
         if (currentState === 'Login') {
-          // On successful login, save the token in state and localStorage
           const userToken = response.data.token;
-          setToken(userToken); // Update token in context
-          localStorage.setItem('token', userToken); // Store token in localStorage
-          navigate('/'); // Redirect to dashboard or another page
+          setToken(userToken); // Save token in context
+          localStorage.setItem('token', userToken); // Save token in localStorage
+          navigate('/'); // Redirect on successful login
         } else {
-          // After successful sign-up, change the state to Login
           toast.success('Sign up successful! Please log in.');
-          setCurrentState('Login');
+          setCurrentState('Login'); // Switch to login after sign-up
         }
       } else {
-        // Handle unsuccessful responses
-        toast.error(response.data.message || 'An error occurred. Please try again.', { position: toast.POSITION.TOP_CENTER });
+        toast.error(response.data.message || 'An error occurred. Please try again.');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'An error occurred. Please try again.', { position: toast.POSITION.TOP_CENTER });
+      toast.error(error.response?.data?.message || 'An error occurred. Please try again.');
     }
   };
 
-  useEffect(()=>{
-    if(token){
-      navigate('/')
+  useEffect(() => {
+    if (token) {
+      navigate('/');
     }
-  },[token])
+  }, [token]);
 
   return (
-    <form onSubmit={OnSubmitHandler} className="flex flex-col items-center w-[90%] sm:max-w-sm m-auto mt-10 gap-6 text-gray-800">
+    <form
+      onSubmit={OnSubmitHandler}
+      className="flex flex-col items-center w-[90%] sm:max-w-sm m-auto mt-10 gap-6 text-gray-800"
+    >
       {/* Title */}
       <div className="inline-flex items-center gap-2 mb-4">
         <p className="text-2xl sm:text-3xl font-medium">{currentState}</p>
