@@ -16,8 +16,8 @@ connectCloudinary();
 // ✅ CORS Middleware with Preflight Handling
 const corsOptions = {
   origin: [
-    "https://adaa-admin.vercel.app",
-    "https://adaa.vercel.app"
+    "https://adaa-admin.vercel.app/",
+    "https://adaa.vercel.app/"
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // ✅ Add OPTIONS
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -31,10 +31,10 @@ app.options('*', cors(corsOptions)); // ✅ Explicitly handle OPTIONS
 app.use(express.json());
 
 // API Endpoints
-app.use('/api/user', useRouter);
-app.use('/api/product', productRouter);
-app.use('/api/cart', cartRouter);
-app.use('/api/order', orderRouter);
+app.use('api/user', useRouter);
+app.use('api/product', productRouter);
+app.use('api/cart', cartRouter);
+app.use('api/order', orderRouter);
 
 app.get('/', (req, res) => {
   res.send("API Working");
