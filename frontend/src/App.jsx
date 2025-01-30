@@ -11,6 +11,10 @@ import About from './pages/About';
 import Product from './pages/Product';
 import Navbar from './components/Navbar';
 import MyProfile from './pages/MyProfile';
+import Saree from './pages/Saree';
+import Lehenga from './pages/Lehenga';
+import Kurtas from './pages/Kurtas';
+import Gown from './pages/Gown';
 import Footer from './components/Footer';
 import Wishlist from './pages/Wishlist';
 import Searchbar from './components/Searchbar';
@@ -54,6 +58,18 @@ const App = () => {
 
         {/* Orders page */}
         <Route path="/orders" element={<Orders />} />
+
+        {/* Saree page */}
+        <Route path="/saree" element={<Saree />} />
+
+        {/* Lehenga page */}
+        <Route path="/lehenga" element={<Lehenga />} />
+
+        {/* Kurtas page */}
+        <Route path="/kurtas" element={<Kurtas />} />
+
+        {/* Gown page */}
+        <Route path="/gown" element={<Gown />} />
 
         {/* Wishlist page */}
         <Route path="/wishlist" element={<Wishlist />} />
