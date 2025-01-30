@@ -38,7 +38,6 @@ const ProductItem = memo(({ id, image, name, price, sizes }) => {
             return;
         }
         addToWishList(id, selectedWishlistSize);
-        alert(`${name} (Size: ${selectedWishlistSize}) has been added to your wishlist!`);
         setShowWishlistSizeOptions(false);
         setSelectedWishlistSize("");
     };
@@ -59,7 +58,6 @@ const ProductItem = memo(({ id, image, name, price, sizes }) => {
             return;
         }
         addToCart(id, selectedSize);
-        alert(`${name} (Size: ${selectedSize}) has been added to your cart!`);
         setShowSizeOptions(false);
         setSelectedSize("");
     };
@@ -67,7 +65,10 @@ const ProductItem = memo(({ id, image, name, price, sizes }) => {
     return (
         <div
             className="relative group transform transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-2 cursor-pointer"
-            onClick={() => navigate(`/product/${id}`)}
+            onClick={() => {
+              navigate(`/product/${id}`);
+              window.scrollTo(0, 0);
+            }}
         >
             <div className="relative overflow-hidden rounded-md shadow-md transition-shadow duration-300 ease-in-out group-hover:shadow-xl w-full h-full flex flex-col">
                 <div className="relative overflow-hidden" style={{ paddingTop: "100%" }}>

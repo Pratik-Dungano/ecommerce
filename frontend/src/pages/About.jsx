@@ -1,10 +1,11 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { assets } from "../assets/assets";
 import { ArrowRight, Check, Mail, Leaf, Users } from "lucide-react";
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div id="about" className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Hero Section */}
       <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -41,10 +42,13 @@ const About = () => {
                 have been perfected over generations.
               </p>
               <div className="flex items-center space-x-4">
-                <button className="bg-black text-white px-8 py-4 rounded-full hover:bg-gray-800 transition group">
-                  Explore Collection
-                  <ArrowRight className="inline ml-2 group-hover:translate-x-1 transition" />
-                </button>
+              <Link 
+  to="/collection" 
+  className="bg-black text-white px-8 py-4 rounded-full hover:bg-gray-800 transition group inline-flex items-center"
+>
+  Explore Collection
+  <ArrowRight className="ml-2 group-hover:translate-x-1 transition" />
+</Link>
               </div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-xl">

@@ -18,7 +18,7 @@ const Navbar = () => {
   return (
     <div className="sticky top-0 left-0 w-full flex items-center justify-between py-2 px-4 sm:px-6 bg-white shadow-md z-50 font-medium">
       {/* Logo with responsive margin */}
-      <Link to="/" className="flex-shrink-0 ml-4 md:ml-8">
+      <Link to="/" onClick={() => window.scrollTo(0, 0)} className="flex-shrink-0 ml-4 md:ml-8">
         <img
           src={assets.nav_logo}
           className="w-32 md:w-40 mt-1"
@@ -29,19 +29,19 @@ const Navbar = () => {
       {/* Desktop Navigation - hidden on mobile */}
       <div className="hidden md:flex flex-1 justify-center">
         <ul className="flex gap-4 lg:gap-6 text-lg text-custom-green font-bold font-anton">
-          <NavLink to="/" className="flex flex-col items-center gap-1">
+          <NavLink to="/" onClick={() => window.scrollTo(0, 0)} className="flex flex-col items-center gap-1">
             <p>HOME</p>
             <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
           </NavLink>
-          <NavLink to="/collection" className="flex flex-col items-center gap-1">
+          <NavLink to="/collection" onClick={() => window.scrollTo(0, 0)} className="flex flex-col items-center gap-1">
             <p>COLLECTION</p>
             <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
           </NavLink>
-          <NavLink to="/about" className="flex flex-col items-center gap-1">
+          <NavLink to="/about" onClick={() => window.scrollTo(0, 0)} className="flex flex-col items-center gap-1">
             <p>ABOUT</p>
             <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
           </NavLink>
-          <NavLink to="/contact" className="flex flex-col items-center gap-1">
+          <NavLink to="/contact" onClick={() => window.scrollTo(0, 0)} className="flex flex-col items-center gap-1">
             <p>CONTACT</p>
             <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
           </NavLink>
@@ -68,10 +68,10 @@ const Navbar = () => {
             alt="Close menu"
           />
           <ul className="flex flex-col gap-6 text-lg text-custom-green font-bold font-anton">
-            <NavLink to="/" onClick={() => setVisible(false)}>HOME</NavLink>
-            <NavLink to="/collection" onClick={() => setVisible(false)}>COLLECTION</NavLink>
-            <NavLink to="/about" onClick={() => setVisible(false)}>ABOUT</NavLink>
-            <NavLink to="/contact" onClick={() => setVisible(false)}>CONTACT</NavLink>
+            <NavLink to="/" onClick={() => { setVisible(false); window.scrollTo(0, 0); }}>HOME</NavLink>
+            <NavLink to="/collection" onClick={() => { setVisible(false); window.scrollTo(0, 0); }}>COLLECTION</NavLink>
+            <NavLink to="/about" onClick={() => { setVisible(false); window.scrollTo(0, 0); }}>ABOUT</NavLink>
+            <NavLink to="/contact" onClick={() => { setVisible(false); window.scrollTo(0, 0); }}>CONTACT</NavLink>
           </ul>
         </div>
       </div>
@@ -95,29 +95,22 @@ const Navbar = () => {
           {token && (
             <div className="group-hover:block hidden absolute dropdown-menu right-0 pt-4">
               <div className="flex flex-col gap-2 w-36 py-3 px-5 bg-slate-100 text-gray-500 rounded">
-                <p onClick={() => navigate('/profile')} className="cursor-pointer hover:text-black">My Profile</p>
-                <p
-                  onClick={() => navigate('/orders')}
-                  className="cursor-pointer hover:text-black"
-                >
-                  Orders
-                </p>
-                <p onClick={logout} className="cursor-pointer hover:text-black">
-                  Logout
-                </p>
+                <p onClick={() => { navigate('/profile'); window.scrollTo(0, 0); }} className="cursor-pointer hover:text-black">My Profile</p>
+                <p onClick={() => { navigate('/orders'); window.scrollTo(0, 0); }} className="cursor-pointer hover:text-black">Orders</p>
+                <p onClick={logout} className="cursor-pointer hover:text-black">Logout</p>
               </div>
             </div>
           )}
         </div>
 
-        <Link to="/cart" className="relative">
+        <Link to="/cart" onClick={() => window.scrollTo(0, 0)} className="relative">
           <img src={assets.cart_icon} className="w-5 min-w-5" alt="Cart" />
           <p className="absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px]">
             {getCartCount()}
           </p>
         </Link>
 
-        <Link to="/wishlist" className="relative">
+        <Link to="/wishlist" onClick={() => window.scrollTo(0, 0)} className="relative">
           <img src={assets.heart_icon} className="w-5 min-w-5" alt="Wishlist" />
           <p className="absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px]">
             {getWishListCount()}
