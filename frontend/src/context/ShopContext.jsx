@@ -13,6 +13,7 @@ const ShopContextProvider = (props) => {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [wishListItems, setWishListItems] = useState([]);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -49,6 +50,23 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  const getWishList = async () => {
+    if (token) {
+      try {
+        const response = await axios.post(
+          `${backendUrl}/api/wishlist/get`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (response.data.success) {
+          setWishListItems(response.data.wishList.items || []);
+        }
+      } catch (error) {
+        // Handle error silently without logging or showing a toast
+      }
+    }
+  };
+
   // Add item to the cart
   const addToCart = async (itemId, size) => {
     if (!isLoggedIn) {
@@ -76,6 +94,33 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  const addToWishList  = async (itemId, size) => {
+    if (!isLoggedIn) {
+      toast.error("Please sign in to add items to your wishlist.");
+      return;
+    }
+
+    if (!size) {
+      toast.error("Please select a size.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+          `${backendUrl}/api/wishlist/add`,
+        { itemId, size },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success) {
+        setWishListItems(response.data.wishList.items); // Sync with backend
+        toast.success("Item added to the wishlist successfully!");
+      }
+    } catch (error) {
+      toast.error("Failed to add item to the wishlist.");
+    }
+  };
+
+
   // Update cart item quantity
   const updateCart = async (itemId, size, quantity) => {
     if (token) {
@@ -87,6 +132,23 @@ const ShopContextProvider = (props) => {
         );
         if (response.data.success) {
           setCartItems(response.data.cart.items); // Sync with backend
+        }
+      } catch (error) {
+        // Handle error silently without logging or showing a toast
+      }
+    }
+  };
+
+  const updateWishList = async (itemId, size, quantity) => {
+    if (token) {
+      try {
+        const response = await axios.post(
+          `${backendUrl}/api/wishlist/update`,
+          { itemId, size, quantity },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (response.data.success) {
+          setWishListItems(response.data.wishList.items); // Sync with backend
         }
       } catch (error) {
         // Handle error silently without logging or showing a toast
@@ -147,9 +209,13 @@ const ShopContextProvider = (props) => {
   };
 
   // Get the total count of items in the cart
-  const getCartCount = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+    const getCartCount = () => {
+      return cartItems.reduce((total, item) => total + item.quantity, 0);
+    };
+
+    const getWishListCount = () => {
+      return wishListItems.reduce((total, item) => total + item.quantity, 0);
+    };
 
   // Calculate the total amount of the cart
   const getCartAmount = () => {
@@ -167,6 +233,7 @@ const ShopContextProvider = (props) => {
     if (token) {
       setIsLoggedIn(true); // Set logged-in status when token is available
       getCart(); // Fetch cart data when token is available
+      getWishList(); // Fetch wishlist data when token is available
       getUserOrders(); // Fetch user orders when token is available
     } else {
       setIsLoggedIn(false); // Set logged-out status if token is not available
@@ -187,6 +254,11 @@ const ShopContextProvider = (props) => {
     getCart,
     updateCart,
     getCartCount,
+    addToWishList,
+    updateWishList,
+    getWishListCount,
+    getWishList,
+    wishListItems,
     getCartAmount,
     placeOrder,
     orders,
@@ -196,6 +268,7 @@ const ShopContextProvider = (props) => {
     token,
     setToken,
     isLoggedIn,
+    setWishListItems,
   };
 
   return <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>;

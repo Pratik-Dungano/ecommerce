@@ -10,7 +10,9 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Product from './pages/Product';
 import Navbar from './components/Navbar';
+import MyProfile from './pages/MyProfile';
 import Footer from './components/Footer';
+import Wishlist from './pages/Wishlist';
 import Searchbar from './components/Searchbar';
 import {ToastContainer,toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -52,6 +54,10 @@ const App = () => {
 
         {/* Orders page */}
         <Route path="/orders" element={<Orders />} />
+
+        {/* Wishlist page */}
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/profile" element={<MyProfile />} />
       </Routes>
 
       <Footer/>

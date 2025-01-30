@@ -6,26 +6,32 @@ import RelatedProducts from '../components/RelatedProducts';
 
 const Product = () => {
   const { productId } = useParams();
-  const { products, currency, addToCart } = useContext(ShopContext);
-  const [productData, setProductData] = useState(false);
+  const { products, currency, addToCart, addToWishList, wishListItems } = useContext(ShopContext);
+  const [productData, setProductData] = useState(null);  // Changed to null for clearer loading state
   const [image, setImage] = useState('');
   const [size, setSize] = useState('');
 
-  const fetchProductData = async () => {
-    products.map((item) => {
-      if (item._id === productId) {
-        setProductData(item);
-        setImage(item.image[0]);
-        return null;
-      }
-    });
+  const fetchProductData = () => {
+    const product = products.find(item => item._id === productId); // Simplified search
+    if (product) {
+      setProductData(product);
+      setImage(product.image[0]);
+    }
   };
 
   useEffect(() => {
     fetchProductData();
   }, [productId, products]);
 
-  return productData ? (
+
+
+  
+
+  if (!productData) {
+    return <div>Loading...</div>;  // Display a loading message until the product is available
+  }
+
+  return (
     <div className="border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100">
       <div className="flex gap-12 sm:gap-12 flex-col sm:flex-row">
         <div className="flex-1 flex flex-col-reverse gap-3 sm:flex-row">
@@ -47,16 +53,14 @@ const Product = () => {
         <div className="flex-1">
           <h1 className="font-medium text-2xl mt-2">{productData.name}</h1>
           <div className="flex items-center gap-1 mt-2">
-            <img src={assets.star_icon} alt="" className="w-3 5" />
-            <img src={assets.star_icon} alt="" className="w-3 5" />
-            <img src={assets.star_icon} alt="" className="w-3 5" />
-            <img src={assets.star_icon} alt="" className="w-3 5" />
+            {[...Array(4)].map((_, i) => (
+              <img src={assets.star_icon} alt="" className="w-3 5" key={i} />
+            ))}
             <img src={assets.star_dull_icon} alt="" className="w-3 5" />
             <p className="pl-2">(122)</p>
           </div>
           <p className="mt-5 text-3xl font-medium">
-            {currency}
-            {productData.price}
+            {currency}{productData.price}
           </p>
           <p className="mt-5 text-gray-600 md:w-4/5">{productData.description}</p>
           <div className="flex flex-col gap-4 my-8">
@@ -65,9 +69,7 @@ const Product = () => {
               {productData.sizes.map((item, index) => (
                 <button
                   onClick={() => setSize(item)}
-                  className={`border py-2 px-4 bg-gray-100 ${
-                    item === size ? 'border-orange-500' : ''
-                  }`}
+                  className={`border py-2 px-4 bg-gray-100 ${item === size ? 'border-orange-500' : ''}`}
                   key={index}
                 >
                   {item}
@@ -81,6 +83,13 @@ const Product = () => {
           >
             ADD TO CART
           </button>
+          <button
+            onClick={() => addToWishList(productData._id, size)}
+            className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
+          >
+            ADD TO WISHLIST
+          </button>
+          
           <hr className="mt-8 sm:w-4/5" />
           <div className="text-sm text-gray-500 mt-5 flex flex-col gap-1">
             <p>100% Original product.</p>
@@ -96,16 +105,10 @@ const Product = () => {
         </div>
         <div className="flex flex-col gap-4 border px-6 py-6 text-sm text-gray-500">
           <p>
-            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Iste nam
-            debitis nobis dolorum vitae nisi delectus vero. Veniam incidunt,
-            alias, dicta deleniti numquam tempore, tenetur neque pariatur omnis
-            voluptate odio!`
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Iste nam debitis nobis dolorum vitae nisi delectus vero.
           </p>
           <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Error
-            nihil sapiente qui, laboriosam animi, quis, magni repudiandae totam
-            nemo magnam cumque ab rem tempora? Unde eaque optio exercitationem
-            cupiditate laudantium.
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Error nihil sapiente qui, laboriosam animi, quis, magni repudiandae totam nemo magnam cumque ab rem tempora.
           </p>
         </div>
       </div>
@@ -114,8 +117,6 @@ const Product = () => {
         subCategory={productData.subCategory}
       />
     </div>
-  ) : (
-    <div className="opacity-0"></div>
   );
 };
 
