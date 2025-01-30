@@ -5,6 +5,7 @@ import BestSeller from "../components/BestSeller";
 import OurPolicy from "../components/OurPolicy";
 import NewsletterBox from "../components/NewsletterBox";
 import CategoryListPage from "../components/CategoryListPage";
+import HomeFeatures from "../components/HomeFeatures";
 
 const Home = () => {
   const collectionRef = useRef(null);
@@ -12,8 +13,9 @@ const Home = () => {
   return (
     <div className="min-h-screen flex flex-col gap-10 ">
       <Hero />
+      <HomeFeatures />
       <CategoryListPage collectionRef={collectionRef} />
-      
+
       <section ref={collectionRef}>
         <LatestCollection collectionRef={collectionRef} />
       </section>

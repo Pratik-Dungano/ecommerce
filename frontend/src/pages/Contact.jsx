@@ -11,7 +11,7 @@ const Contact = () => {
           {/* Image */}
           <div className="flex-1">
             <img
-              src={assets.contact_img}// Replace with your image path
+              src={assets.contact_image}// Replace with your image path
               alt="Contact Us"
               className="w-full rounded-lg shadow-md"
             />

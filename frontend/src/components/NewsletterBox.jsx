@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Mail } from 'lucide-react';
 
 const NewsletterBox = () => {
     const [email, setEmail] = useState('');
@@ -15,40 +16,43 @@ const NewsletterBox = () => {
     };
 
     return (
-        <div className="flex flex-col mx-4 sm:mx-10 items-center justify-center py-12 bg-white">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2 text-center px-4">
-                Subscribe now & get 20% off
-            </h2>
-            <p className="text-gray-500 mb-4 text-center px-4">
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-            </p>
-            <form className="flex flex-col w-full px-4 sm:px-6 md:px-10 max-w-md mx-auto" onSubmit={onSubmitHandler}>
-                <div className="flex flex-col sm:flex-row w-full gap-2">
-                    <input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className={`w-full sm:flex-1 px-4 py-2 border ${
-                            error ? 'border-red-500' : 'border-gray-300'
-                        } rounded-t-md sm:rounded-l-md sm:rounded-tr-none focus:outline-none focus:ring-2 ${
-                            error ? 'focus:ring-red-500' : 'focus:ring-gray-600'
-                        } text-sm sm:text-base`}
-                    />
-                    <button
-                        type="submit"
-                        className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-black text-white font-medium rounded-b-md sm:rounded-r-md sm:rounded-bl-none hover:bg-gray-800 text-sm sm:text-base"
-                    >
-                        SUBSCRIBE
-                    </button>
-                </div>
-                {error && (
-                    <p className="text-red-500 text-xs sm:text-sm mt-2 text-center">
-                        {error}
+        <section className="py-24 px-6 lg:px-16">
+            <div className="max-w-4xl mx-auto text-center">
+                <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-12 rounded-3xl">
+                    <Mail className="w-16 h-16 mx-auto mb-6 text-purple-600" />
+                    <h2 className="text-3xl font-bold mb-4">
+                        Get 20% Off Your First Purchase
+                    </h2>
+                    <p className="text-gray-700 mb-8">
+                        Subscribe to stay updated on new collections, traditional fashion tips, and exclusive offers.
                     </p>
-                )}
-            </form>
-        </div>
+                    <form onSubmit={onSubmitHandler} className="max-w-md mx-auto">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <input
+                                type="email"
+                                placeholder="Enter your email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className={`flex-1 px-6 py-4 rounded-full border focus:ring-2 focus:ring-purple-500 outline-none ${
+                                    error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                                }`}
+                            />
+                            <button
+                                type="submit"
+                                className="bg-black text-white px-8 py-4 rounded-full hover:bg-gray-800 transition whitespace-nowrap"
+                            >
+                                Subscribe Now
+                            </button>
+                        </div>
+                        {error && (
+                            <p className="text-red-500 text-sm mt-4">
+                                {error}
+                            </p>
+                        )}
+                    </form>
+                </div>
+            </div>
+        </section>
     );
 };
 

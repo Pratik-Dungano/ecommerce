@@ -98,20 +98,6 @@ const Product = () => {
           </div>
         </div>
       </div>
-      <div className="mt-20">
-        <div className="flex">
-          <b className="border px-5 py-3 text-sm">Description</b>
-          <p className="border px-5 py-3 text-sm">Reviews(122)</p>
-        </div>
-        <div className="flex flex-col gap-4 border px-6 py-6 text-sm text-gray-500">
-          <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Iste nam debitis nobis dolorum vitae nisi delectus vero.
-          </p>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Error nihil sapiente qui, laboriosam animi, quis, magni repudiandae totam nemo magnam cumque ab rem tempora.
-          </p>
-        </div>
-      </div>
       <RelatedProducts
         category={productData.category}
         subCategory={productData.subCategory}
