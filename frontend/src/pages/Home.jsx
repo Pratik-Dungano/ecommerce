@@ -10,7 +10,7 @@ const Home = () => {
   const collectionRef = useRef(null);
 
   return (
-    <div className="min-h-screen flex flex-col gap-10">
+    <div className="min-h-screen flex flex-col gap-10 ">
       <Hero />
       <CategoryListPage collectionRef={collectionRef} />
       

@@ -47,7 +47,7 @@ const Wishlist = () => {
   return (
     <div className="border-t pt-14 px-6 sm:px-10 lg:px-20">
       <div className="text-2xl mb-3">
-        <Title text1="Your" text2="Wishlist" />
+        <Title text1="Your " text2="Wishlist" />
       </div>
 
       <div>

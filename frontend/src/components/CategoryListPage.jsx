@@ -102,7 +102,7 @@ const CategoryListPage = () => {
 
   return (
     <main>
-      <section className="bg-gray-100 py-10">
+      <section className="bg-transparent py-10">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800">Shop by Category</h1>
           <p className="text-lg text-gray-600 mt-4">

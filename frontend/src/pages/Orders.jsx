@@ -41,9 +41,9 @@ const Orders = () => {
   }, [token]);
 
   return (
-    <div className="border-t pt-16">
+    <div className="border-t pt-16 mx-10">
       <div className="text-2xl">
-        <Title text1="MY" text2="ORDERS" />
+        <Title text1="MY " text2="ORDERS" />
       </div>
 
       {loading && <p className="text-center text-gray-500 mt-8">Loading orders...</p>}
