@@ -10,7 +10,7 @@ const Collection = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 6000 });
   const [sortBy, setSortBy] = useState('relevant');
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const Collection = () => {
 
     if (selectedTypes.length > 0) {
       result = result.filter((product) =>
-        selectedTypes.includes(product.subCategory)
+        selectedTypes.includes(product.subcategory)
       );
     }
 

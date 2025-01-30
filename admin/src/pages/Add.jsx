@@ -15,7 +15,7 @@ const Add = ({token}) => {
   const [description,setDescription]=useState("")
   const [price,setPrice]=useState("")
   const [category,setCategory]=useState("Men")
-  const [subcategory,setSubCategory]=useState("Topwear")
+  const [subcategory,setSubCategory]=useState("Kurtas")
   const [bestseller,setBestseller]=useState(false)
   const [sizes,setSizes]=useState([])
 
