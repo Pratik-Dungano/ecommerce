@@ -86,6 +86,7 @@ import hero_video1 from './v1.mp4'
 import hero_image_1 from './hero_image_1.png'
 import hero_image_2 from './hero_image_2.png'
 import hero_image_3 from './hero_image_3.png'
+import about_image from './about_image.png'
 
 export const assets = {
     logo,
@@ -115,7 +116,8 @@ export const assets = {
     hero_video1,
     hero_image_1,
     hero_image_2,
-    hero_image_3
+    hero_image_3,
+    about_image
 }
 
 export const products = [

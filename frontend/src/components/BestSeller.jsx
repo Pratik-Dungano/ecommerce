@@ -14,7 +14,7 @@ const BestSeller = () => {
     <>
      <section className="bg-transparent py-10">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800">Best Seller</h1>
+          <h1 className="text-4xl font-bold text-gray-800">BestSeller</h1>
           <p className="text-lg text-gray-600 mt-4">
             Discover Best Seller Products
           </p>

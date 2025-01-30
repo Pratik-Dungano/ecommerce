@@ -47,7 +47,7 @@ const Hero = () => {
   }, [currentSlide, scrolling]);
 
   return (
-    <div ref={containerRef} className="relative overflow-hidden h-screen w-full">
+    <div ref={containerRef} className="hero relative overflow-hidden w-full aspect-video sm:max-h-80 lg:min-h-screen">
       <div className="relative w-full h-full flex items-center justify-center">
         {slides.map((slide, idx) => (
           <div

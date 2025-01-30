@@ -10,7 +10,7 @@ const About = () => {
         <div className="flex flex-col md:flex-row items-center gap-6">
           <div className="flex-1">
             <img
-              src={assets.about_img}
+              src={assets.about_image}
               alt="About Us"
               className="w-full rounded-lg shadow-md"
             />

@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
-
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
 /* Hero.css */
 @keyframes rotate {
   0% {
@@ -314,5 +318,10 @@ button:hover {
         }
       }
     }
+  }
+}
+@media screen and (max-width: 300px) {
+  .hero {
+    height:10vh;
   }
 }
