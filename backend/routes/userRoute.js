@@ -4,10 +4,10 @@ import authUser from '../middleware/auth.js';
 
 const userRouter = express.Router();
 
-useRouter.post('/register',registerUser)
-useRouter.post('/login',loginUser)
-useRouter.post('/admin',adminLogin)
-useRouter.get('/', authUser, getUser);
-useRouter.put('/update', authUser, updateUser);
+userRouter.post('/register',registerUser)
+userRouter.post('/login',loginUser)
+userRouter.post('/admin',adminLogin)
+userRouter.get('/', authUser, getUser);
+userRouter.put('/update', authUser, updateUser);
 
 export default userRouter;
