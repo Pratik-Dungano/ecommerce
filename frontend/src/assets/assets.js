@@ -56,6 +56,10 @@ import p_img49 from './p_img49.png'
 import p_img50 from './p_img50.png'
 import p_img51 from './p_img51.png'
 import p_img52 from './p_img52.png'
+import gown from './gown.jpg'
+import kurta from './kurta.jpg'
+import lehanga from './Lehanga.jpg'
+import saree from './saree.jpg'
 
 
 import logo from './logo.png'
@@ -90,6 +94,10 @@ import about_image from './about_image.png'
 
 export const assets = {
     logo,
+    gown,
+    kurta,
+    lehanga,
+    saree,
     hero_img,
     hero_lady,
     hero_circle,
