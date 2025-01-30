@@ -122,7 +122,7 @@ const Orders = ({ token }) => {
                   <p className="text-gray-600">
                     Order Date: {new Date(order.date).toLocaleDateString()}
                   </p>
-                  <p className="text-gray-600">Total: ${order.amount}</p>
+                  <p className="text-gray-600">Total: ₹{order.amount}</p>
                   <p className="text-gray-600">Status: {order.status}</p>
                   <p className="text-gray-600">
                     Payment Method: {order.paymentMethod || "Not Provided"}
@@ -175,7 +175,7 @@ const Orders = ({ token }) => {
                         </p>
                       </div>
                     </div>
-                    <p>${item.price}</p>
+                    <p>₹{item.price}</p>
                   </div>
                 ))}
               </div>

@@ -145,9 +145,10 @@ const Add = ({token}) => {
             required
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="Topwear">Topwear</option>
-            <option value="Bottomwear">Bottomwear</option>
-            <option value="Winterwear">Winterwear</option>
+            <option value="Kurtas">Kurtas</option>
+            <option value="Sarees">Sarees</option>
+            <option value="Lengha">Lengha</option>
+            <option value="Gowns">Gowns</option>
           </select>
         </div>
 

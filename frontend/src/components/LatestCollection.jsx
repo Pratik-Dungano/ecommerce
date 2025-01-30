@@ -92,7 +92,7 @@ const LatestCollection = () => {
                   <h3 className="text-sm font-medium text-gray-900 truncate mb-1">
                     {item.name}
                   </h3>
-                  <p className="text-xs text-gray-500">${item.price}</p>
+                  <p className="text-xs text-gray-500">₹{item.price}</p>
                 </div>
               </div>
             </div>
