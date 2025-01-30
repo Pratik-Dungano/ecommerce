@@ -1,13 +1,13 @@
 import express from 'express';
-import { loginUser, registerUser, adminLogin } from '../controllers/userController.js';
-import { validateLoginInput, validateRegisterInput } from '../middleware/validationMiddleware.js';
-import { rateLimiter } from '../middleware/rateLimiter.js';
+import {loginUser,registerUser,adminLogin,getUser,updateUser} from '../controllers/userController.js';
+import authUser from '../middleware/auth.js';
 
 const userRouter = express.Router();
 
-// Public routes
-userRouter.post('/register', validateRegisterInput, registerUser);
-userRouter.post('/login', validateLoginInput, rateLimiter, loginUser);
-userRouter.post('/admin', validateLoginInput, rateLimiter, adminLogin);
+userRouter.post('/register',registerUser)
+userRouter.post('/login',loginUser)
+userRouter.post('/admin',adminLogin)
+userRouter.get('/', authUser, getUser);
+userRouter.put('/update', authUser, updateUser);
 
 export default userRouter;

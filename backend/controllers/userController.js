@@ -85,4 +85,36 @@ const adminLogin=async(req,res)=>{
  }
 }
 
-export {loginUser,registerUser,adminLogin}
+// Get user profile
+const getUser = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.body.userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Update user profile
+const updateUser = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const user = await userModel.findByIdAndUpdate(
+      req.body.userId,
+      { name },
+      { new: true, runValidators: true }
+    ).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export {loginUser,registerUser,adminLogin,getUser,updateUser}

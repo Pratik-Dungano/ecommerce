@@ -75,7 +75,7 @@ const List = ({token}) => {
               </td>
               <td className="px-4 py-3">{product.name}</td>
               <td className="px-4 py-3">{product.category}</td>
-              <td className="px-4 py-3 text-gray-800 font-semibold">${product.price}</td>
+              <td className="px-4 py-3 text-gray-800 font-semibold">₹{product.price}</td>
               <td className="px-4 py-3 text-center">
                 <button
                   className="text-black font-bold text-lg hover:text-gray-600 transition duration-200"

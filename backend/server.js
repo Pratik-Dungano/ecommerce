@@ -1,47 +1,32 @@
-import express from 'express';
-import cors from 'cors';
-import 'dotenv/config';
-import connectDB from './config/mongodb.js';
-import connectCloudinary from './config/cloudinary.js';
-import useRouter from './routes/userRoute.js';
-import productRouter from './routes/productRoute.js';
-import cartRouter from './routes/cartRouter.js';
-import orderRouter from './routes/orderRoute.js';
+import express from 'express'
+import cors from 'cors'
+import 'dotenv/config'
+import connectDB from './config/mongodb.js'
+import connectCloudinary from './config/cloudinary.js'
+import userRouter from './routes/userRoute.js'
+import productRouter from './routes/productRoute.js'
+import cartRouter from './routes/cartRouter.js'
+import orderRouter from './routes/orderRoute.js'
+import wishListRouter from './routes/wishListRouter.js'
 
-// App Config
-const app = express();
-connectDB();
-connectCloudinary();
+//App Config
+const app=express()
+const port=process.env.PORT || 4000
+connectDB()
+connectCloudinary()
 
-// ✅ CORS Middleware with Preflight Handling
-const corsOptions = {
-    origin: [
-      "https://adaa-admin.vercel.app",
-      "https://adaa.vercel.app"
-    ],
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // ✅ Ensure allowed methods
-    allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-    credentials: true,
-    preflightContinue: false, // ✅ Important to prevent preflight redirects
-    optionsSuccessStatus: 204, // ✅ Ensure success for preflight requests
-  };
-  
-  app.use(cors(corsOptions));
-  app.options("*", cors(corsOptions)); // Explicitly handle OPTIONS requests
+//middlewares
+app.use(express.json())
+app.use(cors())
 
-// Middleware
-app.use(express.json());
-
-// API Endpoints
-app.use('/api/user', useRouter);
-app.use('/api/product', productRouter);
+//api endpoints
+app.use('/api/user',userRouter)
+app.use('/api/product',productRouter)
 app.use('/api/cart', cartRouter);
-app.use('/api/order', orderRouter);
+app.use('/api/order',orderRouter);
+app.use('/api/wishlist',wishListRouter);
+app.get('/',(req,res)=>{
+    res.send("API Working")
+})
 
-app.get('/', (req, res) => {
-  res.send("API Working");
-});
-
-// Start Server
-const port = process.env.PORT || 4000;
-app.listen(port, () => console.log(`Server started on Port: ${port}`));
+app.listen(port,()=>console.log('Server started on Port:'+port))
