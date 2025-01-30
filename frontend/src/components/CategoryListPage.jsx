@@ -58,8 +58,8 @@ const CategoryListPage = () => {
         <div className="container mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Link
-              to="/category/saree"
-              ref={(el) => (categoryRefs.current[0] = el)}
+              to="/saree"
+             
               className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 transform-gpu"
             >
               <img src={assets.saree} alt="Saree" className="w-full h-80 object-cover" />
@@ -70,8 +70,8 @@ const CategoryListPage = () => {
             </Link>
 
             <Link
-              to="/category/lehenga"
-              ref={(el) => (categoryRefs.current[1] = el)}
+              to="/lehenga"
+              
               className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 transform-gpu"
             >
               <img src={assets.lehanga} alt="Lehenga" className="w-full h-80 object-cover" />
@@ -82,8 +82,8 @@ const CategoryListPage = () => {
             </Link>
 
             <Link
-              to="/category/kurtas"
-              ref={(el) => (categoryRefs.current[2] = el)}
+              to="/kurtas"
+              
               className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 transform-gpu"
             >
               <img src={assets.kurta} alt="Kurtas" className="w-full h-80 object-cover" />
@@ -94,8 +94,8 @@ const CategoryListPage = () => {
             </Link>
 
             <Link
-              to="/category/gown"
-              ref={(el) => (categoryRefs.current[3] = el)}
+              to="/gown"
+              
               className="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 transform-gpu"
             >
               <img src={assets.gown} alt="Gown" className="w-full h-80 object-cover" />

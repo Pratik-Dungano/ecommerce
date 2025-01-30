@@ -14,7 +14,7 @@ const ProductItem = memo(({ id, image, name, price, sizes }) => {
     } = useContext(ShopContext);
     
     const navigate = useNavigate();
-    const displayCurrency = currency || "$";
+    const displayCurrency = currency || "₹";
     const [selectedSize, setSelectedSize] = useState("");
     const [selectedWishlistSize, setSelectedWishlistSize] = useState("");
     const [showSizeOptions, setShowSizeOptions] = useState(false);
