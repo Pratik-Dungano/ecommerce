@@ -9,7 +9,7 @@ const About = () => {
       <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src={assets.about_image}
+            src={assets.about}
             alt="Adaa Jaipur Hero"
             className="w-full h-full object-cover object-center"
           />
@@ -49,7 +49,7 @@ const About = () => {
             </div>
             <div className="bg-white p-4 rounded-lg shadow-xl">
               <img
-                src={assets.about_image}
+                src={assets.about}
                 alt="Adaa Jaipur Craftsmanship"
                 className="w-full h-[500px] object-cover rounded-lg"
               />
