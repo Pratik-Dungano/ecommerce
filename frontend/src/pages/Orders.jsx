@@ -46,12 +46,17 @@ const Orders = () => {
         <Title text1="MY " text2="ORDERS" />
       </div>
 
-      {loading && <p className="text-center text-gray-500 mt-8">Loading orders...</p>}
+      {loading && (
+        <p className="text-center text-gray-500 mt-8">Loading orders...</p>
+      )}
       {!loading && (
         <div>
           {orderData.length > 0 ? (
             orderData.map((order, index) => (
-              <div key={index} className="py-4 border-t border-b text-gray-700 flex flex-col gap-4">
+              <div
+                key={index}
+                className="py-4 border-t border-b text-gray-700 flex flex-col gap-4"
+              >
                 <div className="flex justify-between items-center">
                   <p className="text-gray-500">
                     Order Date: {new Date(order.date).toLocaleDateString()}
@@ -62,10 +67,13 @@ const Orders = () => {
                   </p>
                 </div>
                 {order.items.map((item, itemIndex) => (
-                  <div key={itemIndex} className="flex items-start gap-6 text-sm border-b pb-4">
+                  <div
+                    key={itemIndex}
+                    className="flex items-start gap-6 text-sm border-b pb-4"
+                  >
                     <img
                       className="w-16 sm:w-20"
-                      src={item.productId?.image || "/placeholder.png"}
+                      src={item.productId?.image[0] || "/placeholder.png"} // Access first image
                       alt={item.productId?.name || "Product"}
                     />
                     <div>
@@ -105,7 +113,9 @@ const Orders = () => {
               </div>
             ))
           ) : (
-            <p className="text-center text-gray-500 mt-8">You have no orders yet.</p>
+            <p className="text-center text-gray-500 mt-8">
+              You have no orders yet.
+            </p>
           )}
         </div>
       )}

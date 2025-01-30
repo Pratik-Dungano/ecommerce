@@ -162,7 +162,7 @@ const Orders = ({ token }) => {
                   >
                     <div className="flex items-center gap-4">
                       <img
-                        src={item.productId?.image || "/placeholder.png"}
+                        src={item.productId?.image[0] || "/placeholder.png"} // Access first image
                         alt={item.productId?.name || "Product"}
                         className="w-12 h-12 object-cover rounded-md"
                       />
