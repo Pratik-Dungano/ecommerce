@@ -12,7 +12,7 @@ const BestSeller = () => {
     }, [products])
   return (
     <>
-     <section className="bg-gray-100 py-10">
+     <section className="bg-transparent py-10">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800">Best Seller</h1>
           <p className="text-lg text-gray-600 mt-4">
@@ -20,13 +20,13 @@ const BestSeller = () => {
           </p>
         </div>
       </section>
-    <div className='my-10' >
+    <div className='my-10 mx-10' >
     
 
         <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-6'>
             {
                 bestSeller.map((item,index)=>(
-                    <ProductItem key={index} id={item._id} image={item.image} name={item.name} price={item.price}/>
+                    <ProductItem key={index} id={item._id} image={item.image} name={item.name} price={item.price} sizes={item.sizes}/>
                 ))
             }
         </div>
