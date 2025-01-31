@@ -100,7 +100,7 @@ const Product = () => {
       </div>
       <RelatedProducts
         category={productData.category}
-        subCategory={productData.subCategory}
+        subcategory={productData.subcategory}
       />
     </div>
   );

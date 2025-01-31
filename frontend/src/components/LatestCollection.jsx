@@ -1,4 +1,3 @@
-// LatestCollection.jsx
 import React, { useContext, useState, useEffect } from "react";
 import { ShopContext } from "../context/ShopContext";
 import ProductItem from "./ProductItem";
@@ -8,17 +7,20 @@ const LatestCollection = () => {
     const [latestProducts, setLatestProducts] = useState([]);
 
     useEffect(() => {
-        setLatestProducts(products.slice(0, 5));
+        // Sort products by creation date (assuming each product has a `createdAt` field)
+        const sortedProducts = [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // Get the latest 5 products
+        setLatestProducts(sortedProducts.slice(0, 5));
     }, [products]);
 
     return (
         <>
             <section className="bg-transparent py-10">
                 <div className="text-center">
-                      <h1 className="text-4xl font-bold text-gray-800">Latest Collection</h1>
-                      <p className="text-lg text-gray-600 mt-4">
-                          Discover the Latest Collection with a variety of styles.
-                      </p>
+                    <h1 className="text-4xl font-bold text-gray-800">Latest Collection</h1>
+                    <p className="text-lg text-gray-600 mt-4">
+                        Discover the Latest Collection with a variety of styles.
+                    </p>
                 </div>
             </section>
             <div className="my-10 mx-10">

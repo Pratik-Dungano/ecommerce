@@ -80,8 +80,9 @@ const PlaceOrder = () => {
       };
 
       let endpoint = `${backendUrl}/api/order/place`;
-      if (method === "razorpay") {
-        endpoint = `${backendUrl}/api/order/razorpay`;
+      if (method === "stripe") {
+        toast.error("Stripe payment method is not available");
+        return;
       }
 
       const response = await axios.post(endpoint, orderData, {
@@ -207,15 +208,15 @@ const PlaceOrder = () => {
             <Title text1="PAYMENT" text2="METHOD" />
             <div className="flex gap-3 flex-col lg:flex-row">
               <div
-                onClick={() => setMethod("razorpay")}
+                onClick={() => setMethod("stripe")}
                 className="flex items-center gap-3 border p-2 px-3 cursor-pointer"
               >
                 <p
                   className={`min-w-3.5 h-3.5 border rounded-full ${
-                    method === "razorpay" ? "bg-green-400" : ""
+                    method === "stripe" ? "bg-green-400" : ""
                   }`}
                 ></p>
-                <img className="h-5 mx-4" src={assets.razorpay_logo} alt="Razorpay Logo" />
+                <img className="h-5 mx-4" src={assets.stripe_logo} alt="Stripe Logo" />
               </div>
               <div
                 onClick={() => setMethod("cod")}
