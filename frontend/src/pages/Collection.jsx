@@ -10,10 +10,11 @@ const Collection = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 6000 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
   const [sortBy, setSortBy] = useState('relevant');
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     let result = [...products];
 
     if (showSearch && search) {

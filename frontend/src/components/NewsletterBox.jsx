@@ -1,18 +1,61 @@
 import React, { useState } from 'react';
 import { Mail } from 'lucide-react';
+import axios from 'axios';
 
 const NewsletterBox = () => {
     const [email, setEmail] = useState('');
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [success, setSuccess] = useState(false);
 
-    const onSubmitHandler = (e) => {
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(String(email).toLowerCase());
+    };
+
+    const onSubmitHandler = async (e) => {
         e.preventDefault();
-        if (!email.trim()) {
-            setError('Email is required');
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        setError('');
+    
+        if (!validateEmail(email)) {
+            setError('Please enter a valid email address');
+            setIsSubmitting(false);
             return;
         }
-        setError('');
-        console.log('Form submitted with email:', email);
+    
+        try {
+            const response = await axios.post(
+                `/mailchimp/3.0/lists/${import.meta.env.VITE_MAILCHIMP_AUDIENCE_ID}/members`,
+                {
+                    email_address: email,
+                    status: "subscribed"
+                },
+                {
+                    headers: {
+                        Authorization: `apikey ${import.meta.env.VITE_MAILCHIMP_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+    
+            if ([200, 201].includes(response.status)) {
+                setSuccess(true);
+                setEmail('');
+                setTimeout(() => setSuccess(false), 5000);
+            }
+        } catch (err) {
+            console.error('Mailchimp Error:', err);
+            const errorMessage = err.response?.data?.title || 'Subscription failed';
+            setError(
+                errorMessage.includes("already subscribed") ? "Already subscribed" :
+                errorMessage.includes("forgotten email") ? "Email was previously unsubscribed" :
+                'Network error - please try again later'
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -39,14 +82,22 @@ const NewsletterBox = () => {
                             />
                             <button
                                 type="submit"
-                                className="bg-black text-white px-8 py-4 rounded-full hover:bg-gray-800 transition whitespace-nowrap"
+                                disabled={isSubmitting}
+                                className={`bg-black text-white px-8 py-4 rounded-full transition whitespace-nowrap ${
+                                    isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'
+                                }`}
                             >
-                                Subscribe Now
+                                {isSubmitting ? 'Submitting...' : 'Subscribe Now'}
                             </button>
                         </div>
                         {error && (
                             <p className="text-red-500 text-sm mt-4">
                                 {error}
+                            </p>
+                        )}
+                        {success && (
+                            <p className="text-green-500 text-sm mt-4">
+                                Thank you for subscribing! 🎉
                             </p>
                         )}
                     </form>

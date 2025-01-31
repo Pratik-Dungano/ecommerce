@@ -13,7 +13,9 @@
   "dependencies": {
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^5.6.0",
+    "@shadcn/ui": "^0.0.4",
     "axios": "^1.7.9",
+    "clsx": "^2.1.1",
     "gasp": "^0.0.2",
     "gsap": "^3.12.7",
     "lucide-react": "^0.474.0",
@@ -24,6 +26,7 @@
     "react-toastify": "^11.0.2",
     "stripe": "^17.6.0",
     "swiper": "^11.2.1",
+    "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
