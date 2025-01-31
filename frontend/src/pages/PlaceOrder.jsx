@@ -103,6 +103,11 @@ const PlaceOrder = () => {
     }
   };
 
+  const handleStripeClick = () => {
+    toast.info("Stripe payment is currently unavailable. Please select Cash on Delivery.");
+    setMethod("cod");
+  };
+
   return (
     <>
       <form
@@ -211,7 +216,7 @@ const PlaceOrder = () => {
             <Title text1="PAYMENT" text2="METHOD" />
             <div className="flex gap-3 flex-col lg:flex-row">
               <div
-                onClick={() => setMethod("stripe")}
+                onClick={handleStripeClick}
                 className="flex items-center gap-3 border p-2 px-3 cursor-pointer"
               >
                 <p
