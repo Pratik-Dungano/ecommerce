@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 import LatestCollection from "../components/LatestCollection";
 import Hero from "../components/Hero";
 import BestSeller from "../components/BestSeller";
@@ -16,13 +17,21 @@ const fadeInUp = {
 const Home = () => {
   const collectionRef = useRef(null);
 
-  // Scroll to top on component mount
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // Show toast message on website start
+    toast.info(
+      "About: The database instance is currently on a free-tier plan, which may result in slower performance and longer load times for products. We appreciate your patience as we work to improve the experience.",
+      {
+        duration: 5000,
+        position: "top-center",
+      }
+    );
   }, []);
 
   return (
-    <div id="home" className="min-h-screen flex flex-col gap-10 ">
+    <div id="home" className="min-h-screen flex flex-col gap-10">
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
         <Hero />
       </motion.div>
