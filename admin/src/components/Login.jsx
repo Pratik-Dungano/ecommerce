@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
-import {assets} from '../assets/assets'
-
+import { assets } from '../assets/assets';
 
 const Login = ({ setToken }) => {
   const [email, setEmail] = useState("");
@@ -61,6 +60,9 @@ const Login = ({ setToken }) => {
               placeholder="your@email.com"
               required
             />
+            <small className="text-gray-500 mt-1 block">
+              For demo purposes only: Email - admin@forever.com
+            </small>
           </div>
           <div className="mb-4">
             <label className="text-sm font-medium text-gray-700 mb-2 block">
@@ -74,6 +76,9 @@ const Login = ({ setToken }) => {
               placeholder="Enter your password"
               required
             />
+            <small className="text-gray-500 mt-1 block">
+              For demo purposes only: admin123
+            </small>
           </div>
           <button
             className={`mt-4 w-full py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition duration-200 ${
