@@ -3,16 +3,17 @@ import { useParams } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
+import { Heart } from 'lucide-react'; // Import Heart icon
 
 const Product = () => {
   const { productId } = useParams();
   const { products, currency, addToCart, addToWishList, wishListItems } = useContext(ShopContext);
-  const [productData, setProductData] = useState(null);  // Changed to null for clearer loading state
+  const [productData, setProductData] = useState(null);
   const [image, setImage] = useState('');
   const [size, setSize] = useState('');
 
   const fetchProductData = () => {
-    const product = products.find(item => item._id === productId); // Simplified search
+    const product = products.find(item => item._id === productId);
     if (product) {
       setProductData(product);
       setImage(product.image[0]);
@@ -23,13 +24,12 @@ const Product = () => {
     fetchProductData();
   }, [productId, products]);
 
-
-
-  
-
   if (!productData) {
-    return <div>Loading...</div>;  // Display a loading message until the product is available
+    return <div>Loading...</div>;
   }
+
+  // Check if product is in wishlist
+  const isInWishlist = wishListItems.some(item => item.id === productData._id);
 
   return (
     <div className="border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100">
@@ -77,19 +77,25 @@ const Product = () => {
               ))}
             </div>
           </div>
-          <button
-            onClick={() => addToCart(productData._id, size)}
-            className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
-          >
-            ADD TO CART
-          </button>
-          <button
-            onClick={() => addToWishList(productData._id, size)}
-            className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
-          >
-            ADD TO WISHLIST
-          </button>
-          
+          <div className="flex gap-4">
+            <button
+              onClick={() => addToCart(productData._id, size)}
+              className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
+            >
+              ADD TO CART
+            </button>
+            <button
+              onClick={() => addToWishList(productData._id, size)}
+              className="flex items-center gap-2 bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
+            >
+              <Heart 
+                fill={isInWishlist ? 'red' : 'none'}
+                stroke={isInWishlist ? 'red' : 'currentColor'}
+                className="w-5 h-5 transition-colors duration-200"
+              />
+              WISHLIST
+            </button>
+          </div>
           <hr className="mt-8 sm:w-4/5" />
           <div className="text-sm text-gray-500 mt-5 flex flex-col gap-1">
             <p>100% Original product.</p>

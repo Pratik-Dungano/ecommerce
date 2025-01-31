@@ -18,6 +18,7 @@ const BestSeller = () => {
 
     const handleProductClick = (productId) => {
         navigate(`/product/${productId}`);
+        window.scrollTo(0, 0);
     };
 
     return (

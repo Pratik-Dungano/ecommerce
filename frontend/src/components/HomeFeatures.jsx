@@ -1,12 +1,19 @@
 import React from "react";
 import { Check } from "lucide-react";
-
+import {assets} from "../assets/assets"
 const HomeFeatures = () => {
   return (
     <div className="space-y-24">
         {/* Statistics Section */}
-      <section className="py-20">
-        <div className="max-w-6xl mx-auto px-6 lg:px-16">
+      <section className="py-20" 
+      style={{
+        backgroundImage: `url(${assets.stats_back})`, // Use the imported image
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}>
+        <div className="max-w-6xl mx-auto px-6 lg:px-16"
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-pink-100 p-8 rounded-3xl transform hover:-translate-y-2 transition duration-300 ease-in-out">
               <h3 className="text-2xl font-bold text-pink-900 mb-4">10k+</h3>
