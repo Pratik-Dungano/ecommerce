@@ -95,7 +95,7 @@ import hero_image_1 from './hero_image_1.png'
 import hero_image_2 from './hero_image_2.png'
 import hero_image_3 from './hero_image_3.png'
 import about from './about.png'
-
+import stats_back from './stats_back.png'
 import contact from './contact.png'
 
 export const assets = {
@@ -135,7 +135,8 @@ export const assets = {
     hero_image_2,
     hero_image_3,
     about,
-    contact
+    contact,
+    stats_back
 }
 
 export const products = [

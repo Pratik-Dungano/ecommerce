@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { assets } from '../assets/assets';
 
 const BestSeller = () => {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     const bestSellerProducts = [
         { _id: '679b716fa4c0c9ab62b0a6df', image: assets.imageb1 },
