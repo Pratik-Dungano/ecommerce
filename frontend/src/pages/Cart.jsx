@@ -30,20 +30,17 @@ const Cart = () => {
   };
 
   const handleRemoveItem = (itemId, size) => {
-    // Set the quantity of the item to 0, effectively removing it
     updateCart(itemId, size, 0);
-
-    // Re-fetch the cart to ensure it's correctly updated
-    getCart(); // Make sure your getCart method properly updates the cart state
+    getCart();
   };
 
   return (
-    <div className="border-t pt-14 px-6 sm:px-10 lg:px-20">
-      <div className="text-2xl mb-3">
+    <div className="border-t pt-14 px-4 sm:px-6 lg:px-8">
+      <div className="text-2xl mb-6">
         <Title text1="Your " text2="Cart" />
       </div>
 
-      <div>
+      <div className="space-y-4">
         {cartData.map((item, index) => {
           const productData = products.find(
             (product) => product._id === item._id
@@ -51,55 +48,62 @@ const Cart = () => {
           return (
             <div
               key={index}
-              className="py-4 border-t border-b text-gray-700 grid grid-cols-[4fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr] items-center gap-4"
+              className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-4 items-center"
             >
-              <div className="flex items-start gap-6">
+              <div className="flex items-center gap-4">
                 <img
-                  className="w-16 sm:w-20"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
                   src={productData?.image[0]}
-                  alt=""
+                  alt={productData?.name}
                 />
                 <div>
-                  <p className="text-xs sm:text-lg font-medium">
+                  <p className="text-sm sm:text-lg font-semibold">
                     {productData?.name}
                   </p>
-                  <div className="flex items-center gap-5 mt-2">
-                    <p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <p className="text-sm sm:text-base">
                       {currency}
                       {productData?.price}
                     </p>
-                    <p className="px-2 sm:px-3 sm:py-1 border bg-slate-50">
+                    <p className="px-2 py-1 text-xs sm:text-sm border bg-slate-50 rounded">
                       {item.size}
                     </p>
                   </div>
                 </div>
               </div>
+
               <input
                 onChange={(e) =>
                   handleQuantityChange(item._id, item.size, Number(e.target.value))
                 }
                 type="number"
-                className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1"
+                className="w-16 sm:w-20 px-2 py-1 border rounded text-center"
                 min={1}
                 defaultValue={item.quantity}
               />
-              <img
+
+              <button
                 onClick={() => handleRemoveItem(item._id, item.size)}
-                className="w-4 mr-4 sm:w-5 cursor-pointer"
-                src={assets.bin_icon}
-                alt="Remove"
-              />
+                className="p-2 hover:bg-red-50 rounded-full transition-colors duration-200"
+              >
+                <img
+                  className="w-5 h-5"
+                  src={assets.bin_icon}
+                  alt="Remove"
+                />
+              </button>
             </div>
           );
         })}
       </div>
-      <div className="flex justify-end my-20">
-        <div className="w-full sm:w-[450px]">
+
+      <div className="flex justify-end mt-10">
+        <div className="w-full sm:w-[400px]">
           <CartTotal />
-          <div className="w-full text-end">
+          <div className="w-full text-end mt-6">
             <button
               onClick={() => navigate("/place-order")}
-              className="bg-black text-white text-sm my-8 py-3 px-8 mt-4"
+              className="bg-black text-white text-sm sm:text-base py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors duration-200"
             >
               Proceed to Checkout
             </button>

@@ -4,11 +4,11 @@ import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify"; // Import toastify
+import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 
 const PlaceOrder = () => {
-  const [method, setMethod] = useState("stripe");
+  const [method, setMethod] = useState("cod");
   const {
     navigate,
     backendUrl,
@@ -81,7 +81,8 @@ const PlaceOrder = () => {
 
       let endpoint = `${backendUrl}/api/order/place`;
       if (method === "stripe") {
-        endpoint = `${backendUrl}/api/order/create-stripe-session`;
+        toast.error("Stripe payment method is not available");
+        return;
       }
 
       const response = await axios.post(endpoint, orderData, {
@@ -89,23 +90,14 @@ const PlaceOrder = () => {
       });
 
       if (response.data.success) {
-        if (method === "stripe") {
-          window.location.href = `https://checkout.stripe.com/pay/${response.data.sessionId}`;
-        } else {
-          setCartItems([]);
-          navigate("/orders");
-          toast.success("Order placed successfully!");
-        }
+        setCartItems([]);
+        navigate("/orders");
+        toast.success("Order placed successfully!"); // Show success toast
       }
     } catch (error) {
       navigate("/orders");
-      toast.error("Failed to place the order!");
+      toast.error("Failed to place the order!"); // Show error toast
     }
-  };
-
-  const handleStripeClick = () => {
-    toast.info("Stripe payment is currently unavailable. Please select Cash on Delivery.");
-    setMethod("cod");
   };
 
   return (
@@ -216,7 +208,7 @@ const PlaceOrder = () => {
             <Title text1="PAYMENT" text2="METHOD" />
             <div className="flex gap-3 flex-col lg:flex-row">
               <div
-                onClick={handleStripeClick}
+                onClick={() => setMethod("stripe")}
                 className="flex items-center gap-3 border p-2 px-3 cursor-pointer"
               >
                 <p
@@ -224,7 +216,7 @@ const PlaceOrder = () => {
                     method === "stripe" ? "bg-green-400" : ""
                   }`}
                 ></p>
-                <p className="text-gray-500 text-sm font-medium mx-4">STRIPE</p>
+                <img className="h-5 mx-4" src={assets.stripe_logo} alt="Stripe Logo" />
               </div>
               <div
                 onClick={() => setMethod("cod")}
@@ -250,7 +242,7 @@ const PlaceOrder = () => {
         </div>
       </form>
 
-      <ToastContainer />
+      <ToastContainer /> {/* Add ToastContainer here to display the toast notifications */}
     </>
   );
 };

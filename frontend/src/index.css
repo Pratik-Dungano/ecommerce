@@ -4,6 +4,34 @@
 @tailwind components;
 @tailwind utilities;
 
+.input-field {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black;
+}
+
+.payment-method {
+  @apply flex items-center p-3 border rounded-md cursor-pointer transition-colors;
+}
+
+.payment-method.active {
+  @apply border-black ring-1 ring-black;
+}
+
+.payment-method.disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.radio-indicator {
+  @apply w-4 h-4 border rounded-full mr-3 flex items-center justify-center;
+}
+
+.payment-method.active .radio-indicator {
+  @apply border-black bg-black;
+}
+
+.payment-method.active .radio-indicator::after {
+  @apply block w-2 h-2 bg-white rounded-full;
+}
+
 a.active hr{
   display: block;
 }
