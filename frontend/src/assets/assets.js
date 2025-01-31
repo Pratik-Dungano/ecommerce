@@ -1,7 +1,4 @@
 import p_img1 from './p_img1.png'
-
-
-
 import p_img2_1 from './p_img2_1.png'
 import p_img2_2 from './p_img2_2.png'
 import p_img2_3 from './p_img2_3.png'
@@ -66,6 +63,13 @@ import imageb3 from './imageb3.jpg'
 import imageb4 from './imageb4.jpg'
 
 
+import kurtas2 from './kurta2.jpg'
+import gown2 from './gown2.jpg'
+import lenga2 from './lenga2.jpg'
+import saree2 from './saree2.webp'
+import kurta1 from './kurta1.webp'
+import lengha1 from './lengha1.webp'
+import gown1 from './gown1.webp'
 
 import logo from './logo.png'
 import hero_img from './b.png'
@@ -117,7 +121,14 @@ export const assets = {
     imageb3,
     imageb4,
     exchange_icon,
+    kurtas2,
+    saree2,
+    lenga2,
+    gown2,
     profile_icon,
+    gown1,
+    lengha1,
+    kurta1,
     heart_icon,
     quality_icon,
     search_icon,
