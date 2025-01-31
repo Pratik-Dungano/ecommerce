@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
+import {assets} from '../assets/assets'
+
 
 const Login = ({ setToken }) => {
   const [email, setEmail] = useState("");
@@ -42,6 +44,9 @@ const Login = ({ setToken }) => {
   return (
     <div className="min-h-screen flex items-center justify-center w-full bg-gray-100">
       <div className="bg-white shadow-md rounded-lg px-8 py-6 max-w-md w-full">
+        <div className="flex justify-center mb-4">
+          <img src={assets.logo} alt="Logo" className="h-16" />
+        </div>
         <h1 className="text-2xl font-bold mb-4 text-center">Admin Panel</h1>
         <form onSubmit={onSubmitHandler}>
           <div className="mb-4">
