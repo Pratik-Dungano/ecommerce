@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import ProductItem from '../components/ProductItem';
 
@@ -6,6 +6,9 @@ const Saree = () => {
   const { products } = useContext(ShopContext);
   const [sortBy, setSortBy] = useState('featured');
 
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   // Filter products to show only sarees
   const sareeProducts = products.filter(product => 
     product.subcategory?.toLowerCase() === 'sarees'

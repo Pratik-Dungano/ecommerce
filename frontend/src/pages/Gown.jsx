@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import ProductItem from '../components/ProductItem';
 
@@ -6,13 +6,17 @@ const Gown = () => {
   const { products } = useContext(ShopContext);
   const [sortBy, setSortBy] = useState('featured');
 
-  // Filter products to show only sarees
-  const sareeProducts = products.filter(product => 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Filter products to show only gowns
+  const gownProducts = products.filter(product => 
     product.subcategory?.toLowerCase() === 'gowns'
   );
 
   // Sort products based on selected option
-  const sortedProducts = [...sareeProducts].sort((a, b) => {
+  const sortedProducts = [...gownProducts].sort((a, b) => {
     switch (sortBy) {
       case 'price-low':
         return a.price - b.price;
@@ -31,7 +35,7 @@ const Gown = () => {
         <h1 className="text-3xl font-semibold text-gray-900 mb-4">Gown Collection</h1>
         <div className="flex justify-between items-center">
           <p className="text-gray-600">
-            {sareeProducts.length} {sareeProducts.length === 1 ? 'product' : 'products'} available
+            {gownProducts.length} {gownProducts.length === 1 ? 'product' : 'products'} available
           </p>
           <select
             value={sortBy}
@@ -46,21 +50,21 @@ const Gown = () => {
         </div>
       </div>
 
-      {sareeProducts.length === 0 ? (
+      {gownProducts.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No gown available at the moment.</p>
+          <p className="text-gray-500 text-lg">No gowns available at the moment.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {sortedProducts.map((item, index) => (
             <ProductItem 
-            key={index} 
-            id={item._id} 
-            image={item.image} 
-            name={item.name} 
-            price={item.price} 
-            sizes={item.sizes} 
-        />
+              key={index} 
+              id={item._id} 
+              image={item.image} 
+              name={item.name} 
+              price={item.price} 
+              sizes={item.sizes} 
+            />
           ))}
         </div>
       )}

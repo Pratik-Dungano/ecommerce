@@ -7,6 +7,9 @@ const CategoryListPage = () => {
   const categoryRefs = useRef([]);
 
   useEffect(() => {
+    // Scroll to top on component mount
+   
+    
     categoryRefs.current.forEach((ref) => {
       if (ref) {
         gsap.set(ref, { scale: 0.8, rotateY: -60, rotateX: 20, opacity: 0 });
@@ -29,7 +32,7 @@ const CategoryListPage = () => {
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.1 }
     );
 
     categoryRefs.current.forEach((ref) => {
