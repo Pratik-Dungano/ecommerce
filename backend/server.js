@@ -10,23 +10,36 @@ import orderRouter from './routes/orderRoute.js'
 import wishListRouter from './routes/wishListRouter.js'
 
 //App Config
-const app=express()
-const port=process.env.PORT || 4000
+const app = express()
+const port = process.env.PORT || 4000
 connectDB()
 connectCloudinary()
 
 //middlewares
+// Important: Raw body parser for Stripe webhook must come before JSON parser
+app.use('/api/order/stripe-webhook', express.raw({ type: 'application/json' }));
+
+// Regular middleware for other routes
 app.use(express.json())
 app.use(cors())
 
 //api endpoints
-app.use('/api/user',userRouter)
-app.use('/api/product',productRouter)
+app.use('/api/user', userRouter)
+app.use('/api/product', productRouter)
 app.use('/api/cart', cartRouter);
-app.use('/api/order',orderRouter);
-app.use('/api/wishlist',wishListRouter);
+app.use('/api/order', orderRouter);
+app.use('/api/wishlist', wishListRouter);
 app.get('/',(req,res)=>{
     res.send("API Working")
 })
+
+// Error handling for Stripe webhook
+app.use((err, req, res, next) => {
+    if (err.type === 'StripeSignatureVerificationError') {
+        res.status(400).json({ success: false, message: 'Invalid Stripe webhook signature' });
+    } else {
+        next(err);
+    }
+});
 
 app.listen(port,()=>console.log('Server started on Port:'+port))

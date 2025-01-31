@@ -4,11 +4,11 @@ import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify"; // Import toastify
-import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const PlaceOrder = () => {
-  const [method, setMethod] = useState("cod");
+  const [method, setMethod] = useState("stripe");
   const {
     navigate,
     backendUrl,
@@ -80,8 +80,8 @@ const PlaceOrder = () => {
       };
 
       let endpoint = `${backendUrl}/api/order/place`;
-      if (method === "razorpay") {
-        endpoint = `${backendUrl}/api/order/razorpay`;
+      if (method === "stripe") {
+        endpoint = `${backendUrl}/api/order/create-stripe-session`;
       }
 
       const response = await axios.post(endpoint, orderData, {
@@ -89,13 +89,17 @@ const PlaceOrder = () => {
       });
 
       if (response.data.success) {
-        setCartItems([]);
-        navigate("/orders");
-        toast.success("Order placed successfully!"); // Show success toast
+        if (method === "stripe") {
+          window.location.href = `https://checkout.stripe.com/pay/${response.data.sessionId}`;
+        } else {
+          setCartItems([]);
+          navigate("/orders");
+          toast.success("Order placed successfully!");
+        }
       }
     } catch (error) {
       navigate("/orders");
-      toast.error("Failed to place the order!"); // Show error toast
+      toast.error("Failed to place the order!");
     }
   };
 
@@ -207,15 +211,15 @@ const PlaceOrder = () => {
             <Title text1="PAYMENT" text2="METHOD" />
             <div className="flex gap-3 flex-col lg:flex-row">
               <div
-                onClick={() => setMethod("razorpay")}
+                onClick={() => setMethod("stripe")}
                 className="flex items-center gap-3 border p-2 px-3 cursor-pointer"
               >
                 <p
                   className={`min-w-3.5 h-3.5 border rounded-full ${
-                    method === "razorpay" ? "bg-green-400" : ""
+                    method === "stripe" ? "bg-green-400" : ""
                   }`}
                 ></p>
-                <img className="h-5 mx-4" src={assets.razorpay_logo} alt="Razorpay Logo" />
+                <p className="text-gray-500 text-sm font-medium mx-4">STRIPE</p>
               </div>
               <div
                 onClick={() => setMethod("cod")}
@@ -241,7 +245,7 @@ const PlaceOrder = () => {
         </div>
       </form>
 
-      <ToastContainer /> {/* Add ToastContainer here to display the toast notifications */}
+      <ToastContainer />
     </>
   );
 };

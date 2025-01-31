@@ -11,9 +11,9 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "@shadcn/ui": "^0.0.4",
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^5.6.0",
-    "@shadcn/ui": "^0.0.4",
     "axios": "^1.7.9",
     "clsx": "^2.1.1",
     "gasp": "^0.0.2",
@@ -23,7 +23,7 @@
     "react-dom": "^18.3.1",
     "react-feather": "^2.0.10",
     "react-router-dom": "^7.1.1",
-    "react-toastify": "^11.0.2",
+    "react-toastify": "^11.0.3",
     "stripe": "^17.6.0",
     "swiper": "^11.2.1",
     "tailwind-merge": "^3.0.1",
