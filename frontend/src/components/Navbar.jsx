@@ -117,6 +117,11 @@ const Navbar = () => {
           </p>
         </Link>
 
+        {/* Admin Link */}
+        <a href="https://adaa-admin-jaipur-ein-bin-tin.vercel.app/" target="_blank" rel="noopener noreferrer" className="text-lg font-bold text-custom-green hover:text-custom-blue">
+          Admin
+        </a>
+
         <img
           onClick={() => setVisible(!visible)}
           src={assets.menu_icon}
