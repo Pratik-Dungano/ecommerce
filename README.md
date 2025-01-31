@@ -1,4 +1,8 @@
-# Adaa Jaipur - E-commerce Website
+# Adaa Jaipur - E-commerce Website 
+## Team-Ein Bin Tin
+Pratikkumar Dungano
+Suraj Yaligar
+Ananya Sah Mu
 
 ## Introduction
 Adaa Jaipur is a modern e-commerce platform designed for seamless shopping. It provides a user-friendly interface, efficient backend, and an intuitive admin panel for managing products and orders.
@@ -27,17 +31,30 @@ Environment variables must be set up correctly in the `.env` files for the backe
 
 ### Backend
 ```
-# Set up MongoDB, Cloudinary, JWT, and Stripe configurations
+MONGODB_URL="mongodb+srv://<username>:<password>@<cluster>.mongodb.net"
+CLOUDINARY_API_KEY="<your_cloudinary_api_key>"
+CLOUDINARY_SECRET_KEY="<your_cloudinary_secret_key>"
+CLOUDINARY_NAME="<your_cloudinary_name>"
+JWT_SECRET="<your_jwt_secret>"
+ADMIN_EMAIL="<your_admin_email>"
+ADMIN_PASSWORD="<your_admin_password>"
+STRIPE_SECRET_KEY="<your_stripe_secret_key>"
+FRONTEND_URL="<your_frontend_url>"
+STRIPE_WEBHOOK_SECRET="<your_stripe_webhook_secret>"
+
 ```
 
 ### Frontend
 ```
-# Configure backend URL and Stripe publishable key
+VITE_BACKEND_URL="<your_backend_url>"
+VITE_STRIPE_PUBLISHABLE_KEY="<your_stripe_publishable_key>"
+
 ```
 
 ### Admin Panel
 ```
-# Configure backend URL
+
+VITE_BACKEND_URL="<your_backend_url>"
 ```
 
 ---
@@ -54,7 +71,7 @@ Environment variables must be set up correctly in the `.env` files for the backe
    ```
 3. Start the server:
    ```sh
-   npm start
+   npm run server
    ```
 
 ### Frontend Setup
