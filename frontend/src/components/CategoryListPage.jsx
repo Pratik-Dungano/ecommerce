@@ -57,17 +57,25 @@ const CategoryListPage = () => {
       <section className="my-10">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[{ name: "Saree", img: assets.saree2, link: "/saree" },
-              { name: "Lehenga", img: assets.lenga2, link: "/lehenga" },
-              { name: "Kurtas", img: assets.kurtas2, link: "/kurtas" },
-              { name: "Gown", img: assets.gown2, link: "/gown" }].map((category, index) => (
+            {[
+              { name: "Saree", img: assets.saree2, link: "/saree" },
+              { name: "Lehenga", img: assets.lengha1, link: "/lehenga" },
+              { name: "Kurtas", img: assets.kurta1, link: "/kurtas" },
+              { name: "Gown", img: assets.gown1, link: "/gown" }
+            ].map((category, index) => (
               <Link
                 key={index}
                 to={category.link}
                 ref={(el) => (categoryRefs.current[index] = el)}
                 className="group relative bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-500 transform hover:scale-105"
               >
-                <img src={category.img} alt={category.name} className="w-full h-96 object-cover transition duration-500 ease-in-out transform group-hover:scale-110" />
+                <div className="w-full h-96 overflow-hidden">
+                  <img 
+                    src={category.img} 
+                    alt={category.name} 
+                    className="w-full h-full object-cover object-center transition duration-500 ease-in-out transform group-hover:scale-110"
+                  />
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
                 <div className="absolute bottom-6 left-6">
                   <h3 className="text-white text-2xl font-semibold">{category.name}</h3>
