@@ -137,7 +137,7 @@ VITE_BACKEND_URL="<your_backend_url>"
 - `POST /api/wishlist/update` - Update wishlist
 
 ---
-## Screenshots (Add images below)
+## Screenshots 
 **Home Page:**  
 ![Home Page](./frontend/src/assets/home1.png)
 
