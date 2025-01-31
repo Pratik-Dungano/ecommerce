@@ -1,8 +1,8 @@
 # Adaa Jaipur - E-commerce Website 
 ## Team-Ein Bin Tin
-Pratikkumar Dungano
-Suraj Yaligar
-Ananya Sah Mu
+**Pratikkumar Dungano**
+**Suraj Yaligar**
+**Ananya Sah Mu**
 
 ## Introduction
 Adaa Jaipur is a modern e-commerce platform designed for seamless shopping. It provides a user-friendly interface, efficient backend, and an intuitive admin panel for managing products and orders.
