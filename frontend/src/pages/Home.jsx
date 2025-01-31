@@ -20,12 +20,13 @@ const Home = () => {
       <Hero />
       <HomeFeatures />
       <CategoryListPage collectionRef={collectionRef} />
+      <BestSeller />
 
       <section ref={collectionRef}>
         <LatestCollection collectionRef={collectionRef} />
       </section>
 
-      <BestSeller />
+     
       <OurPolicy />
       <NewsletterBox />
     </div>

@@ -60,6 +60,11 @@ import gown from './gown.jpg'
 import kurta from './kurta.jpg'
 import lehanga from './Lehanga.jpg'
 import saree from './saree.jpg'
+import imageb1 from './imageb1.jpg'
+import imageb2 from './imageb2.jpg'
+import imageb3 from './imageb3.jpg'
+import imageb4 from './imageb4.jpg'
+
 
 
 import logo from './logo.png'
@@ -107,6 +112,10 @@ export const assets = {
     nav_logo,
     cart_icon,
     dropdown_icon,
+    imageb1,
+    imageb2,
+    imageb3,
+    imageb4,
     exchange_icon,
     profile_icon,
     heart_icon,

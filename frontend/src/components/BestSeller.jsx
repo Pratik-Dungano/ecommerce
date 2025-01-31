@@ -1,38 +1,46 @@
-import React, { useContext, useEffect, useState } from 'react'
-import Title from './Title'
-import { ShopContext } from '../context/ShopContext'
-import ProductItem from './ProductItem'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { assets } from '../assets/assets';
 
 const BestSeller = () => {
-    const { products } = useContext(ShopContext)
-    const [bestSeller, setBestSeller] = useState([])
-    useEffect(() => {
-        const bestProducts=products.filter((item)=>item.bestSeller)
-        setBestSeller(products.slice(0, 5))
-    }, [products])
-  return (
-    <>
-     <section className="bg-transparent py-10">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800">BestSeller</h1>
-          <p className="text-lg text-gray-600 mt-4">
-            Discover Best Seller Products
-          </p>
-        </div>
-      </section>
-    <div className='my-10 mx-10' >
-    
+    const navigate = useNavigate();
 
-        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-6'>
-            {
-                bestSeller.map((item,index)=>(
-                    <ProductItem key={index} id={item._id} image={item.image} name={item.name} price={item.price} sizes={item.sizes}/>
-                ))
-            }
-        </div>
-    </div>
-    </>
-  )
-}
+    const bestSellerProducts = [
+        { _id: '679b716fa4c0c9ab62b0a6df', image: assets.imageb1 },
+        { _id: '679b77c7a4c0c9ab62b0a701', image: assets.imageb2 },
+        { _id: '679b6587a4c0c9ab62b0a682', image: assets.imageb3 },
+        { _id: '679b6ff5a4c0c9ab62b0a6cd', image: assets.imageb4 }
+    ];
 
-export default BestSeller
+    const handleProductClick = (productId) => {
+        navigate(`/product/${productId}`);
+    };
+
+    return (
+        <section className="bg-transparent py-10">
+            <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-gray-800">Best Seller</h1>
+                <p className="text-lg text-gray-600 mt-2">Discover Best Seller Products</p>
+            </div>
+            <div className="container mx-auto px-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    {bestSellerProducts.map((item) => (
+                        <div 
+                            key={item._id} 
+                            onClick={() => handleProductClick(item._id)} 
+                            className="cursor-pointer bg-white shadow-lg rounded-xl overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-2xl"
+                        >
+                            <img 
+                                src={item.image} 
+                                alt="Product" 
+                                className="w-full h-full object-cover rounded-md"
+                            />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
+export default BestSeller;
