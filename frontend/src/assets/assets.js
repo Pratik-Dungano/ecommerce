@@ -101,6 +101,7 @@ import hero_image_3 from './hero_image_3.png'
 import about from './about.png'
 import stats_back from './stats_back.png'
 import contact from './contact.png'
+import close_icon from './close_icon.png'
 
 export const assets = {
     logo,
@@ -110,6 +111,7 @@ export const assets = {
     saree,
     hero_img,
     hero_lady,
+    close_icon,
     hero_circle,
     hero_centre,
     hero_left,
