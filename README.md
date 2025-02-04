@@ -148,6 +148,7 @@ VITE_BACKEND_URL="<your_backend_url>"
 ![Product Detail](./frontend/src/assets/product1.png)
 
 **Cart Page:**  
+
 ![Cart](./frontend/src/assets/cart1.png)
 
 **Checkout Page:**  
