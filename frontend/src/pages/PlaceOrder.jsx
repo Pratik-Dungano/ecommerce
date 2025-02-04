@@ -1,11 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify"; // Import toastify
-import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
@@ -38,67 +38,153 @@ const PlaceOrder = () => {
     setFormData((data) => ({ ...data, [name]: value }));
   };
 
+  const prepareOrderData = () => {
+    const orderItems = cartItems.map((item) => {
+      const product = products.find((p) => p._id === item.itemId);
+      return {
+        productId: item.itemId,
+        size: item.size,
+        quantity: item.quantity,
+        price: product.price,
+      };
+    });
+
+    const addressData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      street: formData.street,
+      city: formData.city,
+      state: formData.state,
+      zipCode: formData.zipCode,
+      country: formData.country,
+      phone: formData.phone,
+    };
+
+    const totalAmount = getCartAmount() + delivery_fee;
+
+    return { orderItems, addressData, totalAmount };
+  };
+
+  const handleCODOrder = async (orderItems, addressData, totalAmount) => {
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/order/place`,
+        {
+          items: orderItems,
+          amount: totalAmount,
+          address: addressData,
+          paymentMethod: "COD",
+          payment: false,
+          status: "Order Placed"
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        setCartItems([]);
+        toast.success("Order placed successfully!");
+        navigate("/orders");
+      } else {
+        toast.error(response.data.message || "Failed to place order");
+      }
+    } catch (error) {
+      console.error("COD Order Error:", error);
+      toast.error(error.response?.data?.message || "Failed to place the order!");
+    }
+  };
+
+  const initializeRazorpay = async (orderItems, addressData, totalAmount) => {
+    try {
+      // Configure Razorpay options
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: totalAmount * 100, // Razorpay expects amount in paise
+        currency: "INR",
+        name: "Your Company Name",
+        description: "Test Transaction",
+        handler: async function (razorpayResponse) {
+          try {
+            // Create the order in your database after payment is successful
+            const orderResponse = await axios.post(
+              `${backendUrl}/api/order/place`,
+              {
+                items: orderItems,
+                amount: totalAmount,
+                address: addressData,
+                paymentMethod: "razorpay",
+                payment: true,
+                status: "Paid",
+                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                razorpay_order_id: razorpayResponse.razorpay_order_id,
+                razorpay_signature: razorpayResponse.razorpay_signature,
+              },
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+  
+            if (orderResponse.data.success) {
+              setCartItems([]); // Clear the cart
+              toast.success("Payment successful! Order placed.");
+              navigate("/orders");
+            } else {
+              throw new Error("Failed to create order");
+            }
+          } catch (error) {
+            console.error("Razorpay Order Error:", error);
+            toast.error("Error creating order after payment!");
+          }
+        },
+        prefill: {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
+  
+      // Initialize Razorpay
+      const rzp = new window.Razorpay(options);
+  
+      rzp.on('payment.failed', function (response) {
+        toast.error("Payment failed! Please try again.");
+      });
+  
+      rzp.open();
+    } catch (error) {
+      console.error("Razorpay Error:", error);
+      toast.error("Failed to initialize payment!");
+    }
+  };
+
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
     if (cartItems.length === 0) {
+      toast.error("Your cart is empty!");
       return;
     }
 
-    try {
-      const orderItems = cartItems.map((item) => {
-        const product = products.find((p) => p._id === item.itemId);
-        return {
-          productId: item.itemId,
-          size: item.size,
-          quantity: item.quantity,
-          price: product.price,
-        };
-      });
+    const { orderItems, addressData, totalAmount } = prepareOrderData();
 
-      const addressData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        street: formData.street,
-        city: formData.city,
-        state: formData.state,
-        zipCode: formData.zipCode,
-        country: formData.country,
-        phone: formData.phone,
-      };
-
-      const totalAmount = getCartAmount() + delivery_fee;
-
-      const orderData = {
-        items: orderItems,
-        amount: totalAmount,
-        address: addressData,
-        paymentMethod: method.toUpperCase(),
-        payment: method !== "cod",
-        date: new Date(),
-      };
-
-      let endpoint = `${backendUrl}/api/order/place`;
-      if (method === "stripe") {
-        toast.error("Stripe payment method is not available");
-        return;
-      }
-
-      const response = await axios.post(endpoint, orderData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.data.success) {
-        setCartItems([]);
-        navigate("/orders");
-        toast.success("Order placed successfully!"); // Show success toast
-      }
-    } catch (error) {
-      navigate("/orders");
-      toast.error("Failed to place the order!"); // Show error toast
+    if (method === "cod") {
+      await handleCODOrder(orderItems, addressData, totalAmount);
+    } else if (method === "razorpay") {
+      await initializeRazorpay(orderItems, addressData, totalAmount);
     }
   };
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   return (
     <>
@@ -208,15 +294,15 @@ const PlaceOrder = () => {
             <Title text1="PAYMENT" text2="METHOD" />
             <div className="flex gap-3 flex-col lg:flex-row">
               <div
-                onClick={() => setMethod("stripe")}
+                onClick={() => setMethod("razorpay")}
                 className="flex items-center gap-3 border p-2 px-3 cursor-pointer"
               >
                 <p
                   className={`min-w-3.5 h-3.5 border rounded-full ${
-                    method === "stripe" ? "bg-green-400" : ""
+                    method === "razorpay" ? "bg-green-400" : ""
                   }`}
                 ></p>
-                <img className="h-5 mx-4" src={assets.stripe_logo} alt="Stripe Logo" />
+                <img className="h-5 mx-4" src={assets.razorpay_logo} alt="Razorpay Logo" />
               </div>
               <div
                 onClick={() => setMethod("cod")}
@@ -239,10 +325,10 @@ const PlaceOrder = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>  
       </form>
 
-      <ToastContainer /> {/* Add ToastContainer here to display the toast notifications */}
+      <ToastContainer />
     </>
   );
 };

@@ -8,7 +8,7 @@ export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
   const currency = "₹";
-  const delivery_fee = 10;
+  const delivery_fee = 0;
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -120,7 +120,6 @@ const ShopContextProvider = (props) => {
     }
   };
 
-
   // Update cart item quantity
   const updateCart = async (itemId, size, quantity) => {
     if (token) {
@@ -198,6 +197,7 @@ const ShopContextProvider = (props) => {
           navigate("/orders");
         }
       } catch (error) {
+        console.log(error);
         toast.error("Failed to place the order.");
       }
     }
@@ -209,13 +209,13 @@ const ShopContextProvider = (props) => {
   };
 
   // Get the total count of items in the cart
-    const getCartCount = () => {
-      return cartItems.reduce((total, item) => total + item.quantity, 0);
-    };
+  const getCartCount = () => {
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
+  };
 
-    const getWishListCount = () => {
-      return wishListItems.reduce((total, item) => total + item.quantity, 0);
-    };
+  const getWishListCount = () => {
+    return wishListItems.reduce((total, item) => total + item.quantity, 0);
+  };
 
   // Calculate the total amount of the cart
   const getCartAmount = () => {
@@ -249,6 +249,7 @@ const ShopContextProvider = (props) => {
     setSearch,
     showSearch,
     setShowSearch,
+    setCartItems,
     cartItems,
     addToCart,
     getCart,

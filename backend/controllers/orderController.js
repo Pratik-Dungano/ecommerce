@@ -1,12 +1,15 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import cartModel from "../models/cartModels.js";
-import Stripe from 'stripe';
+import Razorpay from 'razorpay';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 // Place Order (COD)
 const placeOrder = async (req, res) => {
@@ -51,8 +54,8 @@ const placeOrder = async (req, res) => {
     }
 };
 
-// Create Stripe Session
-const createStripeCheckoutSession = async (req, res) => {
+// Create Razorpay Order
+const createRazorpayOrder = async (req, res) => {
     try {
         const { userId, items, address, amount } = req.body;
 
@@ -63,75 +66,38 @@ const createStripeCheckoutSession = async (req, res) => {
             });
         }
 
-        // Create line items for Stripe
-        const lineItems = items.map(item => ({
-            price_data: {
-                currency: 'inr',
-                product_data: {
-                    name: item.productId.name,
-                    description: item.productId.description || '',
-                    images: [item.productId.image],
-                },
-                unit_amount: Math.round(item.price * 100),
-            },
-            quantity: item.quantity,
-        }));
-
         // Create pending order
         const order = new orderModel({
             userId,
             items,
             address,
             amount,
-            paymentMethod: "STRIPE",
+            paymentMethod: "Razorpay",
             payment: false,
-            status: "Pending",
+            status: "Order Placed",
             date: Date.now()
         });
         await order.save();
 
-        // Create Stripe checkout session
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: lineItems,
-            mode: 'payment',
-            success_url: `${process.env.FRONTEND_URL}/orders?success=true&orderId=${order._id}`,
-            cancel_url: `${process.env.FRONTEND_URL}/cart?canceled=true`,
-            customer_email: address.email,
-            metadata: {
-                orderId: order._id.toString(),
-                userId: userId.toString()
-            },
-            shipping_address_collection: {
-                allowed_countries: ['US', 'CA', 'IN'],
-            },
-            shipping_options: [
-                {
-                    shipping_rate_data: {
-                        type: 'fixed_amount',
-                        fixed_amount: {
-                            amount: 0,
-                            currency: 'inr',
-                        },
-                        display_name: 'Free shipping',
-                        delivery_estimate: {
-                            minimum: { unit: 'business_day', value: 5 },
-                            maximum: { unit: 'business_day', value: 7 },
-                        },
-                    },
-                },
-            ],
-        });
+        // Create Razorpay order
+        const options = {
+            amount: amount * 100, // amount in the smallest currency unit
+            currency: "INR",
+            receipt: order._id.toString(),
+        };
+
+        const razorpayOrder = await razorpay.orders.create(options);
 
         res.status(200).json({
             success: true,
-            sessionId: session.id
+            orderId: razorpayOrder.id,
+            order
         });
     } catch (error) {
-        console.error('Stripe Session Error:', error);
+        console.error('Razorpay Order Error:', error);
         res.status(500).json({
             success: false,
-            message: error.message || 'Error creating payment session'
+            message: error.message || 'Error creating Razorpay order'
         });
     }
 };
@@ -300,7 +266,7 @@ const updateStatus = async (req, res) => {
 
 export {
     placeOrder,
-    createStripeCheckoutSession,
+    createRazorpayOrder,
     handleStripeWebhook,
     allOrders,
     userOrders,
