@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
+    "@kommunicate/kommunicate-chatbot-plugin": "^0.0.7",
     "@shadcn/ui": "^0.0.4",
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^5.6.0",
