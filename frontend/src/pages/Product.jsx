@@ -23,7 +23,6 @@ const Product = () => {
     if (product) {
       setProductData(product);
       setImage(product.image[0]);
-      console.log("hi");
     }
   };
 
