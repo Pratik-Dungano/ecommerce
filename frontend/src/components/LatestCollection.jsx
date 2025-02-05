@@ -7,10 +7,14 @@ const LatestCollection = () => {
     const [latestProducts, setLatestProducts] = useState([]);
 
     useEffect(() => {
-        // Sort products by creation date (assuming each product has a `createdAt` field)
-        const sortedProducts = [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // Sort products by date in descending order (newest first)
+        const sortedProducts = [...products].sort((a, b) => {
+            return b.date - a.date;  // Using the date field from your model
+        });
+        
         // Get the latest 5 products
-        setLatestProducts(sortedProducts.slice(0, 5));
+        const latest = sortedProducts.slice(0, 5);
+        setLatestProducts(latest);
     }, [products]);
 
     return (

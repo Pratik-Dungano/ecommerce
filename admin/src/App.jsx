@@ -9,6 +9,7 @@ import Login from "./components/Login";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Dashboard from "./components/Dashboard";
+import Edit from './components/Edit';
 
 
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -58,6 +59,7 @@ const App = () => {
                 <Route path="/list" element={<List token={token} />} />
                 <Route path="/orders" element={<Orders token={token} />} />
                 <Route path="/dashboard" element={<Dashboard token={token} />} />
+                <Route path="/edit/:id" element={<Edit token={token} />} />
           
                 {/* Default redirect route */}
                 <Route path="/" element={<Navigate to="/orders" />} />

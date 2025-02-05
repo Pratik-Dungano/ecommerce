@@ -1,8 +1,8 @@
 # Adaa Jaipur - E-commerce Website 
 ## Team-Ein Bin Tin
-**Pratikkumar Dungano**
-**Suraj Yaligar**
-**Ananya Sah Mu**
+- **Pratikkumar Dungano**
+- **Suraj Yaligar**
+- **Ananya Sah Mu**
 
 ## Introduction
 Adaa Jaipur is a modern e-commerce platform designed for seamless shopping. It provides a user-friendly interface, efficient backend, and an intuitive admin panel for managing products and orders.
@@ -12,7 +12,7 @@ Adaa Jaipur is a modern e-commerce platform designed for seamless shopping. It p
 - **Product Listings**
 - **Product Detail Page**
 - **Cart Management**
-- **Checkout & Payments (Stripe Integration)**
+- **Checkout & Payments (Stripe Integration-in progress)**
 - **E-commerce Analytics** (Track customer behavior and trends)
 - **UI/UX Optimized Design** for a smooth shopping experience
 
@@ -137,39 +137,39 @@ VITE_BACKEND_URL="<your_backend_url>"
 - `POST /api/wishlist/update` - Update wishlist
 
 ---
-## Screenshots (Add images below)
+## Screenshots 
 **Home Page:**  
-![Home Page](#)
+![Home Page](./frontend/src/assets/home1.png)
 
 **Product Listings:**  
-![Product Listings](#)
+![Product Listings](./frontend/src/assets/listing1.png)
 
 **Product Detail:**  
-![Product Detail](#)
+![Product Detail](./frontend/src/assets/product1.png)
 
 **Cart Page:**  
-![Cart](#)
+
+![Cart](./frontend/src/assets/cart1.png)
 
 **Checkout Page:**  
-![Checkout](#)
+![Checkout](./frontend/src/assets/checkout1.png)
 
 **Admin Dashboard:**  
-![Admin Dashboard](#)
+![Admin Dashboard](./frontend/src/assets/dashboard1.png)
 
 **Order Management:**  
-![Order Management](#)
+   ![Order Management](./frontend/src/assets/orders1.png)
 
 **User Login & Signup:**  
-![User Authentication](#)
+![User Authentication](./frontend/src/assets/login1.png)
 
 
-**Payment Gateway:**  
-![Stripe Payment](#)
 
 ---
 ## Contributors
-- **Your Name** - Developer
-- **Other Contributors** - (Add names if applicable)
+- **Pratikkumar Dungano** - Developer
+- **Suraj Yaligar** - Developer
+- **Ananya Sah Mu** - Developer
 
 ## License
 This project is licensed under the MIT License.

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { backendUrl } from "../App";
 import { toast } from "react-toastify";
+import { Link } from 'react-router-dom';
 
 const List = ({ token }) => {
   const [list, setList] = useState([]);
@@ -138,12 +139,20 @@ const List = ({ token }) => {
                 <td className="px-4 py-3">{product.subcategory || "N/A"}</td>
                 <td className="px-4 py-3 text-gray-800 font-semibold">₹{product.price}</td>
                 <td className="px-4 py-3 text-center">
-                  <button
-                    className="text-black font-bold text-lg hover:text-gray-600 transition duration-200"
-                    onClick={() => removeProduct(product._id)}
-                  >
-                    X
-                  </button>
+                  <div className="flex justify-center gap-2">
+                    <Link
+                      to={`/edit/${product._id}`}
+                      className="text-blue-600 hover:text-blue-800 transition duration-200"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      className="text-red-600 hover:text-red-800 transition duration-200"
+                      onClick={() => removeProduct(product._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))

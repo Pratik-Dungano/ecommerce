@@ -4,21 +4,27 @@ import Title from './Title';
 import ProductItem from './ProductItem';
 import { useNavigate } from 'react-router-dom';
 
-const RelatedProducts = ({ category, subCategory }) => {
+const RelatedProducts = ({ category, subCategory, currentProductId }) => {
     const { products } = useContext(ShopContext);
     const [related, setRelated] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         if (products.length > 0) {
-            let productCopy = products.slice();
+            // Filter by category and subcategory, and exclude the current product
+            let filteredProducts = products.filter((item) => 
+                item.category === category && 
+                item.subcategory === subCategory &&
+                item._id !== currentProductId
+            );
 
-            productCopy = productCopy.filter((item) => category === item.category);
-            productCopy = productCopy.filter((item) => subCategory === item.subCategory);
+            // Shuffle the filtered products array
+            const shuffledProducts = filteredProducts.sort(() => Math.random() - 0.5);
 
-            setRelated(productCopy.slice(0, 5));
+            // Get up to 5 random related products
+            setRelated(shuffledProducts.slice(0, 5));
         }
-    }, [products, category, subCategory]);
+    }, [products, category, subCategory, currentProductId]);
 
     const handleProductClick = (id) => {
         navigate(`/product/${id}`);

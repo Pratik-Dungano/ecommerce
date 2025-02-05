@@ -1,16 +1,21 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
-import { Heart } from 'lucide-react'; // Import Heart icon
+import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard } from 'lucide-react';
 
 const Product = () => {
   const { productId } = useParams();
+  const navigate = useNavigate();
   const { products, currency, addToCart, addToWishList, wishListItems } = useContext(ShopContext);
   const [productData, setProductData] = useState(null);
   const [image, setImage] = useState('');
   const [size, setSize] = useState('');
+  const [showMagnifier, setShowMagnifier] = useState(false);
+  const [[x, y], setXY] = useState([0, 0]);
+  const [[imgWidth, imgHeight], setImgSize] = useState([0, 0]);
+  const magnifierRef = useRef(null);
 
   const fetchProductData = () => {
     const product = products.find(item => item._id === productId);
@@ -24,90 +29,219 @@ const Product = () => {
     fetchProductData();
   }, [productId, products]);
 
+  const handleMouseMove = (e) => {
+    const elem = magnifierRef.current;
+    const { top, left } = elem.getBoundingClientRect();
+    // Calculate position relative to the image container
+    const x = e.clientX - left;
+    const y = e.clientY - top;
+    setXY([x, y]);
+  };
+
+  const handleMouseEnter = () => {
+    const elem = magnifierRef.current;
+    const { width, height } = elem.getBoundingClientRect();
+    setImgSize([width, height]);
+    setShowMagnifier(true);
+  };
+
+  const handleBuyNow = () => {
+    if (size) {
+      addToCart(productData._id, size);
+      navigate('/cart');
+    } else {
+      alert('Please select a size before proceeding');
+    }
+  };
+
+  const handleShare = () => {
+    const productUrl = window.location.href;
+    if (navigator.share) {
+      navigator.share({ 
+        title: productData.name, 
+        text: 'Check out this product!', 
+        url: productUrl 
+      });
+    } else {
+      navigator.clipboard.writeText(productUrl);
+      alert('Product link copied to clipboard!');
+    }
+  };
+
   if (!productData) {
     return <div>Loading...</div>;
   }
 
-  // Check if product is in wishlist
   const isInWishlist = wishListItems.some(item => item.id === productData._id);
+  const MAGNIFIER_SIZE = 150;
 
   return (
-    <div className="border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100">
-      <div className="flex gap-12 sm:gap-12 flex-col sm:flex-row">
-        <div className="flex-1 flex flex-col-reverse gap-3 sm:flex-row">
-          <div className="flex sm:flex-col overflow-x-auto sm:overflow-y-scroll justify-between sm:justify-normal sm:w-[18.7%] w-full">
-            {productData.image.map((item, index) => (
-              <img
-                onClick={() => setImage(item)}
-                src={item}
-                key={index}
-                className="w-[24%] sm:w-full sm:mb-3 flex-shrink-0 cursor-pointer"
-                alt=""
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Image Section */}
+        <div className="space-y-4">
+          <div 
+            className="relative overflow-hidden rounded-lg"
+            style={{ 
+              height: '500px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={() => setShowMagnifier(false)}
+            onMouseMove={handleMouseMove}
+            ref={magnifierRef}
+          >
+            <img 
+              src={image} 
+              className="max-h-full max-w-full object-contain"
+              alt={productData.name}
+            />
+            {showMagnifier && (
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${x - MAGNIFIER_SIZE/2}px`,
+                  top: `${y - MAGNIFIER_SIZE/2}px`,
+                  width: `${MAGNIFIER_SIZE}px`,
+                  height: `${MAGNIFIER_SIZE}px`,
+                  backgroundImage: `url('${image}')`,
+                  backgroundPosition: `${-x * 2 + MAGNIFIER_SIZE/2}px ${-y * 2 + MAGNIFIER_SIZE/2}px`,
+                  backgroundSize: `${imgWidth * 2}px ${imgHeight * 2}px`,
+                  border: '2px solid #ddd',
+                }}
               />
-            ))}
+            )}
           </div>
-          <div className="w-full sm:w-[80%]">
-            <img src={image} className="w-full h-auto" alt="" />
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {productData.image.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => setImage(item)}
+                className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all
+                  ${item === image ? 'border-orange-500' : 'border-transparent hover:border-gray-300'}`}
+              >
+                <img src={item} className="w-full h-full object-cover" alt="" />
+              </button>
+            ))}
           </div>
         </div>
-        <div className="flex-1">
-          <h1 className="font-medium text-2xl mt-2">{productData.name}</h1>
-          <div className="flex items-center gap-1 mt-2">
-            {[...Array(4)].map((_, i) => (
-              <img src={assets.star_icon} alt="" className="w-3 5" key={i} />
-            ))}
-            <img src={assets.star_dull_icon} alt="" className="w-3 5" />
-            <p className="pl-2">(122)</p>
+
+        {/* Product Details Section */}
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{productData.name}</h1>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex">
+                {[...Array(4)].map((_, i) => (
+                  <img key={i} src={assets.star_icon} alt="" className="w-4 h-4" />
+                ))}
+                <img src={assets.star_dull_icon} alt="" className="w-4 h-4" />
+              </div>
+              <span className="text-sm text-gray-500">(122 reviews)</span>
+            </div>
           </div>
-          <p className="mt-5 text-3xl font-medium">
-            {currency}{productData.price}
-          </p>
-          <p className="mt-5 text-gray-600 md:w-4/5">{productData.description}</p>
-          <div className="flex flex-col gap-4 my-8">
-            <p>Select Size</p>
-            <div className="flex-gap-2">
-              {productData.sizes.map((item, index) => (
+
+          <div className="space-y-2">
+            <p className="text-4xl font-bold text-gray-900">
+              {currency}{productData.price}
+            </p>
+            <p className="text-sm text-green-600">Inclusive of all taxes</p>
+          </div>
+
+          <p className="text-gray-600">{productData.description}</p>
+
+          <div className="space-y-4">
+            <h3 className="font-medium text-gray-900">Select Size</h3>
+            <div className="flex flex-wrap gap-3">
+              {productData.sizes.map((item) => (
                 <button
+                  key={item}
                   onClick={() => setSize(item)}
-                  className={`border py-2 px-4 bg-gray-100 ${item === size ? 'border-orange-500' : ''}`}
-                  key={index}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all
+                    ${item === size 
+                      ? 'bg-black text-white' 
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}
                 >
                   {item}
                 </button>
               ))}
             </div>
           </div>
-          <div className="flex gap-4">
+
+          <div className="flex flex-wrap gap-4">
             <button
               onClick={() => addToCart(productData._id, size)}
-              className="bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
+              className="flex-1 min-w-[200px] bg-black text-white px-8 py-3 rounded-md font-medium
+                hover:bg-gray-800 transition-colors inline-flex items-center justify-center gap-2"
             >
-              ADD TO CART
+              <ShoppingCart className="w-5 h-5" />
+              Add to Cart
+            </button>
+            <button
+              onClick={handleBuyNow}
+              className="flex-1 min-w-[200px] bg-orange-500 text-white px-8 py-3 rounded-md font-medium
+                hover:bg-orange-600 transition-colors inline-flex items-center justify-center gap-2"
+            >
+              <CreditCard className="w-5 h-5" />
+              Buy Now
             </button>
             <button
               onClick={() => addToWishList(productData._id, size)}
-              className="flex items-center gap-2 bg-black text-white px-8 py-3 text-sm active:bg-gray-700"
+              className="p-3 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <Heart 
                 fill={isInWishlist ? 'red' : 'none'}
                 stroke={isInWishlist ? 'red' : 'currentColor'}
-                className="w-5 h-5 transition-colors duration-200"
+                className="w-6 h-6"
               />
-              WISHLIST
+            </button>
+            <button 
+              onClick={handleShare} 
+              className="p-3 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
+              title="Share product"
+            >
+              <Share2 className="w-6 h-6" />
             </button>
           </div>
-          <hr className="mt-8 sm:w-4/5" />
-          <div className="text-sm text-gray-500 mt-5 flex flex-col gap-1">
-            <p>100% Original product.</p>
-            <p>Cash on delivery is available on this product.</p>
-            <p>Easy return and exchange policy within 7 days.</p>
+
+          <div className="border-t border-gray-200 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3">
+                <Truck className="w-6 h-6 text-gray-600" />
+                <div>
+                  <p className="font-medium">Free Delivery</p>
+                  <p className="text-sm text-gray-500">On orders above {currency}499</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-6 h-6 text-gray-600" />
+                <div>
+                  <p className="font-medium">Easy Returns</p>
+                  <p className="text-sm text-gray-500">7 days return policy</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Shield className="w-6 h-6 text-gray-600" />
+                <div>
+                  <p className="font-medium">Secure Payments</p>
+                  <p className="text-sm text-gray-500">100% secure checkout</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <RelatedProducts
-        category={productData.category}
-        subcategory={productData.subcategory}
-      />
+
+      {/* Related Products Section */}
+      <div className="mt-16">
+        <RelatedProducts
+          category={productData.category}
+          subCategory={productData.subcategory}
+          currentProductId={productData._id}
+        />
+      </div>
     </div>
   );
 };
