@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
-import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard } from 'lucide-react';
+import Reviews from '../components/Reviews';
+import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard, Star } from 'lucide-react';
 
 const Product = () => {
   const { productId } = useParams();
@@ -69,6 +70,26 @@ const Product = () => {
     }
   };
 
+  const renderStars = (rating) => {
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`w-4 h-4 ${
+              star <= rating
+                ? 'text-yellow-400 fill-yellow-400'
+                : 'text-gray-300'
+            }`}
+          />
+        ))}
+        <span className="text-sm text-gray-600 ml-1">
+          ({productData.totalReviews || 0})
+        </span>
+      </div>
+    );
+  };
+
   if (!productData) {
     return <div>Loading...</div>;
   }
@@ -131,26 +152,9 @@ const Product = () => {
 
         {/* Product Details Section */}
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{productData.name}</h1>
-            <div className="mt-2 flex items-center gap-2">
-              <div className="flex">
-                {[...Array(4)].map((_, i) => (
-                  <img key={i} src={assets.star_icon} alt="" className="w-4 h-4" />
-                ))}
-                <img src={assets.star_dull_icon} alt="" className="w-4 h-4" />
-              </div>
-              <span className="text-sm text-gray-500">(122 reviews)</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-4xl font-bold text-gray-900">
-              {currency}{productData.price}
-            </p>
-            <p className="text-sm text-green-600">Inclusive of all taxes</p>
-          </div>
-
+          <h1 className="text-3xl font-bold text-gray-900">{productData.name}</h1>
+          <div className="text-2xl font-bold text-gray-900">{currency}{productData.price}</div>
+          <p className="text-sm text-green-600">Inclusive of all taxes</p>
           <p className="text-gray-600">{productData.description}</p>
 
           <div className="space-y-4">
@@ -235,12 +239,21 @@ const Product = () => {
         </div>
       </div>
 
-      {/* Related Products Section */}
+      {/* Reviews Section */}
       <div className="mt-16">
-        <RelatedProducts
-          category={productData.category}
+        <h2 className="text-2xl font-bold mb-8">Customer Reviews</h2>
+        <Reviews 
+          productId={productId}
+          key={productId}
+        />
+      </div>
+
+      {/* Related Products */}
+      <div className="mt-16">
+        <RelatedProducts 
+          category={productData.category} 
           subCategory={productData.subcategory}
-          currentProductId={productData._id}
+          currentProductId={productId} 
         />
       </div>
     </div>
