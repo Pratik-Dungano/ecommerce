@@ -9,7 +9,17 @@ const productSchema=new mongoose.Schema({
     subcategory:{type:String, required:true},
     sizes:{type:Array, required:true},
     bestseller:{type:Boolean},
-    date:{type:Number,required:true}
+    date:{type:Number,required:true},
+    reviews: [{
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
+        orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'order', required: true },
+        rating: { type: Number, required: true, min: 1, max: 5 },
+        text: { type: String, required: true },
+        images: [{ type: String }],
+        date: { type: Date, default: Date.now }
+    }],
+    averageRating: { type: Number, default: 0 },
+    totalReviews: { type: Number, default: 0 }
 })
 
 const productModel=mongoose.models.product||mongoose.model('product',productSchema)

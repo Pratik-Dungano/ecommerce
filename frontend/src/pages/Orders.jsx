@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
+import ReviewForm from "../components/ReviewForm";
 
 const TrackingModal = ({ isOpen, onClose, order }) => {
   if (!isOpen) return null;
@@ -119,6 +120,8 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reviewItem, setReviewItem] = useState(null);
+  const [reviewedProducts, setReviewedProducts] = useState(new Set());
 
   // Add animation styles
   useEffect(() => {
@@ -170,6 +173,22 @@ const Orders = () => {
   const handleTrackOrder = (order) => {
     setSelectedOrder(order);
     setIsModalOpen(true);
+  };
+
+  const handleReviewClick = (order, item) => {
+    setReviewItem({
+      orderId: order._id,
+      productId: item.productId._id,
+      productName: item.productId.name,
+      productImage: item.productId.image[0]
+    });
+  };
+
+  const handleReviewSubmitted = (productId) => {
+    setReviewedProducts(prev => new Set([...prev, productId]));
+    setReviewItem(null);
+    // Optionally refresh orders to update UI
+    loadOrders();
   };
 
   return (
@@ -246,6 +265,24 @@ const Orders = () => {
                           <p>Quantity: {item.quantity}</p>
                           <p>Size: {item.size}</p>
                         </div>
+                        {/* Add Review Button for Delivered Orders */}
+                        {order.status === "Delivered" && (
+                          <div className="mt-2">
+                            {reviewedProducts.has(item.productId._id) ? (
+                              <span className="text-green-600 text-sm">
+                                ✓ Review submitted
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleReviewClick(order, item)}
+                                className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
+                                  transition-colors text-sm font-medium"
+                              >
+                                Write a Review
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -274,6 +311,38 @@ const Orders = () => {
           onClose={() => setIsModalOpen(false)}
           order={selectedOrder}
         />
+      )}
+
+      {/* Review Modal */}
+      {reviewItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-lg w-full relative animate-fadeIn p-6">
+            <button 
+              onClick={() => setReviewItem(null)}
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+              ×
+            </button>
+            
+            <h2 className="text-xl font-bold mb-4">Write a Review</h2>
+            <div className="flex items-center gap-4 mb-6">
+              <img
+                src={reviewItem.productImage}
+                alt={reviewItem.productName}
+                className="w-20 h-20 object-cover rounded"
+              />
+              <div>
+                <h3 className="font-medium">{reviewItem.productName}</h3>
+              </div>
+            </div>
+            
+            <ReviewForm
+              productId={reviewItem.productId}
+              orderId={reviewItem.orderId}
+              onReviewSubmitted={handleReviewSubmitted}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
