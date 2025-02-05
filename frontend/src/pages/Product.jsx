@@ -4,7 +4,6 @@ import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
 import { Heart } from 'lucide-react'; // Import Heart icon
-import TryOn from '../components/TryOn'; // Add this import
 
 const Product = () => {
   const { productId } = useParams();
@@ -12,7 +11,6 @@ const Product = () => {
   const [productData, setProductData] = useState(null);
   const [image, setImage] = useState('');
   const [size, setSize] = useState('');
-  const [showTryOn, setShowTryOn] = useState(false); // Add this state
 
   const fetchProductData = () => {
     const product = products.find(item => item._id === productId);
@@ -97,12 +95,6 @@ const Product = () => {
               />
               WISHLIST
             </button>
-            <button
-              onClick={() => setShowTryOn(true)}
-              className="bg-blue-500 text-white px-8 py-3 text-sm active:bg-blue-600"
-            >
-              TRY IN AR
-            </button>
           </div>
           <hr className="mt-8 sm:w-4/5" />
           <div className="text-sm text-gray-500 mt-5 flex flex-col gap-1">
@@ -112,14 +104,6 @@ const Product = () => {
           </div>
         </div>
       </div>
-      
-      {showTryOn && (
-        <TryOn 
-          clothingImage={image} 
-          onClose={() => setShowTryOn(false)}
-        />
-      )}
-      
       <RelatedProducts
         category={productData.category}
         subcategory={productData.subcategory}
