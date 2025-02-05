@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
-import { Heart, Search, Truck, RefreshCw, Shield, Share2 } from 'lucide-react';
+import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard } from 'lucide-react';
 
 const Product = () => {
   const { productId } = useParams();
@@ -16,7 +16,6 @@ const Product = () => {
   const [[x, y], setXY] = useState([0, 0]);
   const [[imgWidth, imgHeight], setImgSize] = useState([0, 0]);
   const magnifierRef = useRef(null);
-  const [showShareMenu, setShowShareMenu] = useState(false);
 
   const fetchProductData = () => {
     const product = products.find(item => item._id === productId);
@@ -55,21 +54,18 @@ const Product = () => {
     }
   };
 
-  const handleShare = async (platform) => {
-    const url = window.location.href;
-    
-    switch (platform) {
-      case 'whatsapp':
-        window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
-        break;
-      case 'copy':
-        await navigator.clipboard.writeText(url);
-        alert('Link copied to clipboard!');
-        break;
-      default:
-        break;
+  const handleShare = () => {
+    const productUrl = window.location.href;
+    if (navigator.share) {
+      navigator.share({ 
+        title: productData.name, 
+        text: 'Check out this product!', 
+        url: productUrl 
+      });
+    } else {
+      navigator.clipboard.writeText(productUrl);
+      alert('Product link copied to clipboard!');
     }
-    setShowShareMenu(false);
   };
 
   if (!productData) {
@@ -178,15 +174,17 @@ const Product = () => {
             <button
               onClick={() => addToCart(productData._id, size)}
               className="flex-1 min-w-[200px] bg-black text-white px-8 py-3 rounded-md font-medium
-                hover:bg-gray-800 transition-colors"
+                hover:bg-gray-800 transition-colors inline-flex items-center justify-center gap-2"
             >
+              <ShoppingCart className="w-5 h-5" />
               Add to Cart
             </button>
             <button
               onClick={handleBuyNow}
               className="flex-1 min-w-[200px] bg-orange-500 text-white px-8 py-3 rounded-md font-medium
-                hover:bg-orange-600 transition-colors"
+                hover:bg-orange-600 transition-colors inline-flex items-center justify-center gap-2"
             >
+              <CreditCard className="w-5 h-5" />
               Buy Now
             </button>
             <button
@@ -199,32 +197,13 @@ const Product = () => {
                 className="w-6 h-6"
               />
             </button>
-            <div className="relative">
-              <button
-                onClick={() => setShowShareMenu(!showShareMenu)}
-                className="p-3 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                <Share2 className="w-6 h-6" />
-              </button>
-              {showShareMenu && (
-                <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                  <div className="py-1">
-                    <button
-                      onClick={() => handleShare('whatsapp')}
-                      className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Share on WhatsApp
-                    </button>
-                    <button
-                      onClick={() => handleShare('copy')}
-                      className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Copy Link
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <button 
+              onClick={handleShare} 
+              className="p-3 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
+              title="Share product"
+            >
+              <Share2 className="w-6 h-6" />
+            </button>
           </div>
 
           <div className="border-t border-gray-200 pt-6">
