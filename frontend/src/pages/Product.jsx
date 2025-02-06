@@ -3,9 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
-import Reviews from '../components/Reviews';
-import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard, Star, Award } from 'react-feather';
-import { FaLeaf } from "react-icons/fa";
+import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard } from 'lucide-react';
 
 const Product = () => {
   const { productId } = useParams();
@@ -18,8 +16,6 @@ const Product = () => {
   const [[x, y], setXY] = useState([0, 0]);
   const [[imgWidth, imgHeight], setImgSize] = useState([0, 0]);
   const magnifierRef = useRef(null);
-  const ZOOM_LEVEL = 2.5;
-  const MAGNIFIER_SIZE = 150;
 
   const fetchProductData = () => {
     const product = products.find(item => item._id === productId);
@@ -72,153 +68,88 @@ const Product = () => {
     }
   };
 
-  const renderStars = (rating) => {
-    return (
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`w-4 h-4 ${
-              star <= rating
-                ? 'text-yellow-400 fill-yellow-400'
-                : 'text-gray-300'
-            }`}
-          />
-        ))}
-        <span className="text-sm text-gray-600 ml-1">
-          ({productData.totalReviews || 0})
-        </span>
-      </div>
-    );
-  };
-
   if (!productData) {
     return <div>Loading...</div>;
   }
 
   const isInWishlist = wishListItems.some(item => item.id === productData._id);
+  const MAGNIFIER_SIZE = 150;
 
   return (
-    <div className={max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${productData?.ecoFriendly ? 'eco-friendly' : ''}}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Left Column - Product Images */}
-        <div className="relative flex gap-6">
-          {/* Thumbnails */}
-          <div className="hidden sm:flex flex-col gap-3 w-24">
-            {productData.image.map((item, index) => (
+        {/* Image Section */}
+        <div className="space-y-4">
+          <div 
+            className="relative overflow-hidden rounded-lg"
+            style={{ 
+              height: '500px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={() => setShowMagnifier(false)}
+            onMouseMove={handleMouseMove}
+            ref={magnifierRef}
+          >
+            <img 
+              src={image} 
+              className="max-h-full max-w-full object-contain"
+              alt={productData.name}
+            />
+            {showMagnifier && (
               <div
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${x - MAGNIFIER_SIZE/2}px`,
+                  top: `${y - MAGNIFIER_SIZE/2}px`,
+                  width: `${MAGNIFIER_SIZE}px`,
+                  height: `${MAGNIFIER_SIZE}px`,
+                  backgroundImage: `url('${image}')`,
+                  backgroundPosition: `${-x * 2 + MAGNIFIER_SIZE/2}px ${-y * 2 + MAGNIFIER_SIZE/2}px`,
+                  backgroundSize: `${imgWidth * 2}px ${imgHeight * 2}px`,
+                  border: '2px solid #ddd',
+                }}
+              />
+            )}
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {productData.image.map((item, index) => (
+              <button
                 key={index}
                 onClick={() => setImage(item)}
-                className={`cursor-pointer rounded-lg overflow-hidden transition-all ${
-                  image === item 
-                    ? 'ring-1 ring-gray-200' 
-                    : 'hover:ring-1 hover:ring-gray-200'
-                }`}
+                className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all
+                  ${item === image ? 'border-orange-500' : 'border-transparent hover:border-gray-300'}`}
               >
-                <img
-                  src={item}
-                  alt={${productData.name} thumbnail ${index + 1}}
-                  className="w-full h-24 object-cover object-top"
-                />
-              </div>
+                <img src={item} className="w-full h-full object-cover" alt="" />
+              </button>
             ))}
-          </div>
-
-          {/* Main Image */}
-          <div className="flex-grow relative">
-            <div
-              ref={magnifierRef}
-              className="relative overflow-hidden rounded-lg bg-gray-50"
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={() => setShowMagnifier(false)}
-              onMouseMove={handleMouseMove}
-            >
-              <img
-                src={image}
-                alt={productData.name}
-                className="w-full h-auto object-cover rounded-lg"
-              />
-              {showMagnifier && (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: ${x - MAGNIFIER_SIZE / 2}px,
-                    top: ${y - MAGNIFIER_SIZE / 2}px,
-                    width: ${MAGNIFIER_SIZE}px,
-                    height: ${MAGNIFIER_SIZE}px,
-                    opacity: "1",
-                    backgroundColor: "white",
-                    borderRadius: "4px",
-                    pointerEvents: "none",
-                    zIndex: 2,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    background: url(${image}),
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: `${-x * ZOOM_LEVEL + MAGNIFIER_SIZE / 2}px ${
-                      -y * ZOOM_LEVEL + MAGNIFIER_SIZE / 2
-                    }px`,
-                    backgroundSize: ${imgWidth * ZOOM_LEVEL}px ${imgHeight * ZOOM_LEVEL}px
-                  }}
-                />
-              )}
-            </div>
-
-            {/* Mobile Thumbnails */}
-            <div className="flex sm:hidden gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
-              {productData.image.map((item, index) => (
-                <div
-                  key={index}
-                  onClick={() => setImage(item)}
-                  className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-all ${
-                    image === item 
-                      ? 'ring-1 ring-gray-200' 
-                      : 'hover:ring-1 hover:ring-gray-200'
-                  }`}
-                >
-                  <img
-                    src={item}
-                    alt={${productData.name} thumbnail ${index + 1}}
-                    className="w-20 h-20 object-cover object-top"
-                  />
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
         {/* Product Details Section */}
         <div className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {productData.name}
-            </h1>
-            {productData.ecoFriendly && (
-              <div className="flex items-center gap-2 text-green-600">
-                <FaLeaf size={16} />
-                <span className="text-sm font-medium">Eco-Friendly Product</span>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{productData.name}</h1>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex">
+                {[...Array(4)].map((_, i) => (
+                  <img key={i} src={assets.star_icon} alt="" className="w-4 h-4" />
+                ))}
+                <img src={assets.star_dull_icon} alt="" className="w-4 h-4" />
               </div>
-            )}
+              <span className="text-sm text-gray-500">(122 reviews)</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-2xl font-bold text-gray-900">
-              {currency}{Math.round(productData.discountPercentage ? 
-                productData.price - (productData.price * productData.discountPercentage / 100) : 
-                productData.price
-              )}
-            </div>
-            {productData.discountPercentage > 0 && (
-              <>
-                <div className="text-lg text-gray-500 line-through">
-                  {currency}{productData.price}
-                </div>
-                <div className="text-lg font-medium text-green-600">
-                  {productData.discountPercentage}% off
-                </div>
-              </>
-            )}
+          <div className="space-y-2">
+            <p className="text-4xl font-bold text-gray-900">
+              {currency}{productData.price}
+            </p>
+            <p className="text-sm text-green-600">Inclusive of all taxes</p>
           </div>
-          <p className="text-sm text-green-600">Inclusive of all taxes</p>
+
           <p className="text-gray-600">{productData.description}</p>
 
           <div className="space-y-4">
@@ -303,57 +234,16 @@ const Product = () => {
         </div>
       </div>
 
-      {/* Reviews Section */}
+      {/* Related Products Section */}
       <div className="mt-16">
-        <h2 className="text-2xl font-bold mb-8">Customer Reviews</h2>
-        <Reviews 
-          productId={productId}
-          key={productId}
-        />
-      </div>
-
-      {/* Related Products */}
-      <div className="mt-16">
-        <RelatedProducts 
-          category={productData.category} 
+        <RelatedProducts
+          category={productData.category}
           subCategory={productData.subcategory}
-          currentProductId={productId} 
+          currentProductId={productData._id}
         />
       </div>
     </div>
   );
 };
-
-<style jsx>{`
-  .eco-friendly {
-    background: linear-gradient(to bottom, rgba(144, 238, 144, 0.1), transparent);
-    border-radius: 8px;
-  }
-
-  .eco-badge {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 8px 16px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .eco-badge span {
-    color: #4CAF50;
-    font-weight: 500;
-  }
-
-  .eco-icon {
-    display: inline-flex;
-    align-items: center;
-    margin-left: 8px;
-    vertical-align: middle;
-  }
-`}</style>
 
 export default Product;
