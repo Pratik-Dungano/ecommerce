@@ -192,18 +192,31 @@ const Product = () => {
             <h1 className="text-2xl font-bold text-gray-900">
               {productData.name}
             </h1>
-            {productData.ecoFriendly && (
-              <div className="relative group">
-                <div className="flex items-center gap-2 text-green-600 cursor-help">
-                  <FaLeaf size={16} />
-                  <span className="text-sm font-medium">Eco-Friendly Product</span>
+            <div className="flex flex-col gap-2">
+              {productData.ecoFriendly && (
+                <div className="relative group">
+                  <div className="flex items-center gap-2 text-green-600 cursor-help">
+                    <FaLeaf size={16} />
+                    <span className="text-sm font-medium">Eco-Friendly Product</span>
+                  </div>
+                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
+                    Crafted from eco-friendly organic cotton, this product offers a sustainable, soft, and breathable feel. 
+                    Ethically made, it ensures comfort while reducing environmental impact—perfect for conscious consumers seeking quality and sustainability.
+                  </div>
                 </div>
-                <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
-                  Crafted from eco-friendly organic cotton, this product offers a sustainable, soft, and breathable feel. 
-                  Ethically made, it ensures comfort while reducing environmental impact—perfect for conscious consumers seeking quality and sustainability.
+              )}
+              {productData.bestseller && (
+                <div className="relative group">
+                  <div className="flex items-center gap-2 text-yellow-600 cursor-help">
+                    <Star size={16} />
+                    <span className="text-sm font-medium">Bestseller Product</span>
+                  </div>
+                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
+                    One of our most popular items! This product consistently ranks among our top sellers, loved by customers for its quality and style.
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
