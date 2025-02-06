@@ -305,7 +305,7 @@ const Product = () => {
 
       {/* Reviews Section */}
       <div className="mt-16">
-        <h2 className="text-2xl font-bold mb-8">Customer Reviews</h2>
+        <h2 className="text-2xl font-bold mb-8">Customer Review</h2>
         <Reviews 
           productId={productId}
           key={productId}
