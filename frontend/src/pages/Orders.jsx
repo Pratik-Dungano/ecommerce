@@ -3,6 +3,7 @@ import axios from "axios";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import ReviewForm from "../components/ReviewForm";
+import { toast } from "react-toastify";
 
 const TrackingModal = ({ isOpen, onClose, order }) => {
   if (!isOpen) return null;
@@ -115,7 +116,7 @@ const TrackingModal = ({ isOpen, onClose, order }) => {
 };
 
 const Orders = () => {
-  const { token, backendUrl, currency } = useContext(ShopContext);
+  const { token, backendUrl, currency, userId } = useContext(ShopContext);
   const [orderData, setOrderData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -157,6 +158,7 @@ const Orders = () => {
       }
     } catch (error) {
       console.error("Error loading orders:", error);
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
@@ -185,10 +187,32 @@ const Orders = () => {
   };
 
   const handleReviewSubmitted = (productId) => {
-    setReviewedProducts(prev => new Set([...prev, productId]));
+    // Update the reviewedProducts set
+    setReviewedProducts(prev => {
+      const newSet = new Set(prev);
+      newSet.add(productId);
+      return newSet;
+    });
     setReviewItem(null);
-    // Optionally refresh orders to update UI
-    loadOrders();
+    toast.success("Thank you for reviewing the product!");
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/order/cancel`,
+        { orderId, userId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        toast.success("Order cancelled successfully");
+        loadOrders(); // Reload orders to reflect the change
+      }
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      toast.error(error.response?.data?.message || "Failed to cancel order");
+    }
   };
 
   return (
@@ -206,10 +230,7 @@ const Orders = () => {
       {!loading && orderData.length > 0 && (
         <div className="space-y-8">
           {orderData.map((order) => (
-            <div
-              key={order._id}
-              className="border rounded-lg overflow-hidden bg-white shadow-sm"
-            >
+            <div key={order._id} className="border rounded-lg overflow-hidden bg-white shadow-sm">
               <div className="p-6 space-y-6">
                 {/* Order header */}
                 <div className="flex flex-col sm:flex-row justify-between gap-4 pb-4 border-b">
@@ -225,6 +246,14 @@ const Orders = () => {
                     >
                       Track Order
                     </button>
+                    {order.status !== "Delivered" && order.status !== "Cancelled" && (
+                      <button
+                        onClick={() => handleCancelOrder(order._id)}
+                        className="text-sm bg-red-600 text-white px-4 py-1.5 rounded-md hover:bg-red-700 transition-colors"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
                     <p className={`text-sm font-medium ${
                       order.status === "Delivered" ? "text-green-600" :
                       order.status === "Cancelled" ? "text-red-600" :
@@ -251,7 +280,7 @@ const Orders = () => {
                           <h3 className="font-medium">{item.productId?.name}</h3>
                           <p className="text-sm text-gray-500">Size: {item.size}</p>
                           <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
-                          <p className="font-medium">{currency}{item.productId?.price}</p>
+           
                           
                           {/* Show review button only if not reviewed and order is delivered */}
                           {order.status === "Delivered" && 
@@ -305,10 +334,10 @@ const Orders = () => {
         />
       )}
 
-      {/* Review Modal */}
+      {/* Review Form Modal */}
       {reviewItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-lg w-full relative animate-fadeIn p-6">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 animate-fadeIn">
             <button 
               onClick={() => setReviewItem(null)}
               className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 text-xl font-bold"

@@ -26,6 +26,11 @@ const orderSchema = new mongoose.Schema({
     enum: ['Order Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
     default: 'Order Placed',
   },
+  cancelledBy: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: null,
+  },
   paymentMethod: {
     type: String,
     enum: ['COD', 'Stripe', 'Razorpay'],

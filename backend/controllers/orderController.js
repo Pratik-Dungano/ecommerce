@@ -222,6 +222,23 @@ const updateStatus = async (req, res) => {
             });
         }
 
+        const order = await orderModel.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        // Prevent changes to user-cancelled orders
+        if (order.cancelledBy === "user") {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot modify an order cancelled by user"
+            });
+        }
+
         const validStatuses = [
             "Order Placed",
             "Processing",
@@ -237,18 +254,12 @@ const updateStatus = async (req, res) => {
             });
         }
 
-        const order = await orderModel.findByIdAndUpdate(
-            orderId,
-            { status },
-            { new: true }
-        ).populate('items.productId', 'name image price');
-
-        if (!order) {
-            return res.status(404).json({
-                success: false,
-                message: "Order not found"
-            });
+        order.status = status;
+        if (status === "Cancelled") {
+            order.cancelledBy = "admin";
         }
+        
+        await order.save();
 
         res.json({
             success: true,
@@ -264,11 +275,68 @@ const updateStatus = async (req, res) => {
     }
 };
 
+// Cancel Order
+const cancelOrder = async (req, res) => {
+    try {
+        const { orderId, userId } = req.body;
+
+        if (!orderId || !userId) {
+            return res.status(400).json({
+                success: false,
+                message: "Order ID and User ID are required"
+            });
+        }
+
+        const order = await orderModel.findById(orderId);
+        
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        // Check if order belongs to user
+        if (order.userId.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized to cancel this order"
+            });
+        }
+
+        // Check if order can be cancelled (not delivered)
+        if (order.status === "Delivered") {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot cancel delivered order"
+            });
+        }
+
+        // Update order status to cancelled and mark as cancelled by user
+        order.status = "Cancelled";
+        order.cancelledBy = "user";
+        await order.save();
+
+        res.json({
+            success: true,
+            message: "Order cancelled successfully",
+            order
+        });
+    } catch (error) {
+        console.error("Cancel Order Error:", error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 export {
     placeOrder,
     createRazorpayOrder,
     handleStripeWebhook,
     allOrders,
     userOrders,
-    updateStatus
+    updateStatus,
+    cancelOrder
 };
