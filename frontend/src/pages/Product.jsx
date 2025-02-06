@@ -99,7 +99,7 @@ const Product = () => {
   const isInWishlist = wishListItems.some(item => item.id === productData._id);
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${productData?.ecoFriendly ? 'eco-friendly' : ''}`}>
+    <div className={max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${productData?.ecoFriendly ? 'eco-friendly' : ''}}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Left Column - Product Images */}
         <div className="relative flex gap-6">
@@ -117,7 +117,7 @@ const Product = () => {
               >
                 <img
                   src={item}
-                  alt={`${productData.name} thumbnail ${index + 1}`}
+                  alt={${productData.name} thumbnail ${index + 1}}
                   className="w-full h-24 object-cover object-top"
                 />
               </div>
@@ -142,22 +142,22 @@ const Product = () => {
                 <div
                   style={{
                     position: "absolute",
-                    left: `${x - MAGNIFIER_SIZE / 2}px`,
-                    top: `${y - MAGNIFIER_SIZE / 2}px`,
-                    width: `${MAGNIFIER_SIZE}px`,
-                    height: `${MAGNIFIER_SIZE}px`,
+                    left: ${x - MAGNIFIER_SIZE / 2}px,
+                    top: ${y - MAGNIFIER_SIZE / 2}px,
+                    width: ${MAGNIFIER_SIZE}px,
+                    height: ${MAGNIFIER_SIZE}px,
                     opacity: "1",
                     backgroundColor: "white",
                     borderRadius: "4px",
                     pointerEvents: "none",
                     zIndex: 2,
                     boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    background: `url(${image})`,
+                    background: url(${image}),
                     backgroundRepeat: "no-repeat",
                     backgroundPosition: `${-x * ZOOM_LEVEL + MAGNIFIER_SIZE / 2}px ${
                       -y * ZOOM_LEVEL + MAGNIFIER_SIZE / 2
                     }px`,
-                    backgroundSize: `${imgWidth * ZOOM_LEVEL}px ${imgHeight * ZOOM_LEVEL}px`
+                    backgroundSize: ${imgWidth * ZOOM_LEVEL}px ${imgHeight * ZOOM_LEVEL}px
                   }}
                 />
               )}
@@ -177,7 +177,7 @@ const Product = () => {
                 >
                   <img
                     src={item}
-                    alt={`${productData.name} thumbnail ${index + 1}`}
+                    alt={${productData.name} thumbnail ${index + 1}}
                     className="w-20 h-20 object-cover object-top"
                   />
                 </div>
