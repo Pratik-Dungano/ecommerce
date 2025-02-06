@@ -238,12 +238,7 @@ const Product = () => {
             )}
           </div>
           <p className="text-sm text-green-600">Inclusive of all taxes</p>
-          <div className="relative group">
-            <p className="text-gray-600 cursor-help">Description</p>
-            <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
-              {productData.description}
-            </div>
-          </div>
+          <p className="text-gray-600 leading-relaxed">{productData.description}</p>
 
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">Select Size</h3>
