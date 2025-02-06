@@ -69,13 +69,8 @@ const ShopContextProvider = (props) => {
 
   // Add item to the cart
   const addToCart = async (itemId, size) => {
-    if (!isLoggedIn) {
-      toast.error("Please sign in to add items to your cart.");
-      return;
-    }
-
-    if (!size) {
-      toast.error("Please select a size.");
+    if (!token) {
+      toast.error("Please login to add items to cart");
       return;
     }
 
@@ -85,12 +80,15 @@ const ShopContextProvider = (props) => {
         { itemId, size },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (response.data.success) {
-        setCartItems(response.data.cart.items); // Sync with backend
-        toast.success("Item added to the cart successfully!");
+        setCartItems(response.data.cart.items);
+        toast.success("Item added to cart!");
+      } else {
+        toast.error(response.data.message);
       }
     } catch (error) {
-      toast.error("Failed to add item to the cart.");
+      toast.error(error.response?.data?.message || "Failed to add item to cart");
     }
   };
 
@@ -182,7 +180,7 @@ const ShopContextProvider = (props) => {
             zipCode: address.zipCode,
             country: address.country,
           },
-          amount: getCartAmount() + delivery_fee,
+          amount: getTotal() + delivery_fee,
         };
 
         const response = await axios.post(
@@ -217,12 +215,31 @@ const ShopContextProvider = (props) => {
     return wishListItems.reduce((total, item) => total + item.quantity, 0);
   };
 
-  // Calculate the total amount of the cart
-  const getCartAmount = () => {
-    return cartItems.reduce((total, item) => {
-      const product = products.find((product) => product._id === item.itemId);
-      return product ? total + product.price * item.quantity : total;
-    }, 0);
+  const getProductPrice = (productId) => {
+    const product = products.find((item) => item._id === productId);
+    if (product) {
+      return product.discountPercentage > 0 
+        ? Math.round(product.price - (product.price * product.discountPercentage / 100))
+        : product.price;
+    }
+    return 0;
+  };
+
+  const getTotalCartAmount = () => {
+    let total = 0;
+    cartItems.forEach((item) => {
+      const itemPrice = getProductPrice(item.itemId);
+      total += itemPrice * item.quantity;
+    });
+    return total;
+  };
+
+  const getSubTotal = () => {
+    return getTotalCartAmount();
+  };
+
+  const getTotal = () => {
+    return getSubTotal() + delivery_fee;
   };
 
   useEffect(() => {
@@ -260,7 +277,7 @@ const ShopContextProvider = (props) => {
     getWishListCount,
     getWishList,
     wishListItems,
-    getCartAmount,
+    getTotalCartAmount,
     placeOrder,
     orders,
     getUserOrders,
@@ -270,6 +287,9 @@ const ShopContextProvider = (props) => {
     setToken,
     isLoggedIn,
     setWishListItems,
+    getSubTotal,
+    getTotal,
+    getProductPrice,
   };
 
   return <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>;

@@ -4,11 +4,13 @@ const productSchema=new mongoose.Schema({
     name:{type:String, required:true},
     description:{type:String, required:true},
     price:{type:Number, required:true},
+    discountPercentage:{type:Number, default:0, min:0, max:100},
     image:{type:Array, required:true},
     category:{type:String, required:true},
     subcategory:{type:String, required:true},
     sizes:{type:Array, required:true},
     bestseller:{type:Boolean},
+    ecoFriendly:{type:Boolean, default:false},
     date:{type:Number,required:true},
     reviews: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },

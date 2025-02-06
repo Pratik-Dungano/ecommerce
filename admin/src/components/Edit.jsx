@@ -18,9 +18,11 @@ const Edit = ({ token }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [discountPercentage, setDiscountPercentage] = useState("");
   const [category, setCategory] = useState("Men");
   const [subcategory, setSubCategory] = useState("Kurtas");
   const [bestseller, setBestseller] = useState(false);
+  const [ecoFriendly, setEcoFriendly] = useState(false);
   const [sizes, setSizes] = useState([]);
 
   useEffect(() => {
@@ -32,9 +34,11 @@ const Edit = ({ token }) => {
           setName(product.name);
           setDescription(product.description);
           setPrice(product.price);
+          setDiscountPercentage(product.discountPercentage || "");
           setCategory(product.category);
           setSubCategory(product.subcategory);
           setBestseller(product.bestseller);
+          setEcoFriendly(product.ecoFriendly);
           setSizes(product.sizes);
           setExistingImages(product.image);
         }
@@ -54,9 +58,11 @@ const Edit = ({ token }) => {
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", price);
+      formData.append("discountPercentage", discountPercentage);
       formData.append("category", category);
       formData.append("subcategory", subcategory);
       formData.append("bestseller", bestseller);
+      formData.append("ecoFriendly", ecoFriendly);
       formData.append("sizes", JSON.stringify(sizes));
 
       image1 && formData.append("image1", image1);
@@ -147,7 +153,7 @@ const Edit = ({ token }) => {
         />
       </div>
 
-      {/* Product Category, Sub Category, and Price */}
+      {/* Product Category, Sub Category, Price and Discount */}
       <div className="flex flex-wrap gap-5 w-full">
         <div className="flex-1 min-w-[150px]">
           <label className="block mb-1 font-semibold" htmlFor="productCategory">
@@ -198,6 +204,22 @@ const Edit = ({ token }) => {
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        <div className="flex-1 min-w-[150px]">
+          <label className="block mb-1 font-semibold" htmlFor="discountPercentage">
+            Discount Percentage
+          </label>
+          <input
+            onChange={(e) => setDiscountPercentage(e.target.value)}
+            value={discountPercentage}
+            type="number"
+            id="discountPercentage"
+            placeholder="0"
+            min="0"
+            max="100"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </div>
 
       {/* Product Sizes */}
@@ -222,17 +244,26 @@ const Edit = ({ token }) => {
         </div>
       </div>
 
-      {/* Bestseller Checkbox */}
-      <div className="w-full">
-        <label className="flex items-center gap-2 cursor-pointer">
+      {/* Bestseller and Eco-Friendly Checkboxes */}
+      <div className="checkbox-group">
+        <div className="checkbox-item">
           <input
-            onChange={() => setBestseller(prev => !prev)}
-            checked={bestseller}
             type="checkbox"
-            id='bestseller'
+            id="bestseller"
+            checked={bestseller}
+            onChange={(e) => setBestseller(e.target.checked)}
           />
-          <span className="font-semibold">Add to bestseller</span>
-        </label>
+          <label htmlFor="bestseller">Bestseller</label>
+        </div>
+        <div className="checkbox-item">
+          <input
+            type="checkbox"
+            id="ecoFriendly"
+            checked={ecoFriendly}
+            onChange={(e) => setEcoFriendly(e.target.checked)}
+          />
+          <label htmlFor="ecoFriendly">Eco-Friendly</label>
+        </div>
       </div>
 
       {/* Update Button */}

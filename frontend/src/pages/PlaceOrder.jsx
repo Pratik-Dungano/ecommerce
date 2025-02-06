@@ -15,7 +15,8 @@ const PlaceOrder = () => {
     token,
     cartItems,
     setCartItems,
-    getCartAmount,
+    getTotal,
+    getProductPrice,
     delivery_fee,
     products,
   } = useContext(ShopContext);
@@ -45,7 +46,7 @@ const PlaceOrder = () => {
         productId: item.itemId,
         size: item.size,
         quantity: item.quantity,
-        price: product.price,
+        price: getProductPrice(item.itemId, item.size), // Use discounted price if applicable
       };
     });
 
@@ -61,7 +62,7 @@ const PlaceOrder = () => {
       phone: formData.phone,
     };
 
-    const totalAmount = getCartAmount() + delivery_fee;
+    const totalAmount = getTotal(); // This includes delivery fee
 
     return { orderItems, addressData, totalAmount };
   };

@@ -15,9 +15,11 @@ const Add = ({token}) => {
   const [name,setName]=useState("")
   const [description,setDescription]=useState("")
   const [price,setPrice]=useState("")
+  const [discountPercentage,setDiscountPercentage]=useState("")
   const [category,setCategory]=useState("Men")
   const [subcategory,setSubCategory]=useState("Kurtas")
   const [bestseller,setBestseller]=useState(false)
+  const [ecoFriendly,setEcoFriendly]=useState(false)
   const [sizes,setSizes]=useState([])
 
   const onSubmitHandler=async(e)=>{
@@ -28,9 +30,11 @@ const Add = ({token}) => {
     formData.append("name", name);
     formData.append("description", description);
     formData.append("price", price);
+    formData.append("discountPercentage", discountPercentage);
     formData.append("category", category);
-    formData.append("subcategory", subcategory); // Correct key
+    formData.append("subcategory", subcategory); 
     formData.append("bestseller", bestseller);
+    formData.append("ecoFriendly", ecoFriendly);
     formData.append("sizes", JSON.stringify(sizes));
 
     image1 && formData.append("image1", image1);
@@ -52,6 +56,7 @@ const Add = ({token}) => {
     setImage3(false)
     setImage4(false)
     setPrice('')
+    setDiscountPercentage('')
    }
    else{
     toast.error(response.data.message)
@@ -167,6 +172,23 @@ const Add = ({token}) => {
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        <div className="flex-1 min-w-[150px]">
+          <label className="block mb-1 font-semibold" htmlFor="discountPercentage">
+            Discount Percentage
+          </label>
+          <input
+             onChange={(e)=>setDiscountPercentage(e.target.value)}
+             value={discountPercentage}
+            type="number"
+            id="discountPercentage"
+            placeholder="0-100"
+            required
+            min="0"
+            max="100"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </div>
 
       {/* Product Sizes */}
@@ -192,12 +214,28 @@ const Add = ({token}) => {
         </div>
       </div>
 
-      {/* Bestseller Checkbox */}
+      {/* Bestseller and Eco-Friendly Checkboxes */}
       <div className="w-full">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input onChange={()=>setBestseller(prev=>!prev)} checked={bestseller} type="checkbox" id='bestseller' />
-          <span className="font-semibold">Add to bestseller</span>
-        </label>
+        <div className="checkbox-group">
+          <div className="checkbox-item">
+            <input
+              type="checkbox"
+              id="bestseller"
+              checked={bestseller}
+              onChange={(e) => setBestseller(e.target.checked)}
+            />
+            <label htmlFor="bestseller">Bestseller</label>
+          </div>
+          <div className="checkbox-item">
+            <input
+              type="checkbox"
+              id="ecoFriendly"
+              checked={ecoFriendly}
+              onChange={(e) => setEcoFriendly(e.target.checked)}
+            />
+            <label htmlFor="ecoFriendly">Eco-Friendly</label>
+          </div>
+        </div>
       </div>
 
       {/* Add Button */}

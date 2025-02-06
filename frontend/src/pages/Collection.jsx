@@ -3,6 +3,7 @@ import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import Title from '../components/Title';
 import ProductItem from '../components/ProductItem';
+import { FaLeaf, FaStar } from "react-icons/fa";
 
 const Collection = () => {
   const { products, search, showSearch } = useContext(ShopContext);
@@ -12,6 +13,8 @@ const Collection = () => {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
   const [sortBy, setSortBy] = useState('relevant');
+  const [showEcoFriendly, setShowEcoFriendly] = useState(false);
+  const [showBestSeller, setShowBestSeller] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -35,6 +38,14 @@ const Collection = () => {
       );
     }
 
+    if (showEcoFriendly) {
+      result = result.filter((product) => product.ecoFriendly);
+    }
+
+    if (showBestSeller) {
+      result = result.filter((product) => product.bestseller);
+    }
+
     result = result.filter(
       (product) =>
         product.price >= priceRange.min && product.price <= priceRange.max
@@ -52,7 +63,7 @@ const Collection = () => {
     }
 
     setFilteredProducts(result);
-  }, [products, search, showSearch, selectedCategories, selectedTypes, priceRange, sortBy]);
+  }, [products, search, showSearch, selectedCategories, selectedTypes, priceRange, sortBy, showEcoFriendly, showBestSeller]);
 
   const handleCategoryChange = (e) => {
     const value = e.target.value;
@@ -121,6 +132,36 @@ const Collection = () => {
           </div>
 
           <div className="border border-gray-300 p-5">
+            <p className="mb-3 text-sm font-medium">FEATURES</p>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={showEcoFriendly}
+                  onChange={(e) => setShowEcoFriendly(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <div className="flex items-center gap-1">
+                  <FaLeaf className="text-green-600" size={14} />
+                  <span>Eco-Friendly</span>
+                </div>
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={showBestSeller}
+                  onChange={(e) => setShowBestSeller(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <div className="flex items-center gap-1">
+                  <FaStar className="text-yellow-500" size={14} />
+                  <span>Best Seller</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div className="border border-gray-300 p-5">
             <p className="mb-3 text-sm font-medium">PRICE RANGE</p>
             <div className="space-y-4">
               <div className="flex gap-4">
@@ -171,6 +212,8 @@ const Collection = () => {
               price={item.price}
               image={item.image}
               sizes={item.sizes}
+              discountPercentage={item.discountPercentage}
+              ecoFriendly={item.ecoFriendly}
             />
           ))}
         </div>
