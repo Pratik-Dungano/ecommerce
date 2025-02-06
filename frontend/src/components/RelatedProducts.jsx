@@ -46,6 +46,7 @@ const RelatedProducts = ({ category, subCategory, currentProductId }) => {
                             price={item.price}
                             sizes={item.sizes}
                             discountPercentage={item.discountPercentage}
+                            ecoFriendly={item.ecoFriendly}
                         />
                     </div>
                 ))}

@@ -203,105 +203,97 @@ const Orders = () => {
         </div>
       )}
 
-      {!loading && (
-        <div className="space-y-6">
-          {orderData.length > 0 ? (
-            orderData.map((order, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg"
-              >
-                <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-                  <div>
-                    <p className="text-gray-500">
-                      Order Date: {new Date(order.date).toLocaleDateString()}
-                    </p>
-                    <p className="text-lg font-semibold mt-1">
-                      Total: {currency}
-                      {order.amount}
+      {!loading && orderData.length > 0 && (
+        <div className="space-y-8">
+          {orderData.map((order) => (
+            <div
+              key={order._id}
+              className="border rounded-lg overflow-hidden bg-white shadow-sm"
+            >
+              <div className="p-6 space-y-6">
+                {/* Order header */}
+                <div className="flex flex-col sm:flex-row justify-between gap-4 pb-4 border-b">
+                  <div className="space-y-1">
+                    <p className="text-sm text-gray-500">
+                      {new Date(order.date).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        order.status === "Delivered"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "Shipped"
-                          ? "bg-blue-100 text-blue-800"
-                          : order.status === "Cancelled"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {order.status}
-                    </div>
+                  <div className="flex flex-col sm:items-end gap-2">
                     <button
                       onClick={() => handleTrackOrder(order)}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium 
-                        text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                      className="text-sm bg-black text-white px-4 py-1.5 rounded-md hover:bg-gray-800 transition-colors"
                     >
                       Track Order
                     </button>
+                    <p className={`text-sm font-medium ${
+                      order.status === "Delivered" ? "text-green-600" :
+                      order.status === "Cancelled" ? "text-red-600" :
+                      "text-blue-600"
+                    }`}>
+                      {order.status}
+                    </p>
                   </div>
                 </div>
 
+                {/* Order items */}
                 <div className="space-y-6">
-                  {order.items.map((item, itemIndex) => (
-                    <div
-                      key={itemIndex}
-                      className="flex flex-col sm:flex-row gap-6 pb-6 border-b last:border-b-0"
-                    >
-                      <img
-                        className="w-full sm:w-32 h-32 object-cover rounded-md"
-                        src={item.productId?.image[0] || "/placeholder.png"}
-                        alt={item.productId?.name || "Product"}
-                      />
-                      <div className="flex-1">
-                        <h3 className="text-lg font-medium">
-                          {item.productId?.name || "Unknown Product"}
-                        </h3>
-                        <div className="mt-2 text-sm text-gray-500 space-y-1">
-                          <p>Price: {currency}{item.price}</p>
-                          <p>Quantity: {item.quantity}</p>
-                          <p>Size: {item.size}</p>
+                  {order.items.map((item) => (
+                    item.productId && (
+                      <div key={item._id} className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                        <div className="w-24 h-32 flex-shrink-0">
+                          <img
+                            src={item.productId?.image?.[0] || '/placeholder.jpg'}
+                            alt={item.productId?.name || 'Product'}
+                            className="w-full h-full object-cover object-center rounded-md"
+                          />
                         </div>
-                        {/* Add Review Button for Delivered Orders */}
-                        {order.status === "Delivered" && (
-                          <div className="mt-2">
-                            {reviewedProducts.has(item.productId._id) ? (
-                              <span className="text-green-600 text-sm">
-                                ✓ Review submitted
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => handleReviewClick(order, item)}
-                                className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
-                                  transition-colors text-sm font-medium"
-                              >
-                                Write a Review
-                              </button>
-                            )}
-                          </div>
-                        )}
+                        <div className="flex-grow space-y-1">
+                          <h3 className="font-medium">{item.productId?.name}</h3>
+                          <p className="text-sm text-gray-500">Size: {item.size}</p>
+                          <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                          <p className="font-medium">{currency}{item.productId?.price}</p>
+                          
+                          {/* Show review button only if not reviewed and order is delivered */}
+                          {order.status === "Delivered" && 
+                           item.productId && 
+                           !reviewedProducts.has(item.productId._id) && (
+                            <button
+                              onClick={() => handleReviewClick(order, item)}
+                              className="mt-2 text-sm bg-black text-white px-4 py-1.5 rounded-md hover:bg-gray-800 transition-colors"
+                            >
+                              Write a Review
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )
                   ))}
                 </div>
+
+                {/* Order total */}
+                <div className="pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <p className="font-medium">Total Amount:</p>
+                    <p className="font-bold text-lg">{currency}{order.amount}</p>
+                  </div>
+                </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <h3 className="mt-4 text-sm font-medium text-gray-900">No orders</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                You haven't placed any orders yet.
-              </p>
             </div>
-          )}
+          ))}
+        </div>
+      )}
+
+      {!loading && orderData.length === 0 && (
+        <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <h3 className="mt-4 text-sm font-medium text-gray-900">No orders</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            You haven't placed any orders yet.
+          </p>
         </div>
       )}
 

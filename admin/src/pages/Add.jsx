@@ -19,6 +19,7 @@ const Add = ({token}) => {
   const [category,setCategory]=useState("Men")
   const [subcategory,setSubCategory]=useState("Kurtas")
   const [bestseller,setBestseller]=useState(false)
+  const [ecoFriendly,setEcoFriendly]=useState(false)
   const [sizes,setSizes]=useState([])
 
   const onSubmitHandler=async(e)=>{
@@ -31,8 +32,9 @@ const Add = ({token}) => {
     formData.append("price", price);
     formData.append("discountPercentage", discountPercentage);
     formData.append("category", category);
-    formData.append("subcategory", subcategory); // Correct key
+    formData.append("subcategory", subcategory); 
     formData.append("bestseller", bestseller);
+    formData.append("ecoFriendly", ecoFriendly);
     formData.append("sizes", JSON.stringify(sizes));
 
     image1 && formData.append("image1", image1);
@@ -212,12 +214,28 @@ const Add = ({token}) => {
         </div>
       </div>
 
-      {/* Bestseller Checkbox */}
+      {/* Bestseller and Eco-Friendly Checkboxes */}
       <div className="w-full">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input onChange={()=>setBestseller(prev=>!prev)} checked={bestseller} type="checkbox" id='bestseller' />
-          <span className="font-semibold">Add to bestseller</span>
-        </label>
+        <div className="checkbox-group">
+          <div className="checkbox-item">
+            <input
+              type="checkbox"
+              id="bestseller"
+              checked={bestseller}
+              onChange={(e) => setBestseller(e.target.checked)}
+            />
+            <label htmlFor="bestseller">Bestseller</label>
+          </div>
+          <div className="checkbox-item">
+            <input
+              type="checkbox"
+              id="ecoFriendly"
+              checked={ecoFriendly}
+              onChange={(e) => setEcoFriendly(e.target.checked)}
+            />
+            <label htmlFor="ecoFriendly">Eco-Friendly</label>
+          </div>
+        </div>
       </div>
 
       {/* Add Button */}

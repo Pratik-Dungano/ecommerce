@@ -4,7 +4,7 @@ import productModel from "../models/productModel.js";
 
 const addProduct = async (req, res) => {
     try {
-        const { name, description, price, category, subcategory, sizes, bestseller, discountPercentage } = req.body;
+        const { name, description, price, category, subcategory, sizes, bestseller, discountPercentage, ecoFriendly } = req.body;
 
         // Accessing uploaded files
         const image1 = req.files.image1 && req.files.image1[0];
@@ -28,6 +28,7 @@ const addProduct = async (req, res) => {
             discountPercentage: Number(discountPercentage) || 0,
             subcategory,
             bestseller:bestseller==="true" ? true:false,
+            ecoFriendly:ecoFriendly==="true" ? true:false,
             sizes:JSON.parse(sizes),
             image:imagesUrl,
             date:Date.now()
@@ -87,7 +88,7 @@ const singleProduct=async(req,res)=>{
 
 const editProduct = async (req, res) => {
     try {
-        const { id, name, description, price, category, subcategory, sizes, bestseller, discountPercentage } = req.body;
+        const { id, name, description, price, category, subcategory, sizes, bestseller, discountPercentage, ecoFriendly } = req.body;
         
         // Find the existing product
         const existingProduct = await productModel.findById(id);
@@ -104,6 +105,7 @@ const editProduct = async (req, res) => {
             discountPercentage: Number(discountPercentage) || 0,
             subcategory,
             bestseller: bestseller === "true" ? true : false,
+            ecoFriendly: ecoFriendly === "true" ? true : false,
             sizes: JSON.parse(sizes),
         };
 

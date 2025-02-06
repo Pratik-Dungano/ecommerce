@@ -65,6 +65,7 @@ const Gown = () => {
               price={item.price} 
               sizes={item.sizes} 
               discountPercentage={item.discountPercentage} 
+              ecoFriendly={item.ecoFriendly}
             />
           ))}
         </div>

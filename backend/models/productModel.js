@@ -10,6 +10,7 @@ const productSchema=new mongoose.Schema({
     subcategory:{type:String, required:true},
     sizes:{type:Array, required:true},
     bestseller:{type:Boolean},
+    ecoFriendly:{type:Boolean, default:false},
     date:{type:Number,required:true},
     reviews: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },

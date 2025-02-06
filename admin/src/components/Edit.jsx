@@ -22,6 +22,7 @@ const Edit = ({ token }) => {
   const [category, setCategory] = useState("Men");
   const [subcategory, setSubCategory] = useState("Kurtas");
   const [bestseller, setBestseller] = useState(false);
+  const [ecoFriendly, setEcoFriendly] = useState(false);
   const [sizes, setSizes] = useState([]);
 
   useEffect(() => {
@@ -37,6 +38,7 @@ const Edit = ({ token }) => {
           setCategory(product.category);
           setSubCategory(product.subcategory);
           setBestseller(product.bestseller);
+          setEcoFriendly(product.ecoFriendly);
           setSizes(product.sizes);
           setExistingImages(product.image);
         }
@@ -60,6 +62,7 @@ const Edit = ({ token }) => {
       formData.append("category", category);
       formData.append("subcategory", subcategory);
       formData.append("bestseller", bestseller);
+      formData.append("ecoFriendly", ecoFriendly);
       formData.append("sizes", JSON.stringify(sizes));
 
       image1 && formData.append("image1", image1);
@@ -241,17 +244,26 @@ const Edit = ({ token }) => {
         </div>
       </div>
 
-      {/* Bestseller Checkbox */}
-      <div className="w-full">
-        <label className="flex items-center gap-2 cursor-pointer">
+      {/* Bestseller and Eco-Friendly Checkboxes */}
+      <div className="checkbox-group">
+        <div className="checkbox-item">
           <input
-            onChange={() => setBestseller(prev => !prev)}
-            checked={bestseller}
             type="checkbox"
-            id='bestseller'
+            id="bestseller"
+            checked={bestseller}
+            onChange={(e) => setBestseller(e.target.checked)}
           />
-          <span className="font-semibold">Add to bestseller</span>
-        </label>
+          <label htmlFor="bestseller">Bestseller</label>
+        </div>
+        <div className="checkbox-item">
+          <input
+            type="checkbox"
+            id="ecoFriendly"
+            checked={ecoFriendly}
+            onChange={(e) => setEcoFriendly(e.target.checked)}
+          />
+          <label htmlFor="ecoFriendly">Eco-Friendly</label>
+        </div>
       </div>
 
       {/* Update Button */}

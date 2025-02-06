@@ -20,12 +20,14 @@ const Navbar = () => {
       to={to} 
       onClick={() => { setVisible(false); window.scrollTo(0, 0); }}
       className={({ isActive }) => 
-        `flex flex-col items-center gap-1 transition-colors duration-200 hover:text-custom-blue
-         ${isActive ? 'text-custom-blue' : 'text-custom-green'}`
+        `relative flex flex-col items-center gap-1 transition-colors duration-200 group
+         ${isActive ? 'text-black' : 'text-gray-600 hover:text-black'}`
       }
     >
       <p>{children}</p>
-      <hr className="w-2/4 border-none h-[1.5px] bg-current transform scale-x-0 transition-transform duration-200 group-hover:scale-x-100" />
+      <span className={`absolute -bottom-1 h-0.5 bg-black transition-all duration-300 
+        ${({ isActive }) => isActive ? 'w-full' : 'w-0 group-hover:w-full'}`} 
+      />
     </NavLink>
   );
 

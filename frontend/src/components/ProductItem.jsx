@@ -2,9 +2,10 @@
 import React, { useContext, useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
-import { ShoppingCart, Heart } from "react-feather";
+import { ShoppingCart, Heart, Award } from "react-feather";
+import { FaLeaf } from "react-icons/fa";
 
-const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage }) => {
+const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, ecoFriendly }) => {
     const { 
         addToCart, 
         addToWishList, 
@@ -65,8 +66,16 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage })
     };
 
     return (
-        <div
-            className="relative group transform transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-2 cursor-pointer"
+        <div 
+            className={`relative group transform transition-all duration-300 ease-in-out hover:scale-105 hover:-translate-y-2 cursor-pointer ${
+                ecoFriendly 
+                    ? 'eco-friendly ring-1 ring-green-200 hover:ring-green-300 hover:shadow-lg hover:shadow-green-200/70' 
+                    : ''
+            }`}
+            style={{
+                background: ecoFriendly ? 'linear-gradient(to bottom, rgba(144, 238, 144, 0.1), transparent)' : 'none',
+                transition: 'all 0.3s ease-in-out'
+            }}
             onClick={() => {
               navigate(`/product/${id}`);
               window.scrollTo(0, 0);
@@ -79,6 +88,12 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage })
                         alt={`Product image of ${name}`}
                         className="absolute top-0 left-0 w-full h-full object-cover object-top"
                     />
+                    {ecoFriendly && (
+                        <div className="eco-badge absolute top-2 left-2 bg-green-50/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+                            <FaLeaf className="text-green-600" size={14} />
+                            <span className="text-xs font-medium text-green-700">Eco</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
@@ -111,7 +126,9 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage })
                 </button>
 
                 <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="text-sm font-medium text-gray-900 mb-1">{name}</h3>
+                    <h3 className="text-sm font-medium text-gray-900 mb-1">
+                        <span>{name}</span>
+                    </h3>
                     <div className="mt-1 flex flex-col">
                         <div className="flex items-center gap-2">
                             <span className="text-lg font-semibold text-gray-900">

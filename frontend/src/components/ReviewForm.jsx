@@ -43,9 +43,15 @@ const ReviewForm = ({ productId, orderId, onReviewSubmitted }) => {
 
     if (hasReviewed) {
         return (
-            <div className="p-4 bg-yellow-50 rounded-md">
-                <p className="text-yellow-800">
-                    Thank you for your feedback! Your review has been submitted.
+            <div className="p-4 bg-green-50 rounded-md text-center">
+                <svg className="w-12 h-12 text-green-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-green-800 font-medium">
+                    Thank you for your review!
+                </p>
+                <p className="text-green-600 text-sm mt-1">
+                    Your feedback helps other shoppers make better decisions.
                 </p>
             </div>
         );
