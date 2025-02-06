@@ -193,9 +193,15 @@ const Product = () => {
               {productData.name}
             </h1>
             {productData.ecoFriendly && (
-              <div className="flex items-center gap-2 text-green-600">
-                <FaLeaf size={16} />
-                <span className="text-sm font-medium">Eco-Friendly Product</span>
+              <div className="relative group">
+                <div className="flex items-center gap-2 text-green-600 cursor-help">
+                  <FaLeaf size={16} />
+                  <span className="text-sm font-medium">Eco-Friendly Product</span>
+                </div>
+                <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
+                  Crafted from eco-friendly organic cotton, this product offers a sustainable, soft, and breathable feel. 
+                  Ethically made, it ensures comfort while reducing environmental impact—perfect for conscious consumers seeking quality and sustainability.
+                </div>
               </div>
             )}
           </div>
@@ -219,7 +225,12 @@ const Product = () => {
             )}
           </div>
           <p className="text-sm text-green-600">Inclusive of all taxes</p>
-          <p className="text-gray-600">{productData.description}</p>
+          <div className="relative group">
+            <p className="text-gray-600 cursor-help">Description</p>
+            <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
+              {productData.description}
+            </div>
+          </div>
 
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">Select Size</h3>

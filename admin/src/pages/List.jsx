@@ -74,114 +74,128 @@ const List = ({ token }) => {
 
   return (
     <div className="p-5 bg-gray-50 min-h-screen">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">All Products List</h2>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Products List</h2>
+          <Link to="/add" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            Add New Product
+          </Link>
+        </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-5">
-        <input
-          type="text"
-          placeholder="Search by name..."
-          className="p-2 border rounded w-60"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <select
-          className="p-2 border rounded"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-        >
-          <option value="">All Categories</option>
-          {[...new Set(list.map((product) => product.category))].map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-        <select
-          className="p-2 border rounded"
-          value={selectedSubcategory}
-          onChange={(e) => setSelectedSubcategory(e.target.value)}
-        >
-          <option value="">All Subcategories</option>
-          {[...new Set(list.map((product) => product.subcategory))].map((subcategory) => (
-            <option key={subcategory} value={subcategory}>
-              {subcategory}
-            </option>
-          ))}
-        </select>
-      </div>
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search by name..."
+              className="w-full p-2 border rounded-lg pl-8 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <svg className="w-4 h-4 absolute left-2.5 top-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
 
-      {/* Product Table */}
-      <table className="w-full text-left bg-white rounded-lg shadow-md overflow-hidden">
-        <thead className="bg-gray-100 border-b">
-          <tr>
-            <th className="px-4 py-3 text-gray-700 font-medium">Image</th>
-            <th className="px-4 py-3 text-gray-700 font-medium">Name</th>
-            <th className="px-4 py-3 text-gray-700 font-medium">Category</th>
-            <th className="px-4 py-3 text-gray-700 font-medium">Subcategory</th>
-            <th className="px-4 py-3 text-gray-700 font-medium">Price</th>
-            <th className="px-4 py-3 text-gray-700 font-medium">Discount</th>
-            <th className="px-4 py-3 text-gray-700 font-medium">Final Price</th>
-            <th className="px-4 py-3 text-gray-700 font-medium text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredProducts.length > 0 ? (
-            filteredProducts.map((product) => (
-              <tr key={product._id} className="border-b hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <img
-                    src={product.image[0]}
-                    alt={product.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                </td>
-                <td className="px-4 py-3">{product.name}</td>
-                <td className="px-4 py-3">{product.category}</td>
-                <td className="px-4 py-3">{product.subcategory || "N/A"}</td>
-                <td className="px-4 py-3 text-gray-800 font-semibold">₹{product.price}</td>
-                <td className="px-4 py-3">
-                  {product.discountPercentage > 0 ? (
-                    <span className="text-green-600 font-medium">
-                      {product.discountPercentage}%
-                    </span>
-                  ) : (
-                    <span className="text-gray-500">No discount</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-gray-800 font-semibold">
-                  ₹{Math.round(product.discountPercentage ? 
-                    product.price - (product.price * product.discountPercentage / 100) : 
-                    product.price
-                  )}
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <div className="flex justify-center gap-2">
-                    <Link
-                      to={`/edit/${product._id}`}
-                      className="text-blue-600 hover:text-blue-800 transition duration-200"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      className="text-red-600 hover:text-red-800 transition duration-200"
-                      onClick={() => removeProduct(product._id)}
-                    >
-                      Delete
-                    </button>
+          <select
+            className="w-full p-2 border rounded-lg appearance-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            {[...new Set(list.map((product) => product.category))].map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+
+          <select
+            className="w-full p-2 border rounded-lg appearance-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            value={selectedSubcategory}
+            onChange={(e) => setSelectedSubcategory(e.target.value)}
+          >
+            <option value="">All Subcategories</option>
+            {[...new Set(list.map((product) => product.subcategory))].map((subcategory) => (
+              <option key={subcategory} value={subcategory}>{subcategory}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="relative pb-[100%]">
+                <img
+                  src={product.image[0]}
+                  alt={product.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                {product.ecoFriendly && (
+                  <span className="absolute top-2 left-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    Eco-Friendly
+                  </span>
+                )}
+                {product.bestseller && (
+                  <span className="absolute top-2 right-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                    Bestseller
+                  </span>
+                )}
+              </div>
+              
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2 truncate">{product.name}</h3>
+                <div className="flex justify-between items-center mb-3">
+                  <div className="text-gray-600">
+                    <span className="font-medium">₹{product.price}</span>
+                    {product.discountPercentage > 0 && (
+                      <span className="ml-2 text-sm text-green-600">-{product.discountPercentage}%</span>
+                    )}
                   </div>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="8" className="text-center py-5 text-gray-600">
-                No products found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                  <span className="text-sm text-gray-500">{product.category}</span>
+                </div>
+                
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {product.sizes.map((size) => (
+                    <span key={size} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+                      {size}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex justify-between gap-2">
+                  <Link
+                    to={`/edit/${product._id}`}
+                    className="flex-1 bg-blue-100 text-blue-600 text-center py-2 rounded hover:bg-blue-200 transition-colors"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to remove this product?')) {
+                        removeProduct(product._id);
+                      }
+                    }}
+                    className="flex-1 bg-red-100 text-red-600 py-2 rounded hover:bg-red-200 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12">
+            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
+            <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
