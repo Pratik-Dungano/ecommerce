@@ -23,7 +23,6 @@ const Wishlist = () => {
     setWishlistData(tempData);
   }, [wishListItems]);
 
-  // Handle quantity change for wishlist items
   const handleQuantityChange = (itemId, size, quantity) => {
     if (quantity === "" || quantity === 0) {
       return;
@@ -31,17 +30,22 @@ const Wishlist = () => {
     updateWishList(itemId, size, quantity);
   };
 
-  // Handle removing an item from the wishlist
   const handleRemoveItem = (itemId, size) => {
     updateWishList(itemId, size, 0);
     getWishList();
   };
 
-  // Handle adding an item to the cart and removing it from the wishlist
   const handleAddToCart = (itemId, size, quantity) => {
     addToCart(itemId, size, quantity);
     updateWishList(itemId, size, 0); // Remove from wishlist
     getWishList();
+  };
+
+  const getDiscountedPrice = (product) => {
+    if (!product) return 0;
+    return product.discountPercentage > 0
+      ? Math.round(product.price - (product.price * product.discountPercentage / 100))
+      : product.price;
   };
 
   return (
@@ -55,6 +59,8 @@ const Wishlist = () => {
           const productData = products.find(
             (product) => product._id === item._id
           );
+          const discountedPrice = getDiscountedPrice(productData);
+
           return (
             <div
               key={index}
@@ -64,17 +70,30 @@ const Wishlist = () => {
                 <img
                   className="w-16 sm:w-20"
                   src={productData?.image[0]}
-                  alt=""
+                  alt={productData?.name}
                 />
                 <div>
                   <p className="text-xs sm:text-lg font-medium">
                     {productData?.name}
                   </p>
-                  <div className="flex items-center gap-5 mt-2">
-                    <p>
-                      {currency}
-                      {productData?.price}
-                    </p>
+                  <div className="flex items-center gap-3 mt-2">
+                    {productData?.discountPercentage > 0 ? (
+                      <>
+                        <p className="text-sm sm:text-base font-semibold">
+                          {currency}{discountedPrice}
+                        </p>
+                        <p className="text-sm text-gray-500 line-through">
+                          {currency}{productData?.price}
+                        </p>
+                        <p className="text-sm font-medium text-green-600">
+                          {productData?.discountPercentage}% off
+                        </p>
+                      </>
+                    ) : (
+                      <p>
+                        {currency}{productData?.price}
+                      </p>
+                    )}
                     <p className="px-2 sm:px-3 sm:py-1 border bg-slate-50">
                       {item.size}
                     </p>

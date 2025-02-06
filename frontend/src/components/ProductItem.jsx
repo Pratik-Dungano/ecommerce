@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import { ShoppingCart, Heart } from "react-feather";
 
-const ProductItem = memo(({ id, image, name, price, sizes }) => {
+const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage }) => {
     const { 
         addToCart, 
         addToWishList, 
@@ -21,6 +21,8 @@ const ProductItem = memo(({ id, image, name, price, sizes }) => {
     const [showWishlistSizeOptions, setShowWishlistSizeOptions] = useState(false);
 
     const isInWishlist = wishListItems.some(item => item.itemId === id);
+    const originalPrice = price;
+    const discountedPrice = discountPercentage > 0 ? Math.round(originalPrice - (originalPrice * discountPercentage / 100)) : originalPrice;
 
     const handleWishlistClick = (e) => {
         e.stopPropagation();
@@ -108,11 +110,30 @@ const ProductItem = memo(({ id, image, name, price, sizes }) => {
                     <ShoppingCart size={16} />
                 </button>
 
-                <div className="p-3 bg-white flex-grow">
-                    <h3 className="text-xs font-medium text-gray-900 truncate mb-1">{name}</h3>
-                    <p className="text-xs text-gray-500">
-                        {displayCurrency}{price}
-                    </p>
+                <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="text-sm font-medium text-gray-900 mb-1">{name}</h3>
+                    <div className="mt-1 flex flex-col">
+                        <div className="flex items-center gap-2">
+                            <span className="text-lg font-semibold text-gray-900">
+                                {displayCurrency}{discountedPrice}
+                            </span>
+                            {discountPercentage > 0 && (
+                                <>
+                                    <span className="text-sm text-gray-500 line-through">
+                                        {displayCurrency}{originalPrice}
+                                    </span>
+                                    <span className="text-sm font-medium text-green-600">
+                                        {discountPercentage}% off
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                        {discountPercentage > 0 && (
+                            <span className="text-xs text-green-600 mt-0.5">
+                                Save {displayCurrency}{Math.round(originalPrice - discountedPrice)}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 

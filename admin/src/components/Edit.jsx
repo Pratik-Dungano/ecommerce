@@ -18,6 +18,7 @@ const Edit = ({ token }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [discountPercentage, setDiscountPercentage] = useState("");
   const [category, setCategory] = useState("Men");
   const [subcategory, setSubCategory] = useState("Kurtas");
   const [bestseller, setBestseller] = useState(false);
@@ -32,6 +33,7 @@ const Edit = ({ token }) => {
           setName(product.name);
           setDescription(product.description);
           setPrice(product.price);
+          setDiscountPercentage(product.discountPercentage || "");
           setCategory(product.category);
           setSubCategory(product.subcategory);
           setBestseller(product.bestseller);
@@ -54,6 +56,7 @@ const Edit = ({ token }) => {
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", price);
+      formData.append("discountPercentage", discountPercentage);
       formData.append("category", category);
       formData.append("subcategory", subcategory);
       formData.append("bestseller", bestseller);
@@ -147,7 +150,7 @@ const Edit = ({ token }) => {
         />
       </div>
 
-      {/* Product Category, Sub Category, and Price */}
+      {/* Product Category, Sub Category, Price and Discount */}
       <div className="flex flex-wrap gap-5 w-full">
         <div className="flex-1 min-w-[150px]">
           <label className="block mb-1 font-semibold" htmlFor="productCategory">
@@ -195,6 +198,22 @@ const Edit = ({ token }) => {
             id="productPrice"
             placeholder="25"
             required
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="flex-1 min-w-[150px]">
+          <label className="block mb-1 font-semibold" htmlFor="discountPercentage">
+            Discount Percentage
+          </label>
+          <input
+            onChange={(e) => setDiscountPercentage(e.target.value)}
+            value={discountPercentage}
+            type="number"
+            id="discountPercentage"
+            placeholder="0"
+            min="0"
+            max="100"
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

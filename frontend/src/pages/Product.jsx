@@ -152,7 +152,24 @@ const Product = () => {
         {/* Product Details Section */}
         <div className="space-y-6">
           <h1 className="text-3xl font-bold text-gray-900">{productData.name}</h1>
-          <div className="text-2xl font-bold text-gray-900">{currency}{productData.price}</div>
+          <div className="flex items-center gap-3">
+            <div className="text-2xl font-bold text-gray-900">
+              {currency}{Math.round(productData.discountPercentage ? 
+                productData.price - (productData.price * productData.discountPercentage / 100) : 
+                productData.price
+              )}
+            </div>
+            {productData.discountPercentage > 0 && (
+              <>
+                <div className="text-lg text-gray-500 line-through">
+                  {currency}{productData.price}
+                </div>
+                <div className="text-lg font-medium text-green-600">
+                  {productData.discountPercentage}% off
+                </div>
+              </>
+            )}
+          </div>
           <p className="text-sm text-green-600">Inclusive of all taxes</p>
           <p className="text-gray-600">{productData.description}</p>
 

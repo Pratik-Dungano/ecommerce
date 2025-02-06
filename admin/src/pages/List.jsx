@@ -120,6 +120,8 @@ const List = ({ token }) => {
             <th className="px-4 py-3 text-gray-700 font-medium">Category</th>
             <th className="px-4 py-3 text-gray-700 font-medium">Subcategory</th>
             <th className="px-4 py-3 text-gray-700 font-medium">Price</th>
+            <th className="px-4 py-3 text-gray-700 font-medium">Discount</th>
+            <th className="px-4 py-3 text-gray-700 font-medium">Final Price</th>
             <th className="px-4 py-3 text-gray-700 font-medium text-center">Action</th>
           </tr>
         </thead>
@@ -138,6 +140,21 @@ const List = ({ token }) => {
                 <td className="px-4 py-3">{product.category}</td>
                 <td className="px-4 py-3">{product.subcategory || "N/A"}</td>
                 <td className="px-4 py-3 text-gray-800 font-semibold">₹{product.price}</td>
+                <td className="px-4 py-3">
+                  {product.discountPercentage > 0 ? (
+                    <span className="text-green-600 font-medium">
+                      {product.discountPercentage}%
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">No discount</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-gray-800 font-semibold">
+                  ₹{Math.round(product.discountPercentage ? 
+                    product.price - (product.price * product.discountPercentage / 100) : 
+                    product.price
+                  )}
+                </td>
                 <td className="px-4 py-3 text-center">
                   <div className="flex justify-center gap-2">
                     <Link
@@ -158,7 +175,7 @@ const List = ({ token }) => {
             ))
           ) : (
             <tr>
-              <td colSpan="6" className="text-center py-5 text-gray-600">
+              <td colSpan="8" className="text-center py-5 text-gray-600">
                 No products found.
               </td>
             </tr>
