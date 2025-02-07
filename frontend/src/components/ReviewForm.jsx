@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { Star } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
-import { toast } from "react-toastify";
+import toast from 'react-hot-toast';
 
 const ReviewForm = ({ productId, orderId, onReviewSubmitted }) => {
     const { token, backendUrl } = useContext(ShopContext);

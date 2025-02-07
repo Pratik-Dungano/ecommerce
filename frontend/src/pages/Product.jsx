@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
-import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard } from 'lucide-react';
+import Reviews from '../components/Reviews';
+import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard, Star, Award } from 'react-feather';
+import { FaLeaf } from "react-icons/fa";
 
 const Product = () => {
   const { productId } = useParams();
@@ -16,6 +18,8 @@ const Product = () => {
   const [[x, y], setXY] = useState([0, 0]);
   const [[imgWidth, imgHeight], setImgSize] = useState([0, 0]);
   const magnifierRef = useRef(null);
+  const ZOOM_LEVEL = 2.5;
+  const MAGNIFIER_SIZE = 150;
 
   const fetchProductData = () => {
     const product = products.find(item => item._id === productId);
@@ -68,12 +72,31 @@ const Product = () => {
     }
   };
 
+  const renderStars = (rating) => {
+    return (
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`w-4 h-4 ${
+              star <= rating
+                ? 'text-yellow-400 fill-yellow-400'
+                : 'text-gray-300'
+            }`}
+          />
+        ))}
+        <span className="text-sm text-gray-600 ml-1">
+          ({productData.totalReviews || 0})
+        </span>
+      </div>
+    );
+  };
+
   if (!productData) {
     return <div>Loading...</div>;
   }
 
   const isInWishlist = wishListItems.some(item => item.id === productData._id);
-  const MAGNIFIER_SIZE = 150;
 
   return (
     <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${productData?.ecoFriendly ? 'eco-friendly' : ''}`}>
@@ -165,27 +188,57 @@ const Product = () => {
 
         {/* Product Details Section */}
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{productData.name}</h1>
-            <div className="mt-2 flex items-center gap-2">
-              <div className="flex">
-                {[...Array(4)].map((_, i) => (
-                  <img key={i} src={assets.star_icon} alt="" className="w-4 h-4" />
-                ))}
-                <img src={assets.star_dull_icon} alt="" className="w-4 h-4" />
-              </div>
-              <span className="text-sm text-gray-500">(122 reviews)</span>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {productData.name}
+            </h1>
+            <div className="flex flex-col gap-2">
+              {productData.ecoFriendly && (
+                <div className="relative group">
+                  <div className="flex items-center gap-2 text-green-600 cursor-help">
+                    <FaLeaf size={16} />
+                    <span className="text-sm font-medium">Eco-Friendly Product</span>
+                  </div>
+                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
+                    Crafted from eco-friendly organic cotton, this product offers a sustainable, soft, and breathable feel. 
+                    Ethically made, it ensures comfort while reducing environmental impact—perfect for conscious consumers seeking quality and sustainability.
+                  </div>
+                </div>
+              )}
+              {productData.bestseller && (
+                <div className="relative group">
+                  <div className="flex items-center gap-2 text-yellow-600 cursor-help">
+                    <Star size={16} />
+                    <span className="text-sm font-medium">Bestseller Product</span>
+                  </div>
+                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
+                    One of our most popular items! This product consistently ranks among our top sellers, loved by customers for its quality and style.
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-4xl font-bold text-gray-900">
-              {currency}{productData.price}
-            </p>
-            <p className="text-sm text-green-600">Inclusive of all taxes</p>
+          <div className="flex items-center gap-3">
+            <div className="text-2xl font-bold text-gray-900">
+              {currency}{Math.round(productData.discountPercentage ? 
+                productData.price - (productData.price * productData.discountPercentage / 100) : 
+                productData.price
+              )}
+            </div>
+            {productData.discountPercentage > 0 && (
+              <>
+                <div className="text-lg text-gray-500 line-through">
+                  {currency}{productData.price}
+                </div>
+                <div className="text-lg font-medium text-green-600">
+                  {productData.discountPercentage}% off
+                </div>
+              </>
+            )}
           </div>
-
-          <p className="text-gray-600">{productData.description}</p>
+          <p className="text-sm text-green-600">Inclusive of all taxes</p>
+          <p className="text-gray-600 leading-relaxed">{productData.description}</p>
 
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">Select Size</h3>
@@ -269,16 +322,57 @@ const Product = () => {
         </div>
       </div>
 
-      {/* Related Products Section */}
+      {/* Reviews Section */}
       <div className="mt-16">
-        <RelatedProducts
-          category={productData.category}
+        <h2 className="text-2xl font-bold mb-8">Customer Reviews</h2>
+        <Reviews 
+          productId={productId}
+          key={productId}
+        />
+      </div>
+
+      {/* Related Products */}
+      <div className="mt-16">
+        <RelatedProducts 
+          category={productData.category} 
           subCategory={productData.subcategory}
-          currentProductId={productData._id}
+          currentProductId={productId} 
         />
       </div>
     </div>
   );
 };
+
+<style jsx>{`
+  .eco-friendly {
+    background: linear-gradient(to bottom, rgba(144, 238, 144, 0.1), transparent);
+    border-radius: 8px;
+  }
+
+  .eco-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .eco-badge span {
+    color: #4CAF50;
+    font-weight: 500;
+  }
+
+  .eco-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+`}</style>
 
 export default Product;

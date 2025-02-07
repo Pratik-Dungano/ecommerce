@@ -5,6 +5,7 @@ import {
     allOrders,
     userOrders,
     updateStatus,
+    cancelOrder
 } from '../controllers/orderController.js';
 import adminAuth from '../middleware/adminAuth.js';
 import authUser from '../middleware/auth.js';
@@ -19,5 +20,6 @@ orderRouter.post('/status', adminAuth, updateStatus);
 orderRouter.post('/place', authUser, placeOrder);
 orderRouter.post('/create-razorpay-order', authUser, createRazorpayOrder);
 orderRouter.post('/userorders', authUser, userOrders);
+orderRouter.post('/cancel', authUser, cancelOrder);
 
 export default orderRouter;
