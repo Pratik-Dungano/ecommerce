@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { assets } from '../assets/assets';
 import axios from 'axios';
 import { backendUrl } from '../App';
@@ -13,7 +13,13 @@ const Edit = ({ token }) => {
   const [image2, setImage2] = useState(false);
   const [image3, setImage3] = useState(false);
   const [image4, setImage4] = useState(false);
+  const [video, setVideo] = useState(false);
+  const [videoThumbnail, setVideoThumbnail] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [existingImages, setExistingImages] = useState([]);
+  const [existingVideo, setExistingVideo] = useState(null);
+  const videoRef = useRef(null);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -41,6 +47,7 @@ const Edit = ({ token }) => {
           setEcoFriendly(product.ecoFriendly);
           setSizes(product.sizes);
           setExistingImages(product.image);
+          setExistingVideo(product.video);
         }
       } catch (error) {
         toast.error("Failed to fetch product details");
@@ -49,8 +56,32 @@ const Edit = ({ token }) => {
     fetchProduct();
   }, [id]);
 
+  // Generate video thumbnail when video is selected
+  const handleVideoSelect = (file) => {
+    setVideo(file);
+    setExistingVideo(null); // Clear existing video when new one is selected
+    if (file) {
+      const videoElement = document.createElement('video');
+      videoElement.preload = 'metadata';
+      videoElement.onloadedmetadata = () => {
+        // Create a canvas to capture the thumbnail
+        const canvas = document.createElement('canvas');
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        canvas.getContext('2d').drawImage(videoElement, 0, 0);
+        setVideoThumbnail(canvas.toDataURL());
+      };
+      videoElement.src = URL.createObjectURL(file);
+    } else {
+      setVideoThumbnail(null);
+    }
+  };
+
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    setIsUploading(true);
+    setUploadProgress(0);
+
     try {
       const formData = new FormData();
       
@@ -69,11 +100,21 @@ const Edit = ({ token }) => {
       image2 && formData.append("image2", image2);
       image3 && formData.append("image3", image3);
       image4 && formData.append("image4", image4);
+      video && formData.append("video", video);
+
+      // Create upload progress handler
+      const onUploadProgress = (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(percentCompleted);
+      };
 
       const response = await axios.post(
         `${backendUrl}/api/product/edit`,
         formData,
-        { headers: { token } }
+        { 
+          headers: { token },
+          onUploadProgress
+        }
       );
 
       if (response.data.success) {
@@ -85,6 +126,9 @@ const Edit = ({ token }) => {
     } catch (error) {
       console.log(error);
       toast.error(error.message);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -121,6 +165,151 @@ const Edit = ({ token }) => {
             <input onChange={(e) => setImage4(e.target.files[0])} type="file" id="image4" hidden />
           </label>
         </div>
+      </div>
+
+      {/* Current Video Section */}
+      {existingVideo && (
+        <div>
+          <p className="mb-2 font-semibold">Current Video</p>
+          <div className="mb-4">
+            <video 
+              ref={videoRef}
+              src={existingVideo} 
+              controls 
+              className="w-64 h-auto rounded-md border border-gray-200"
+              onLoadedMetadata={() => {
+                const canvas = document.createElement('canvas');
+                canvas.width = videoRef.current.videoWidth;
+                canvas.height = videoRef.current.videoHeight;
+                canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
+                setVideoThumbnail(canvas.toDataURL());
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Upload New Video Section */}
+      <div>
+        <p className="mb-2 font-semibold">Upload New Video (Optional)</p>
+        <div className="flex items-start gap-3">
+          <div className="relative">
+            <label htmlFor="video" className="cursor-pointer flex items-center justify-center w-48 h-32 border-2 border-dashed border-gray-300 rounded-md hover:border-blue-500 transition-colors overflow-hidden">
+              {!video && !existingVideo ? (
+                <div className="text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <p className="mt-1 text-sm text-gray-500">Upload video</p>
+                </div>
+              ) : (
+                <>
+                  {video ? (
+                    // Show thumbnail for newly selected video
+                    <>
+                      {videoThumbnail ? (
+                        <div className="relative w-full h-full">
+                          <img 
+                            src={videoThumbnail} 
+                            alt="Video thumbnail" 
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          <p className="mt-1 text-sm text-green-600">Video selected</p>
+                          <p className="text-xs text-gray-500 truncate max-w-[180px]">{video.name}</p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    // Show existing video thumbnail
+                    <div className="relative w-full h-full">
+                      <img 
+                        src={videoThumbnail} 
+                        alt="Video thumbnail" 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+              <input 
+                onChange={(e) => handleVideoSelect(e.target.files[0])} 
+                type="file" 
+                id="video" 
+                hidden 
+                accept="video/*"
+              />
+            </label>
+
+            {(video || existingVideo) && (
+              <button 
+                type="button"
+                onClick={() => {
+                  setVideo(false);
+                  setVideoThumbnail(null);
+                  setExistingVideo(null);
+                }}
+                className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {(video || existingVideo) && (
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-700">Video Details:</p>
+              {video ? (
+                <p className="text-xs text-gray-500">
+                  Name: {video.name}
+                  <br />
+                  Size: {(video.size / (1024 * 1024)).toFixed(2)} MB
+                  <br />
+                  Type: {video.type}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  Current video URL: {existingVideo}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Upload Progress */}
+        {isUploading && (
+          <div className="mt-4">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+              <span className="text-sm text-gray-600">{uploadProgress}%</span>
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              {uploadProgress < 100 ? 'Uploading...' : 'Processing...'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Product Details */}
@@ -214,7 +403,8 @@ const Edit = ({ token }) => {
             value={discountPercentage}
             type="number"
             id="discountPercentage"
-            placeholder="0"
+            placeholder="0-100"
+            required
             min="0"
             max="100"
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -245,34 +435,53 @@ const Edit = ({ token }) => {
       </div>
 
       {/* Bestseller and Eco-Friendly Checkboxes */}
-      <div className="checkbox-group">
-        <div className="checkbox-item">
-          <input
-            type="checkbox"
-            id="bestseller"
-            checked={bestseller}
-            onChange={(e) => setBestseller(e.target.checked)}
-          />
-          <label htmlFor="bestseller">Bestseller</label>
-        </div>
-        <div className="checkbox-item">
-          <input
-            type="checkbox"
-            id="ecoFriendly"
-            checked={ecoFriendly}
-            onChange={(e) => setEcoFriendly(e.target.checked)}
-          />
-          <label htmlFor="ecoFriendly">Eco-Friendly</label>
+      <div className="w-full">
+        <div className="flex gap-5">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="bestseller"
+              checked={bestseller}
+              onChange={(e) => setBestseller(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <label htmlFor="bestseller" className="text-gray-700">Bestseller</label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="ecoFriendly"
+              checked={ecoFriendly}
+              onChange={(e) => setEcoFriendly(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <label htmlFor="ecoFriendly" className="text-gray-700">Eco-Friendly</label>
+          </div>
         </div>
       </div>
 
       {/* Update Button */}
-      <button
-        type="submit"
-        className="px-5 py-2 bg-black text-white font-semibold rounded-md hover:bg-gray-800"
-      >
-        Update Product
-      </button>
+      <div className="flex gap-4">
+        <button
+          type="submit"
+          disabled={isUploading}
+          className={`px-5 py-2 bg-black text-white font-semibold rounded-md ${
+            isUploading 
+              ? 'opacity-50 cursor-not-allowed'
+              : 'hover:bg-gray-800'
+          }`}
+        >
+          {isUploading ? 'Updating...' : 'Update Product'}
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate('/list')}
+          disabled={isUploading}
+          className="px-5 py-2 bg-gray-200 text-gray-800 font-semibold rounded-md hover:bg-gray-300"
+        >
+          Cancel
+        </button>
+      </div>
     </form>
   );
 };

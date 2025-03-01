@@ -4,7 +4,7 @@ import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
 import Reviews from '../components/Reviews';
-import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard, Star, Award } from 'react-feather';
+import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard, Star, Award, Play, Pause } from 'react-feather';
 import { FaLeaf } from "react-icons/fa";
 
 const Product = () => {
@@ -18,6 +18,8 @@ const Product = () => {
   const [[x, y], setXY] = useState([0, 0]);
   const [[imgWidth, imgHeight], setImgSize] = useState([0, 0]);
   const magnifierRef = useRef(null);
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const ZOOM_LEVEL = 2.5;
   const MAGNIFIER_SIZE = 150;
 
@@ -36,7 +38,6 @@ const Product = () => {
   const handleMouseMove = (e) => {
     const elem = magnifierRef.current;
     const { top, left } = elem.getBoundingClientRect();
-    // Calculate position relative to the image container
     const x = e.clientX - left;
     const y = e.clientY - top;
     setXY([x, y]);
@@ -72,6 +73,17 @@ const Product = () => {
     }
   };
 
+  const toggleVideo = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
   const renderStars = (rating) => {
     return (
       <div className="flex items-center gap-1">
@@ -101,7 +113,7 @@ const Product = () => {
   return (
     <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${productData?.ecoFriendly ? 'eco-friendly' : ''}`}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Left Column - Product Images */}
+        {/* Left Column - Product Images and Video */}
         <div className="relative flex gap-6">
           {/* Thumbnails */}
           <div className="hidden sm:flex flex-col gap-3 w-24">
@@ -122,46 +134,79 @@ const Product = () => {
                 />
               </div>
             ))}
+            {productData.video && (
+              <div
+                className="cursor-pointer rounded-lg overflow-hidden transition-all relative group"
+                onClick={() => setImage('video')}
+              >
+                <video
+                  src={productData.video}
+                  className="w-full h-24 object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                  <Play className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Main Image */}
+          {/* Main Image/Video Display */}
           <div className="flex-grow relative">
-            <div
-              ref={magnifierRef}
-              className="relative overflow-hidden rounded-lg bg-gray-50"
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={() => setShowMagnifier(false)}
-              onMouseMove={handleMouseMove}
-            >
-              <img
-                src={image}
-                alt={productData.name}
-                className="w-full h-auto object-cover rounded-lg"
-              />
-              {showMagnifier && (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: `${x - MAGNIFIER_SIZE / 2}px`,
-                    top: `${y - MAGNIFIER_SIZE / 2}px`,
-                    width: `${MAGNIFIER_SIZE}px`,
-                    height: `${MAGNIFIER_SIZE}px`,
-                    opacity: "1",
-                    backgroundColor: "white",
-                    borderRadius: "4px",
-                    pointerEvents: "none",
-                    zIndex: 2,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    background: `url(${image})`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: `${-x * ZOOM_LEVEL + MAGNIFIER_SIZE / 2}px ${
-                      -y * ZOOM_LEVEL + MAGNIFIER_SIZE / 2
-                    }px`,
-                    backgroundSize: `${imgWidth * ZOOM_LEVEL}px ${imgHeight * ZOOM_LEVEL}px`
-                  }}
+            {image === 'video' && productData.video ? (
+              <div className="relative rounded-lg overflow-hidden bg-gray-100">
+                <video
+                  ref={videoRef}
+                  src={productData.video}
+                  className="w-full h-auto"
+                  controls
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
                 />
-              )}
-            </div>
+                <button
+                  onClick={toggleVideo}
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-50 rounded-full p-4 text-white hover:bg-opacity-70 transition-opacity"
+                >
+                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                </button>
+              </div>
+            ) : (
+              <div
+                ref={magnifierRef}
+                className="relative overflow-hidden rounded-lg bg-gray-50"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={() => setShowMagnifier(false)}
+                onMouseMove={handleMouseMove}
+              >
+                <img
+                  src={image}
+                  alt={productData.name}
+                  className="w-full h-auto object-cover rounded-lg"
+                />
+                {showMagnifier && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `${x - MAGNIFIER_SIZE / 2}px`,
+                      top: `${y - MAGNIFIER_SIZE / 2}px`,
+                      width: `${MAGNIFIER_SIZE}px`,
+                      height: `${MAGNIFIER_SIZE}px`,
+                      opacity: "1",
+                      backgroundColor: "white",
+                      borderRadius: "4px",
+                      pointerEvents: "none",
+                      zIndex: 2,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      background: `url(${image})`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: `${-x * ZOOM_LEVEL + MAGNIFIER_SIZE / 2}px ${
+                        -y * ZOOM_LEVEL + MAGNIFIER_SIZE / 2
+                      }px`,
+                      backgroundSize: `${imgWidth * ZOOM_LEVEL}px ${imgHeight * ZOOM_LEVEL}px`
+                    }}
+                  />
+                )}
+              </div>
+            )}
 
             {/* Mobile Thumbnails */}
             <div className="flex sm:hidden gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -182,6 +227,20 @@ const Product = () => {
                   />
                 </div>
               ))}
+              {productData.video && (
+                <div
+                  className="flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-all relative"
+                  onClick={() => setImage('video')}
+                >
+                  <video
+                    src={productData.video}
+                    className="w-20 h-20 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                    <Play className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -372,6 +431,14 @@ const Product = () => {
     align-items: center;
     margin-left: 8px;
     vertical-align: middle;
+  }
+
+  video::-webkit-media-controls-timeline {
+    margin-inline: 10px;
+  }
+
+  video::-webkit-media-controls-panel {
+    background: rgba(0, 0, 0, 0.6);
   }
 `}</style>
 

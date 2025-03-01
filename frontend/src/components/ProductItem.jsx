@@ -2,10 +2,10 @@
 import React, { useContext, useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
-import { ShoppingCart, Heart, Award } from "react-feather";
+import { ShoppingCart, Heart, Award, Video } from "react-feather";
 import { FaLeaf } from "react-icons/fa";
 
-const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, ecoFriendly }) => {
+const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, ecoFriendly, video }) => {
     const { 
         addToCart, 
         addToWishList, 
@@ -92,6 +92,12 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, e
                         <div className="eco-badge absolute top-2 left-2 bg-green-50/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                             <FaLeaf className="text-green-600" size={14} />
                             <span className="text-xs font-medium text-green-700">Eco</span>
+                        </div>
+                    )}
+                    {video && (
+                        <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+                            <Video className="text-white" size={14} />
+                            <span className="text-xs font-medium text-white">Video</span>
                         </div>
                     )}
                 </div>
