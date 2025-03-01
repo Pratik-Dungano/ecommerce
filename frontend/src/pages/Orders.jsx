@@ -127,6 +127,7 @@ const Orders = () => {
   // Add animation styles
   useEffect(() => {
     const style = document.createElement('style');
+    console.log("hi");
     style.textContent = `
       @keyframes fadeIn {
         from { opacity: 0; transform: scale(0.95); }
