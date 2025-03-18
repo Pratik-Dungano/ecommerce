@@ -16,7 +16,7 @@ import adminAuth from '../middleware/adminAuth.js';
 const router = express.Router();
 
 // Public routes
-router.get('/', getAllCategories);
+router.get('/list', getAllCategories); 
 router.get('/:identifier', getCategoryById);
 
 // Admin only routes - requires authentication and admin privileges

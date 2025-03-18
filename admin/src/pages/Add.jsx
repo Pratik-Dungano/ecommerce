@@ -35,7 +35,7 @@ const Add = ({token}) => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
-        const response = await axios.get(`${backendUrl}/api/categories`);
+        const response = await axios.get(`${backendUrl}/api/category/list`);
         if (response.data.success) {
           setCategories(response.data.categories);
           // Set default values if categories exist

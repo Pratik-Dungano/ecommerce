@@ -63,13 +63,15 @@ export const createCategory = async (req, res) => {
             name,
             slug,
             description,
-            image
+            image,
+            subcategories: [] // Explicitly set an empty array
         });
         
         await category.save();
         
         res.status(201).json({ success: true, category });
     } catch (error) {
+        console.error('Category creation error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

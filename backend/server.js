@@ -30,7 +30,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/wishlist', wishListRouter);
 app.use('/api/reviews', reviewRoute);
-app.use('/api/categories', categoryRouter);
+app.use('/api/category', categoryRouter); 
 app.get('/',(req,res)=>{
     res.send("API Working")
 })

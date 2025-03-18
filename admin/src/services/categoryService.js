@@ -3,7 +3,7 @@ import { backendUrl } from '../config';
 
 // Configure axios defaults
 const api = axios.create({
-  baseURL: `${backendUrl}/api/categories`,
+  baseURL: `${backendUrl}/api/category`,
 });
 
 // Add token to requests
