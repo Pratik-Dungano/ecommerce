@@ -90,7 +90,7 @@ router.post('/video', adminAuth, upload.single('video'), async (req, res) => {
 });
 
 // Fallback route for local upload if needed
-router.post('/local', adminAuth, localUpload.single('file'), (req, res) => {
+router.post('/local', adminAuth, upload.single('file'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ 
