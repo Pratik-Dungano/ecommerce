@@ -2,7 +2,6 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -14,34 +13,14 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_SECRET_KEY
 });
 
-// Local storage fallback
+// Local storage setup
 const uploadDir = 'uploads/';
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Try to create Cloudinary storage
-let cloudinaryStorage;
-try {
-    cloudinaryStorage = new CloudinaryStorage({
-        cloudinary: cloudinary,
-        params: {
-            folder: 'ecommerce',
-            allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'mp4', 'webm', 'mov'],
-            resource_type: (req, file) => {
-                if (file.fieldname === 'video') return 'video';
-                return 'image';
-            }
-        }
-    });
-    console.log('Cloudinary storage initialized successfully');
-} catch (error) {
-    console.error('Error initializing Cloudinary storage:', error);
-    cloudinaryStorage = null;
-}
-
-// Fallback to local storage if Cloudinary fails
-const diskStorage = multer.diskStorage({
+// Use disk storage for multer (we'll handle Cloudinary upload separately)
+const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, uploadDir);
     },
@@ -86,9 +65,6 @@ const limits = {
     files: 5 // Max 5 files (4 images + 1 video)
 };
 
-// Choose storage based on Cloudinary availability
-const storage = cloudinaryStorage || diskStorage;
-
 // Create upload middleware
 const upload = multer({
     storage,
@@ -96,11 +72,17 @@ const upload = multer({
     limits
 });
 
-// Fallback uploader with disk storage
-const localUpload = multer({
-    storage: diskStorage,
-    fileFilter,
-    limits
-});
+// Helper function to upload a file to Cloudinary
+const uploadToCloudinary = async (filePath, options = {}) => {
+    try {
+        const result = await cloudinary.uploader.upload(filePath, options);
+        // Delete local file after Cloudinary upload
+        fs.unlinkSync(filePath);
+        return result;
+    } catch (error) {
+        console.error('Error uploading to Cloudinary:', error);
+        return null;
+    }
+};
 
-export { upload, localUpload };
+export { upload, uploadToCloudinary };

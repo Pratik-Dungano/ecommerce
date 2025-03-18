@@ -1,6 +1,7 @@
 import cloudinary from '../config/cloudinary.js';
 import fs from 'fs';
 import Product from '../models/productModel.js';
+import { uploadToCloudinary } from '../middleware/multer.js';
 
 // Add Product Controller
 export const addProduct = async (req, res) => {
@@ -8,46 +9,58 @@ export const addProduct = async (req, res) => {
         const imageUrls = [];
         let videoUrl = null;
 
-        // Handle file uploads to Cloudinary
+        // Process image files
         if (req.files) {
-            // Upload images
-            const imagePromises = [];
+            // Handle image uploads - supports both local and Cloudinary
             for (let i = 1; i <= 4; i++) {
                 const imageField = `image${i}`;
-                if (req.files[imageField]?.[0]) {
-                    const imagePromise = cloudinary.uploader.upload(req.files[imageField][0].path, {
-                        folder: 'products'
-                    });
-                    imagePromises.push(imagePromise);
+                if (req.files[imageField] && req.files[imageField][0]) {
+                    const imageFile = req.files[imageField][0];
+                    
+                    // Try to upload to Cloudinary
+                    try {
+                        const result = await uploadToCloudinary(imageFile.path, {
+                            folder: 'ecommerce/products',
+                            resource_type: 'image'
+                        });
+                        
+                        if (result) {
+                            imageUrls.push(result.secure_url);
+                        } else {
+                            // Fallback to local URL if Cloudinary upload fails
+                            const imageUrl = `${req.protocol}://${req.get('host')}/${imageFile.path.replace(/\\/g, '/')}`;
+                            imageUrls.push(imageUrl);
+                        }
+                    } catch (error) {
+                        console.error(`Error uploading ${imageField}:`, error);
+                        const imageUrl = `${req.protocol}://${req.get('host')}/${imageFile.path.replace(/\\/g, '/')}`;
+                        imageUrls.push(imageUrl);
+                    }
                 }
             }
+        }
 
-            // Wait for all image uploads to complete
-            const imageResults = await Promise.all(imagePromises);
-            imageUrls.push(...imageResults.map(result => result.secure_url));
-
-            // Upload video if present
-            if (req.files.video?.[0]) {
-                const videoResult = await cloudinary.uploader.upload(req.files.video[0].path, {
-                    resource_type: 'video',
-                    folder: 'product_videos',
-                    eager: [
-                        { format: 'mp4', transformation: [
-                            {quality: 'auto:good'},
-                            {fetch_format: 'auto'},
-                            {width: 1280, crop: 'limit'}
-                        ]}
-                    ]
+        // Process video file
+        if (req.files && req.files.video && req.files.video[0]) {
+            const videoFile = req.files.video[0];
+            
+            // Try to upload to Cloudinary
+            try {
+                const result = await uploadToCloudinary(videoFile.path, {
+                    folder: 'ecommerce/products',
+                    resource_type: 'video'
                 });
-                videoUrl = videoResult.secure_url;
+                
+                if (result) {
+                    videoUrl = result.secure_url;
+                } else {
+                    // Fallback to local URL if Cloudinary upload fails
+                    videoUrl = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
+                }
+            } catch (error) {
+                console.error('Error uploading video:', error);
+                videoUrl = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
             }
-
-            // Clean up uploaded files
-            Object.values(req.files).flat().forEach(file => {
-                fs.unlink(file.path, (err) => {
-                    if (err) console.error('Error deleting file:', err);
-                });
-            });
         }
 
         if (imageUrls.length === 0) {
@@ -126,48 +139,62 @@ export const editProduct = async (req, res) => {
         let imageUrls = [...product.image];
         let videoUrl = product.video;
 
-        // Handle file uploads to Cloudinary
+        // Process image files
+        const imagesArray = [];
         if (req.files) {
-            // Upload new images
-            const imagePromises = [];
+            // Handle image uploads - supports both local and Cloudinary
             for (let i = 1; i <= 4; i++) {
                 const imageField = `image${i}`;
-                if (req.files[imageField]?.[0]) {
-                    const imagePromise = cloudinary.uploader.upload(req.files[imageField][0].path, {
-                        folder: 'products'
-                    });
-                    imagePromises.push({ index: i - 1, promise: imagePromise });
+                if (req.files[imageField] && req.files[imageField][0]) {
+                    const imageFile = req.files[imageField][0];
+                    
+                    // Try to upload to Cloudinary
+                    try {
+                        const result = await uploadToCloudinary(imageFile.path, {
+                            folder: 'ecommerce/products',
+                            resource_type: 'image'
+                        });
+                        
+                        if (result) {
+                            imagesArray.push(result.secure_url);
+                        } else {
+                            // Fallback to local URL if Cloudinary upload fails
+                            const imageUrl = `${req.protocol}://${req.get('host')}/${imageFile.path.replace(/\\/g, '/')}`;
+                            imagesArray.push(imageUrl);
+                        }
+                    } catch (error) {
+                        console.error(`Error uploading ${imageField}:`, error);
+                        const imageUrl = `${req.protocol}://${req.get('host')}/${imageFile.path.replace(/\\/g, '/')}`;
+                        imagesArray.push(imageUrl);
+                    }
                 }
             }
+        }
 
-            // Replace images at specific indices
-            for (const { index, promise } of imagePromises) {
-                const result = await promise;
-                imageUrls[index] = result.secure_url;
-            }
-
-            // Upload new video if provided
-            if (req.files.video?.[0]) {
-                const videoResult = await cloudinary.uploader.upload(req.files.video[0].path, {
-                    resource_type: 'video',
-                    folder: 'product_videos',
-                    eager: [
-                        { format: 'mp4', transformation: [
-                            {quality: 'auto:good'},
-                            {fetch_format: 'auto'},
-                            {width: 1280, crop: 'limit'}
-                        ]}
-                    ]
+        // Process video file
+        let videoArray = [];
+        if (req.files && req.files.video && req.files.video[0]) {
+            const videoFile = req.files.video[0];
+            
+            // Try to upload to Cloudinary
+            try {
+                const result = await uploadToCloudinary(videoFile.path, {
+                    folder: 'ecommerce/products',
+                    resource_type: 'video'
                 });
-                videoUrl = videoResult.secure_url;
+                
+                if (result) {
+                    videoArray.push(result.secure_url);
+                } else {
+                    // Fallback to local URL if Cloudinary upload fails
+                    const videoUrl = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
+                    videoArray.push(videoUrl);
+                }
+            } catch (error) {
+                console.error('Error uploading video:', error);
+                const videoUrl = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
+                videoArray.push(videoUrl);
             }
-
-            // Clean up uploaded files
-            Object.values(req.files).flat().forEach(file => {
-                fs.unlink(file.path, (err) => {
-                    if (err) console.error('Error deleting file:', err);
-                });
-            });
         }
 
         const updates = {
@@ -175,8 +202,8 @@ export const editProduct = async (req, res) => {
             description: req.body.description,
             price: req.body.price,
             discountPercentage: req.body.discountPercentage || 0,
-            image: imageUrls,
-            video: videoUrl,
+            image: imagesArray,
+            video: videoArray.length > 0 ? videoArray[0] : null,
             category: req.body.category,
             subcategory: req.body.subcategory,
             categoryId: req.body.categoryId,

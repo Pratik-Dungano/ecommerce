@@ -1,5 +1,5 @@
 import express from 'express';
-import { upload, localUpload } from '../middleware/multer.js';
+import { upload, uploadToCloudinary } from '../middleware/multer.js';
 import adminAuth from '../middleware/adminAuth.js';
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
@@ -17,16 +17,21 @@ router.post('/image', adminAuth, upload.single('image'), async (req, res) => {
             });
         }
 
-        // If using Cloudinary, the file path is already a URL
-        if (req.file.path && req.file.path.includes('http')) {
+        // Upload to Cloudinary
+        const result = await uploadToCloudinary(req.file.path, {
+            folder: 'ecommerce/images',
+            resource_type: 'image'
+        });
+
+        if (result) {
             return res.status(200).json({
                 success: true,
-                imageUrl: req.file.path,
-                publicId: req.file.filename || path.basename(req.file.path)
+                imageUrl: result.secure_url,
+                publicId: result.public_id
             });
         }
         
-        // If using local storage, construct the URL
+        // If Cloudinary upload failed, return the local path
         const fileUrl = `${req.protocol}://${req.get('host')}/${req.file.path.replace(/\\/g, '/')}`;
         return res.status(200).json({
             success: true,
@@ -53,16 +58,21 @@ router.post('/video', adminAuth, upload.single('video'), async (req, res) => {
             });
         }
 
-        // If using Cloudinary, the file path is already a URL
-        if (req.file.path && req.file.path.includes('http')) {
+        // Upload to Cloudinary
+        const result = await uploadToCloudinary(req.file.path, {
+            folder: 'ecommerce/videos',
+            resource_type: 'video'
+        });
+
+        if (result) {
             return res.status(200).json({
                 success: true,
-                videoUrl: req.file.path,
-                publicId: req.file.filename || path.basename(req.file.path)
+                videoUrl: result.secure_url,
+                publicId: result.public_id
             });
         }
         
-        // If using local storage, construct the URL
+        // If Cloudinary upload failed, return the local path
         const fileUrl = `${req.protocol}://${req.get('host')}/${req.file.path.replace(/\\/g, '/')}`;
         return res.status(200).json({
             success: true,
