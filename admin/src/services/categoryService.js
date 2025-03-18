@@ -52,6 +52,15 @@ export const deleteCategory = async (id, token) => {
   }
 };
 
+export const toggleCategoryFeatured = async (id, data, token) => {
+  try {
+    const response = await api.put(`/${id}/featured`, data, setAuthHeader(token));
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { success: false, message: 'Network error' };
+  }
+};
+
 // Subcategory APIs
 export const addSubcategory = async (categoryId, subcategoryData, token) => {
   try {

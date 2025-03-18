@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { 
   getAllCategories, 
@@ -7,8 +7,11 @@ import {
   deleteCategory,
   addSubcategory,
   updateSubcategory,
-  deleteSubcategory
+  deleteSubcategory,
+  toggleCategoryFeatured
 } from '../services/categoryService';
+import axios from 'axios';
+import { backendUrl } from '../config';
 
 const Categories = ({ token }) => {
   const [categories, setCategories] = useState([]);
@@ -23,6 +26,9 @@ const Categories = ({ token }) => {
     description: '',
     image: ''
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
 
   // Subcategory form state
   const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
@@ -61,6 +67,8 @@ const Categories = ({ token }) => {
     setCategoryForm({ name: '', description: '', image: '' });
     setEditingCategory(null);
     setIsAddingCategory(false);
+    setImageFile(null);
+    setImagePreview('');
   };
 
   const resetSubcategoryForm = () => {
@@ -70,30 +78,97 @@ const Categories = ({ token }) => {
     setSelectedCategoryId(null);
   };
 
-  // Handle category form submission
+  // Handle image file selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
+  };
+
+  // Upload image to Cloudinary
+  const uploadImage = async () => {
+    if (!imageFile) return null;
+    
+    setImageLoading(true);
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/upload/image`,
+        formData,
+        {
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+            'token': token 
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        setImageLoading(false);
+        // Return the Cloudinary URL
+        return response.data.imageUrl;
+      } else {
+        toast.error('Image upload failed');
+        setImageLoading(false);
+        return null;
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error('Image upload failed: ' + (error.response?.data?.message || error.message));
+      setImageLoading(false);
+      return null;
+    }
+  };
+
+  // Handle category form submission with image upload
   const handleCategorySubmit = async (e) => {
     e.preventDefault();
     
     try {
+      let uploadedImageUrl = null;
+      
+      // Upload image if selected
+      if (imageFile) {
+        uploadedImageUrl = await uploadImage();
+        if (!uploadedImageUrl && !categoryForm.image) {
+          // If upload failed and no previous image
+          return;
+        }
+      }
+      
+      // Prepare category data with image URL if uploaded
+      const categoryData = {
+        ...categoryForm,
+        image: uploadedImageUrl || categoryForm.image
+      };
+      
       let response;
       
       if (editingCategory) {
         // Update existing category
-        response = await updateCategory(editingCategory._id, categoryForm, token);
+        response = await updateCategory(editingCategory._id, categoryData, token);
         if (response.success) {
           toast.success('Category updated successfully');
         }
       } else {
         // Create new category
-        response = await createCategory(categoryForm, token);
+        response = await createCategory(categoryData, token);
         if (response.success) {
           toast.success('Category created successfully');
         }
       }
       
-      // Refresh categories list
+      // Reset form and states
       fetchCategories();
       resetCategoryForm();
+      setImageFile(null);
+      setImagePreview('');
     } catch (error) {
       toast.error(error.message || 'An error occurred. Please try again.');
     }
@@ -176,6 +251,7 @@ const Categories = ({ token }) => {
       image: category.image || ''
     });
     setIsAddingCategory(true);
+    setImagePreview(category.image || '');
   };
 
   // Set up subcategory for editing
@@ -193,6 +269,57 @@ const Categories = ({ token }) => {
   const startAddingSubcategory = (categoryId) => {
     setSelectedCategoryId(categoryId);
     setIsAddingSubcategory(true);
+  };
+
+  // Handle feature toggle
+  const handleToggleFeature = async (category) => {
+    try {
+      const newFeaturedStatus = !category.featured;
+      const response = await toggleCategoryFeatured(
+        category._id, 
+        { 
+          featured: newFeaturedStatus,
+          displayOrder: category.displayOrder || 0 
+        }, 
+        token
+      );
+      
+      if (response.success) {
+        toast.success(newFeaturedStatus 
+          ? 'Category added to homepage features!' 
+          : 'Category removed from homepage features');
+        fetchCategories();
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to update featured status. Please try again.');
+    }
+  };
+
+  // Handle display order change
+  const handleDisplayOrderChange = async (category, newOrder) => {
+    if (newOrder < 0) return;
+    
+    try {
+      const response = await toggleCategoryFeatured(
+        category._id,
+        {
+          featured: category.featured,
+          displayOrder: newOrder
+        },
+        token
+      );
+      
+      if (response.success) {
+        toast.success('Display order updated');
+        fetchCategories();
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to update display order. Please try again.');
+    }
   };
 
   if (loading) return <div className="text-center py-10">Loading categories...</div>;
@@ -237,14 +364,45 @@ const Categories = ({ token }) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Image URL</label>
+              <label className="block text-gray-700 mb-2">Category Image</label>
+              
+              {/* Image preview */}
+              {(imagePreview || categoryForm.image) && (
+                <div className="mb-2">
+                  <img 
+                    src={imagePreview || categoryForm.image} 
+                    alt="Category preview" 
+                    className="w-full max-w-xs h-auto object-cover rounded"
+                  />
+                </div>
+              )}
+              
+              {/* File input */}
               <input
-                type="text"
-                value={categoryForm.image}
-                onChange={(e) => setCategoryForm({ ...categoryForm, image: e.target.value })}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
                 className="w-full p-2 border rounded"
-                placeholder="http://example.com/image.jpg"
               />
+              
+              {/* Alternative URL input */}
+              <div className="mt-2">
+                <label className="block text-sm text-gray-600 mb-1">Or enter image URL</label>
+                <input
+                  type="text"
+                  value={categoryForm.image}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, image: e.target.value })}
+                  className="w-full p-2 border rounded"
+                  placeholder="http://example.com/image.jpg"
+                />
+              </div>
+              
+              {imageLoading && (
+                <div className="mt-2 flex items-center">
+                  <div className="mr-2 h-4 w-4 border-2 border-gray-300 border-t-black rounded-full animate-spin"></div>
+                  <span className="text-sm text-gray-600">Uploading image...</span>
+                </div>
+              )}
             </div>
             <div className="flex gap-2">
               <button
@@ -318,35 +476,67 @@ const Categories = ({ token }) => {
         ) : (
           <div className="divide-y">
             {categories.map((category) => (
-              <div key={category._id} className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-medium">{category.name}</h3>
+              <div key={category._id} className="bg-white rounded shadow mb-4 p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center">
+                    <h2 className="text-xl font-semibold">{category.name}</h2>
                     {category.active === false && (
-                      <span className="bg-yellow-100 text-yellow-800 px-2 py-1 text-xs rounded">Inactive</span>
+                      <span className="bg-yellow-100 text-yellow-800 px-2 py-1 text-xs rounded ml-2">Inactive</span>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex space-x-2">
                     <button
                       onClick={() => startAddingSubcategory(category._id)}
-                      className="bg-purple-500 text-white px-3 py-1 text-sm rounded hover:bg-purple-600 transition"
+                      className="text-purple-500 hover:text-purple-700 mr-2"
                     >
                       Add Subcategory
                     </button>
                     <button
                       onClick={() => startEditingCategory(category)}
-                      className="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600 transition"
+                      className="text-blue-500 hover:text-blue-700"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeleteCategory(category._id)}
-                      className="bg-red-500 text-white px-3 py-1 text-sm rounded hover:bg-red-600 transition"
+                      className="text-red-500 hover:text-red-700"
                     >
                       Delete
                     </button>
                   </div>
                 </div>
+                
+                {/* Featured controls */}
+                <div className="flex items-center mt-2 mb-3 space-x-2">
+                  <div className="flex items-center">
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={category.featured || false}
+                        onChange={() => handleToggleFeature(category)}
+                        className="sr-only peer"
+                      />
+                      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      <span className="ml-2 text-sm font-medium text-gray-900">
+                        {category.featured ? 'Featured on Homepage' : 'Not Featured'}
+                      </span>
+                    </label>
+                  </div>
+                  
+                  {category.featured && (
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm text-gray-700">Display Order:</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={category.displayOrder || 0}
+                        onChange={(e) => handleDisplayOrderChange(category, parseInt(e.target.value))}
+                        className="w-16 p-1 text-sm border rounded"
+                      />
+                    </div>
+                  )}
+                </div>
+                
                 <p className="text-gray-600 text-sm mb-3">{category.description || 'No description'}</p>
                 
                 {/* Subcategories */}

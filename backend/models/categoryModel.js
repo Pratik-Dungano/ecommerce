@@ -20,7 +20,9 @@ const categorySchema = new mongoose.Schema({
         type: [subcategorySchema],
         default: []
     },
-    active: { type: Boolean, default: true }
+    active: { type: Boolean, default: true },
+    featured: { type: Boolean, default: false },
+    displayOrder: { type: Number, default: 0 }
 }, { timestamps: true });
 
 // Use slug for better URL structure

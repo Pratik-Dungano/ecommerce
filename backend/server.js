@@ -9,6 +9,8 @@ import orderRouter from './routes/orderRoute.js'
 import wishListRouter from './routes/wishListRouter.js'
 import reviewRoute from './routes/reviewRoute.js'
 import categoryRouter from './routes/categoryRoute.js'
+import lookRouter from './routes/lookRoutes.js'
+import uploadRouter from './routes/uploadRoute.js'
 
 //App Config
 const app = express()
@@ -31,6 +33,8 @@ app.use('/api/order', orderRouter);
 app.use('/api/wishlist', wishListRouter);
 app.use('/api/reviews', reviewRoute);
 app.use('/api/category', categoryRouter); 
+app.use('/api/looks', lookRouter);
+app.use('/api/upload', uploadRouter);
 app.get('/',(req,res)=>{
     res.send("API Working")
 })

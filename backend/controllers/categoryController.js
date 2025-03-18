@@ -48,39 +48,52 @@ export const getCategoryById = async (req, res) => {
 // Create a new category
 export const createCategory = async (req, res) => {
     try {
-        const { name, description, image } = req.body;
+        const { name, description, image, active } = req.body;
         
-        // Generate slug from name
+        if (!name) {
+            return res.status(400).json({ success: false, message: 'Category name is required' });
+        }
+        
+        // Convert name to slug
         const slug = name.toLowerCase().replace(/\s+/g, '-');
         
-        // Check if category with the same slug already exists
+        // Check if category with this slug already exists
         const existingCategory = await CategoryModel.findOne({ slug });
         if (existingCategory) {
             return res.status(400).json({ success: false, message: 'A category with this name already exists' });
         }
         
-        const category = new CategoryModel({
+        // Create new category
+        const newCategory = new CategoryModel({
             name,
             slug,
             description,
             image,
-            subcategories: [] // Explicitly set an empty array
+            active: active !== undefined ? active : true
         });
         
-        await category.save();
+        const savedCategory = await newCategory.save();
         
-        res.status(201).json({ success: true, category });
+        res.status(201).json({
+            success: true,
+            message: 'Category created successfully',
+            category: savedCategory
+        });
     } catch (error) {
-        console.error('Category creation error:', error);
+        console.error('Error creating category:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// Update a category
+// Update category
 export const updateCategory = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, image, active } = req.body;
+        
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: 'Invalid category ID' });
+        }
         
         const category = await CategoryModel.findById(id);
         
@@ -88,9 +101,10 @@ export const updateCategory = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Category not found' });
         }
         
-        // Update fields if provided
+        // Update category fields
         if (name) {
             category.name = name;
+            // Update slug if name changes
             category.slug = name.toLowerCase().replace(/\s+/g, '-');
         }
         
@@ -98,10 +112,15 @@ export const updateCategory = async (req, res) => {
         if (image !== undefined) category.image = image;
         if (active !== undefined) category.active = active;
         
-        await category.save();
+        const updatedCategory = await category.save();
         
-        res.status(200).json({ success: true, category });
+        res.status(200).json({
+            success: true,
+            message: 'Category updated successfully',
+            category: updatedCategory
+        });
     } catch (error) {
+        console.error('Error updating category:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -226,6 +245,57 @@ export const deleteSubcategory = async (req, res) => {
         
         res.status(200).json({ success: true, message: 'Subcategory deleted successfully' });
     } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Get featured categories for the homepage
+export const getFeaturedCategories = async (req, res) => {
+    try {
+        const featuredCategories = await CategoryModel.find({ 
+            active: true,
+            featured: true 
+        }).sort({ displayOrder: 1 });
+        
+        res.status(200).json({ 
+            success: true, 
+            count: featuredCategories.length,
+            categories: featuredCategories 
+        });
+    } catch (error) {
+        console.error('Error fetching featured categories:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Toggle featured status (admin only)
+export const toggleFeaturedCategory = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { featured, displayOrder } = req.body;
+        
+        const category = await CategoryModel.findById(id);
+        
+        if (!category) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Category not found' 
+            });
+        }
+        
+        // Update featured status and display order
+        category.featured = featured !== undefined ? featured : category.featured;
+        category.displayOrder = displayOrder !== undefined ? displayOrder : category.displayOrder;
+        
+        await category.save();
+        
+        res.status(200).json({
+            success: true,
+            message: `Category ${featured ? 'featured' : 'unfeatured'} successfully`,
+            category
+        });
+    } catch (error) {
+        console.error('Error toggling featured status:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 }; 

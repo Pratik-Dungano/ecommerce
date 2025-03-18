@@ -8,7 +8,9 @@ import {
     deleteCategory,
     addSubcategory,
     updateSubcategory,
-    deleteSubcategory 
+    deleteSubcategory,
+    getFeaturedCategories,
+    toggleFeaturedCategory
 } from '../controllers/categoryController.js';
 import authUser from '../middleware/auth.js';
 import adminAuth from '../middleware/adminAuth.js';
@@ -17,6 +19,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/list', getAllCategories); 
+router.get('/featured', getFeaturedCategories);
 router.get('/:identifier', getCategoryById);
 
 // Admin only routes - requires authentication and admin privileges
@@ -24,6 +27,7 @@ router.get('/admin/all', adminAuth, getAllCategoriesAdmin);
 router.post('/', adminAuth, createCategory);
 router.put('/:id', adminAuth, updateCategory);
 router.delete('/:id', adminAuth, deleteCategory);
+router.put('/:id/featured', adminAuth, toggleFeaturedCategory);
 
 // Subcategory routes - all admin only
 router.post('/:categoryId/subcategory', adminAuth, addSubcategory);

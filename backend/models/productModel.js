@@ -6,7 +6,7 @@ const productSchema=new mongoose.Schema({
     price:{type:Number, required:true},
     discountPercentage:{type:Number, default:0, min:0, max:100},
     image:{type:Array, required:true},
-    video:{type:String, default:null},
+    video:{type:Array, default:[]},
     category:{type:String, required:true},
     subcategory:{type:String, required:true},
     categoryId:{type:mongoose.Schema.Types.ObjectId, ref:'category', required:true},
