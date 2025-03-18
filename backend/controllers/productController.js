@@ -64,6 +64,8 @@ export const addProduct = async (req, res) => {
             discountPercentage,
             category,
             subcategory,
+            categoryId,
+            subcategoryId,
             bestseller,
             ecoFriendly,
             sizes 
@@ -78,6 +80,8 @@ export const addProduct = async (req, res) => {
             video: videoUrl,
             category,
             subcategory,
+            categoryId,
+            subcategoryId,
             bestseller: bestseller === 'true',
             ecoFriendly: ecoFriendly === 'true',
             sizes: JSON.parse(sizes),
@@ -175,6 +179,8 @@ export const editProduct = async (req, res) => {
             video: videoUrl,
             category: req.body.category,
             subcategory: req.body.subcategory,
+            categoryId: req.body.categoryId,
+            subcategoryId: req.body.subcategoryId,
             bestseller: req.body.bestseller === 'true',
             ecoFriendly: req.body.ecoFriendly === 'true',
             sizes: JSON.parse(req.body.sizes)

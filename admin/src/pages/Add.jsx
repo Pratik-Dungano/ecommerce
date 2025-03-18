@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { assets } from '../assets/assets';
 import axios from 'axios';
-import { backendUrl } from '../App';
+import { backendUrl } from '../config';
 import { toast } from 'react-toastify';
 import { Play, X, Upload } from 'react-feather';
 
@@ -20,11 +20,65 @@ const Add = ({token}) => {
   const [description,setDescription]=useState("");
   const [price,setPrice]=useState("");
   const [discountPercentage,setDiscountPercentage]=useState("");
-  const [category,setCategory]=useState("Men");
-  const [subcategory,setSubCategory]=useState("Kurtas");
+  const [category,setCategory]=useState("");
+  const [subcategory,setSubCategory]=useState("");
   const [bestseller,setBestseller]=useState(false);
   const [ecoFriendly,setEcoFriendly]=useState(false);
   const [sizes,setSizes]=useState([]);
+
+  // State for categories data
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const response = await axios.get(`${backendUrl}/api/categories`);
+        if (response.data.success) {
+          setCategories(response.data.categories);
+          // Set default values if categories exist
+          if (response.data.categories.length > 0) {
+            setCategory(response.data.categories[0]._id);
+            // Set default subcategory if available
+            if (response.data.categories[0].subcategories.length > 0) {
+              setSubCategory(response.data.categories[0].subcategories[0]._id);
+            }
+          }
+        } else {
+          toast.error("Failed to fetch categories");
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        toast.error("Failed to load categories. Please try again.");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Get subcategories for the selected category
+  const getSubcategories = () => {
+    const selectedCategory = categories.find(cat => cat._id === category);
+    return selectedCategory ? selectedCategory.subcategories : [];
+  };
+
+  // Get category and subcategory names for the form submission
+  const getCategoryName = () => {
+    const selectedCategory = categories.find(cat => cat._id === category);
+    return selectedCategory ? selectedCategory.name : "";
+  };
+
+  const getSubcategoryName = () => {
+    const selectedCategory = categories.find(cat => cat._id === category);
+    if (!selectedCategory) return "";
+    
+    const selectedSubcategory = selectedCategory.subcategories.find(sub => sub._id === subcategory);
+    return selectedSubcategory ? selectedSubcategory.name : "";
+  };
 
   // Generate video thumbnail when video is selected
   const handleVideoSelect = (file) => {
@@ -58,8 +112,10 @@ const Add = ({token}) => {
       formData.append("description", description);
       formData.append("price", price);
       formData.append("discountPercentage", discountPercentage);
-      formData.append("category", category);
-      formData.append("subcategory", subcategory); 
+      formData.append("category", getCategoryName());
+      formData.append("subcategory", getSubcategoryName()); 
+      formData.append("categoryId", category);
+      formData.append("subcategoryId", subcategory);
       formData.append("bestseller", bestseller);
       formData.append("ecoFriendly", ecoFriendly);
       formData.append("sizes", JSON.stringify(sizes));
@@ -110,6 +166,20 @@ const Add = ({token}) => {
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+    }
+  };
+
+  // Handle category change and reset subcategory
+  const handleCategoryChange = (e) => {
+    const newCategoryId = e.target.value;
+    setCategory(newCategoryId);
+    
+    // Reset subcategory selection
+    const newCategory = categories.find(cat => cat._id === newCategoryId);
+    if (newCategory && newCategory.subcategories.length > 0) {
+      setSubCategory(newCategory.subcategories[0]._id);
+    } else {
+      setSubCategory("");
     }
   };
 
@@ -263,31 +333,58 @@ const Add = ({token}) => {
           <label className="block mb-1 font-semibold" htmlFor="productCategory">
             Product category
           </label>
-          <select onChange={(e)=>setCategory(e.target.value)}
-            id="productCategory"
-            required
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Men">Men</option>
-            <option value="Women">Women</option>
-            <option value="Kids">Kids</option>
-          </select>
+          {loadingCategories ? (
+            <div className="w-full p-2 border border-gray-300 rounded-md bg-gray-100">
+              Loading categories...
+            </div>
+          ) : (
+            <select 
+              onChange={handleCategoryChange}
+              value={category}
+              id="productCategory"
+              required
+              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {categories.length === 0 ? (
+                <option value="">No categories available</option>
+              ) : (
+                categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))
+              )}
+            </select>
+          )}
         </div>
 
         <div className="flex-1 min-w-[150px]">
           <label className="block mb-1 font-semibold" htmlFor="subCategory">
             Sub category
           </label>
-          <select  onChange={(e)=>setSubCategory(e.target.value)}
-            id="subCategory"
-            required
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Kurtas">Kurtas</option>
-            <option value="Sarees">Sarees</option>
-            <option value="Lengha">Lengha</option>
-            <option value="Gowns">Gowns</option>
-          </select>
+          {loadingCategories ? (
+            <div className="w-full p-2 border border-gray-300 rounded-md bg-gray-100">
+              Loading subcategories...
+            </div>
+          ) : (
+            <select  
+              onChange={(e) => setSubCategory(e.target.value)}
+              value={subcategory}
+              id="subCategory"
+              required
+              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {getSubcategories().length === 0 ? (
+                <option value="">No subcategories available</option>
+              ) : (
+                getSubcategories().map((subcat) => (
+                  <option key={subcat._id} value={subcat._id}>
+                    {subcat.name}
+                  </option>
+                ))
+              )}
+            </select>
+          )}
         </div>
 
         <div className="flex-1 min-w-[150px]">

@@ -9,6 +9,8 @@ const productSchema=new mongoose.Schema({
     video:{type:String, default:null},
     category:{type:String, required:true},
     subcategory:{type:String, required:true},
+    categoryId:{type:mongoose.Schema.Types.ObjectId, ref:'category', required:true},
+    subcategoryId:{type:mongoose.Schema.Types.ObjectId, required:true},
     sizes:{type:Array, required:true},
     bestseller:{type:Boolean},
     ecoFriendly:{type:Boolean, default:false},
