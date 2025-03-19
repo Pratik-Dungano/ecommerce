@@ -102,6 +102,7 @@ import about from './about.png'
 import stats_back from './stats_back.png'
 import contact from './contact.png'
 import close_icon from './close_icon.png'
+import footer_1 from './footer-2.png'
 
 export const assets = {
     logo,
@@ -149,7 +150,8 @@ export const assets = {
     hero_image_3,
     about,
     contact,
-    stats_back
+    stats_back,
+    footer_1
 }
 
 export const products = [
