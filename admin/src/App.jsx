@@ -10,9 +10,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Dashboard from "./components/Dashboard";
 import Edit from './components/Edit';
-
-
-export const backendUrl = import.meta.env.VITE_BACKEND_URL;
+import Categories from './pages/Categories';
+import Looks from './pages/Looks';
+import { backendUrl } from './config';
 
 const App = () => {
   const [token, setToken] = useState(""); // Always start with an empty token
@@ -60,6 +60,8 @@ const App = () => {
                 <Route path="/orders" element={<Orders token={token} />} />
                 <Route path="/dashboard" element={<Dashboard token={token} />} />
                 <Route path="/edit/:id" element={<Edit token={token} />} />
+                <Route path="/categories" element={<Categories token={token} />} />
+                <Route path="/looks" element={<Looks token={token} />} />
           
                 {/* Default redirect route */}
                 <Route path="/" element={<Navigate to="/orders" />} />

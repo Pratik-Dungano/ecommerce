@@ -15,6 +15,7 @@ const ShopContextProvider = (props) => {
   const [cartItems, setCartItems] = useState([]);
   const [wishListItems, setWishListItems] = useState([]);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [orders, setOrders] = useState([]);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [isLoggedIn, setIsLoggedIn] = useState(!!token); // Reflect login status based on token
@@ -26,6 +27,18 @@ const ShopContextProvider = (props) => {
       const response = await axios.get(`${backendUrl}/api/product/list`);
       if (response.data?.products) {
         setProducts(response.data.products);
+      }
+    } catch (error) {
+      // Handle error silently without logging or showing a toast
+    }
+  };
+
+  // Fetch categories from the backend
+  const getCategories = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/category/list`);
+      if (response.data?.success) {
+        setCategories(response.data.categories);
       }
     } catch (error) {
       // Handle error silently without logging or showing a toast
@@ -244,6 +257,7 @@ const ShopContextProvider = (props) => {
 
   useEffect(() => {
     getProductsData(); // Fetch products on component mount
+    getCategories(); // Fetch categories on component mount
   }, []);
 
   useEffect(() => {
@@ -260,6 +274,7 @@ const ShopContextProvider = (props) => {
   // Define the context value
   const value = {
     products,
+    categories,
     currency,
     delivery_fee,
     search,
@@ -290,6 +305,7 @@ const ShopContextProvider = (props) => {
     getSubTotal,
     getTotal,
     getProductPrice,
+    getCategories,
   };
 
   return <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>;

@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Product from './pages/Product';
 import Navbar from './components/Navbar';
+import CategoryNav from './components/CategoryNav'; 
 import MyProfile from './pages/MyProfile';
 import Saree from './pages/Saree';
 import Lehenga from './pages/Lehenga';
@@ -20,6 +21,7 @@ import Wishlist from './pages/Wishlist';
 import Searchbar from './components/Searchbar';
 import {ToastContainer,toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import CategoryPage from './pages/CategoryPage'; 
 
 const App = () => {
   return (
@@ -28,6 +30,7 @@ const App = () => {
       <ToastContainer />
       {/* Navigation bar */}
       <Navbar />
+      <CategoryNav /> 
       <Searchbar />
 
       {/* Routes for different pages */}
@@ -74,6 +77,10 @@ const App = () => {
         {/* Wishlist page */}
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/profile" element={<MyProfile />} />
+
+        {/* Category and Subcategory pages */}
+        <Route path="/category/:categorySlug" element={<CategoryPage />} />
+        <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
       </Routes>
 
       <Footer/>

@@ -1,14 +1,48 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { assets } from '../assets/assets';
+import axios from 'axios';
 
 const CategoryListPage = () => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const categoryRefs = useRef([]);
+  
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+  // Fetch featured categories
   useEffect(() => {
-    // Scroll to top on component mount
-   
+    const fetchFeaturedCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${backendUrl}/api/category/featured`);
+        
+        if (response.data.success && response.data.categories) {
+          setCategories(response.data.categories);
+        } else {
+          // Fallback to default categories if no featured ones are found
+          setCategories([]);
+        }
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching featured categories:', error);
+        setError('Failed to load categories');
+        // Continue with fallback categories
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedCategories();
+  }, [backendUrl]);
+
+  // Animation effect
+  useEffect(() => {
+    // Reset refs array when categories change
+    categoryRefs.current = categoryRefs.current.slice(0, categories.length);
     
     categoryRefs.current.forEach((ref) => {
       if (ref) {
@@ -44,7 +78,42 @@ const CategoryListPage = () => {
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [categories]);
+
+  // Fallback categories in case API fails or no featured categories
+  const fallbackCategories = [
+    { name: "Saree", img: assets.saree2, link: "/saree", slug: "saree" },
+    { name: "Lehenga", img: assets.lengha1, link: "/lehenga", slug: "lehenga" },
+    { name: "Kurtas", img: assets.kurta1, link: "/kurtas", slug: "kurtas" },
+    { name: "Gown", img: assets.gown1, link: "/gown", slug: "gown" }
+  ];
+
+  // Use API categories if available, otherwise use fallback
+  const displayCategories = categories.length > 0 
+    ? categories.map(cat => ({
+        name: cat.name,
+        img: cat.image || assets[cat.slug] || assets.placeholder,
+        link: `/${cat.slug}`,
+        slug: cat.slug
+      }))
+    : fallbackCategories;
+
+  if (loading) {
+    return (
+      <section className="py-10">
+        <div className="container mx-auto">
+          <div className="flex justify-center items-center h-40">
+            <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // If no categories to display, don't render the section
+  if (displayCategories.length === 0) {
+    return null;
+  }
 
   return (
     <main>
@@ -60,12 +129,7 @@ const CategoryListPage = () => {
       <section className="my-10">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { name: "Saree", img: assets.saree2, link: "/saree" },
-              { name: "Lehenga", img: assets.lengha1, link: "/lehenga" },
-              { name: "Kurtas", img: assets.kurta1, link: "/kurtas" },
-              { name: "Gown", img: assets.gown1, link: "/gown" }
-            ].map((category, index) => (
+            {displayCategories.map((category, index) => (
               <Link
                 key={index}
                 to={category.link}

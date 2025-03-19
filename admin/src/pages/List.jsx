@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { backendUrl } from "../App";
+import { backendUrl } from "../config";
 import { toast } from "react-toastify";
 import { Link } from 'react-router-dom';
 
@@ -25,21 +25,38 @@ const List = ({ token }) => {
   };
 
   const removeProduct = async (id) => {
+    if (!id) {
+      toast.error("Invalid product ID");
+      return;
+    }
+
     try {
+      const loadingToast = toast.loading("Removing product...");
+
       const response = await axios.post(
         `${backendUrl}/api/product/remove`,
         { id },
-        { headers: { token } }
+        { 
+          headers: { token },
+          timeout: 10000
+        }
       );
+
+      toast.dismiss(loadingToast);
+
       if (response.data.success) {
         toast.success("Product removed successfully!");
         fetchList();
       } else {
-        toast.error(response.data.message || "Failed to remove product.");
+        toast.error(response.data.message || "Failed to remove product");
       }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error(error.response?.data?.message || "An unexpected error occurred.");
+      console.error("Error removing product:", error);
+      toast.error(
+        error.response?.data?.message || 
+        error.message || 
+        "Failed to remove product. Please try again."
+      );
     }
   };
 
@@ -47,7 +64,6 @@ const List = ({ token }) => {
     fetchList();
   }, []);
 
-  // Filtering logic
   useEffect(() => {
     let filtered = list;
 
