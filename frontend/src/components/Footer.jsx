@@ -160,7 +160,8 @@ const Footer = () => {
                 <MapPin className="text-pink-600 mt-0 flex-shrink-0" size={16} />
                 <address className="text-sm text-gray-700 not-italic">{address}</address>
               </div>
-              <div className="w-full h-40 sm:h-48 md:h-60 my-2 mt-2 border border-gray-300 shadow-lg">
+              {/* Map moved to the top of the section and given z-index */}
+              <div className="w-full h-40 sm:h-48 md:h-60 my-2 mt-0 border border-gray-300 shadow-lg relative z-10">
                 <iframe
                   title="Adaa Jaipur Location"
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3560.386745076424!2d75.7764873!3d26.8276488!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db5d69821715b%3A0x90205ef69828a6d5!2sAdaa%20Jaipur!5e0!3m2!1sen!2sin!4v1742331100251!5m2!1sen!2sin"
