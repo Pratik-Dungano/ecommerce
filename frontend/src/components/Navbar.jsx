@@ -35,18 +35,27 @@ const Navbar = () => {
     <nav className="sticky top-0 left-0 w-full bg-white shadow-md z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Logo */}
-          <Link 
-            to="/" 
-            onClick={() => window.scrollTo(0, 0)} 
-            className="flex-shrink-0"
-          >
+          {/* Logo Section */}
+          <div className="flex items-center space-x-3">
+            <Link 
+              to="/" 
+              onClick={() => window.scrollTo(0, 0)} 
+              className="flex-shrink-0"
+            >
+              <img
+                src={assets.nav_logo}
+                className="h-8 sm:h-10 w-auto object-contain transition-transform duration-200 hover:scale-105"
+                alt="Logo"
+              />
+            </Link>
+            
+            {/* New Secondary Logo/Image */}
             <img
-              src={assets.nav_logo}
-              className="h-8 sm:h-10 w-auto object-contain transition-transform duration-200 hover:scale-105"
-              alt="Logo"
+              src={assets.secondary_logo || "/path/to/secondary-logo.png"}
+              className="h-6 sm:h-7 w-auto mb-1 object-contain transition-transform duration-200 hover:scale-105"
+              alt="Secondary Logo"
             />
-          </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex flex-1 justify-center max-w-2xl mx-auto">
@@ -160,7 +169,10 @@ const Navbar = () => {
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b">
-            <img src={assets.nav_logo} className="h-8 w-auto" alt="Logo" />
+            <div className="flex items-center space-x-2">
+              <img src={assets.nav_logo} className="h-8 w-auto" alt="Logo" />
+              <img src={assets.secondary_logo || "/path/to/secondary-logo.png"} className="h-6 w-auto" alt="Secondary Logo" />
+            </div>
             <button
               onClick={() => setVisible(false)}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
