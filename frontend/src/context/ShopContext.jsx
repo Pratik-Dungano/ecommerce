@@ -26,10 +26,30 @@ const ShopContextProvider = (props) => {
     try {
       const response = await axios.get(`${backendUrl}/api/product/list`);
       if (response.data?.products) {
-        setProducts(response.data.products);
+        // Add category and subcategory names to each product for easier filtering and display
+        const productsWithDetails = await Promise.all(
+          response.data.products.map(async (product) => {
+            // First try to get names from categories cache
+            if (categories.length > 0) {
+              const category = categories.find(cat => cat._id === product.categoryId);
+              if (category) {
+                const subcategory = category.subcategories?.find(sub => sub._id === product.subcategoryId);
+                return {
+                  ...product,
+                  categoryName: category.name,
+                  subcategoryName: subcategory?.name || ''
+                };
+              }
+            }
+            return product;
+          })
+        );
+        setProducts(productsWithDetails);
+        console.log('Products loaded:', productsWithDetails.length);
       }
     } catch (error) {
       // Handle error silently without logging or showing a toast
+      console.error('Error fetching products:', error);
     }
   };
 
@@ -39,9 +59,13 @@ const ShopContextProvider = (props) => {
       const response = await axios.get(`${backendUrl}/api/category/list`);
       if (response.data?.success) {
         setCategories(response.data.categories);
+        return response.data.categories;
       }
+      return [];
     } catch (error) {
       // Handle error silently without logging or showing a toast
+      console.error('Error fetching categories:', error);
+      return [];
     }
   };
 
@@ -255,16 +279,23 @@ const ShopContextProvider = (props) => {
     return getSubTotal() + delivery_fee;
   };
 
+  // Load data when component mounts
   useEffect(() => {
-    getProductsData(); // Fetch products on component mount
-    getCategories(); // Fetch categories on component mount
-  }, []);
+    // First load categories, then products
+    getCategories().then(() => {
+      getProductsData();
+    });
+    
+    if (token) {
+      getCart();
+      getWishList();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   useEffect(() => {
     if (token) {
       setIsLoggedIn(true); // Set logged-in status when token is available
-      getCart(); // Fetch cart data when token is available
-      getWishList(); // Fetch wishlist data when token is available
       getUserOrders(); // Fetch user orders when token is available
     } else {
       setIsLoggedIn(false); // Set logged-out status if token is not available

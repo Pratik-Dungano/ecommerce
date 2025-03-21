@@ -196,7 +196,16 @@ const Edit = ({ token }) => {
       formData.append("bestseller", bestseller);
       formData.append("ecoFriendly", ecoFriendly);
       formData.append("sizes", JSON.stringify(sizes));
+      
+      // Add existing images if no new ones are uploaded
+      formData.append("existingImages", JSON.stringify(existingImages));
+      
+      // Add existing video if no new one is uploaded
+      if (existingVideo && !video) {
+        formData.append("existingVideo", existingVideo);
+      }
 
+      // Append new files if available
       image1 && formData.append("image1", image1);
       image2 && formData.append("image2", image2);
       image3 && formData.append("image3", image3);

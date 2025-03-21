@@ -82,10 +82,10 @@ const CategoryListPage = () => {
 
   // Fallback categories in case API fails or no featured categories
   const fallbackCategories = [
-    { name: "Saree", img: assets.saree2, link: "/saree", slug: "saree" },
-    { name: "Lehenga", img: assets.lengha1, link: "/lehenga", slug: "lehenga" },
-    { name: "Kurtas", img: assets.kurta1, link: "/kurtas", slug: "kurtas" },
-    { name: "Gown", img: assets.gown1, link: "/gown", slug: "gown" }
+    { name: "Saree", img: assets.saree2, link: "/category/saree", slug: "saree" },
+    { name: "Lehenga", img: assets.lengha1, link: "/category/lehenga", slug: "lehenga" },
+    { name: "Kurtas", img: assets.kurta1, link: "/category/kurtas", slug: "kurtas" },
+    { name: "Gown", img: assets.gown1, link: "/category/gown", slug: "gown" }
   ];
 
   // Use API categories if available, otherwise use fallback
@@ -93,10 +93,13 @@ const CategoryListPage = () => {
     ? categories.map(cat => ({
         name: cat.name,
         img: cat.image || assets[cat.slug] || assets.placeholder,
-        link: `/${cat.slug}`,
+        link: `/category/${cat.slug}`,
         slug: cat.slug
       }))
-    : fallbackCategories;
+    : fallbackCategories.map(cat => ({
+        ...cat,
+        link: `/category/${cat.slug}`
+      }));
 
   if (loading) {
     return (

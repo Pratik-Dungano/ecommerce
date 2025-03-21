@@ -1,12 +1,36 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, Package, Clock, Truck, Heart, Star } from 'lucide-react';
 import { assets } from "../assets/assets";
+import { ShopContext } from '../context/ShopContext';
 
 const Footer = () => {
   // Replace with actual contact details
   const phoneNumber = "+918800174972";
   const emailAddress = "ORDERS@ADAAJAIPUR.COM";
   const address = "H-5, RIICO Industrial Area, Mansarovar, Jaipur, Rajasthan 302020";
+  const { categories } = useContext(ShopContext);
+  
+  // Get top categories for the footer
+  const getTopCategories = () => {
+    if (!categories || categories.length === 0) {
+      return [
+        { name: "New Arrivals", slug: "new-arrivals" },
+        { name: "Kurtas", slug: "kurtas" },
+        { name: "Sarees", slug: "sarees" },
+        { name: "Gowns", slug: "gowns" },
+        { name: "Lehengas", slug: "lehengas" }
+      ];
+    }
+    
+    return categories
+      .filter(cat => cat.active)
+      .slice(0, 6)
+      .map(cat => ({
+        name: cat.name,
+        slug: cat.slug
+      }));
+  };
  
   return (
     <footer className="relative bg-amber-50 font-serif">
@@ -38,20 +62,14 @@ const Footer = () => {
           <h2 className="text-2xl sm:text-3xl font-bold text-pink-700">ADAA JAIPUR</h2>
           
           <div className="flex space-x-3 mt-3 md:mt-0">
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Instagram size={20} />
             </a>
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Facebook size={20} />
             </a>
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Twitter size={20} />
-            </a>
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
-              <Star size={20} />
-            </a>
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
-              <Heart size={20} />
             </a>
           </div>
 
@@ -70,46 +88,17 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-amber-700 mb-3 border-b border-amber-200 pb-2">CATEGORIES</h3>
             <div className="grid grid-cols-2 gap-y-1">
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">New Arrivals</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Kurtas</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Kurta Pants</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Suit Sets</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Gowns</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Sarees</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">CO-ORD sets</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Tops</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Dresses</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Skirts</span>
-              </a>
+              {getTopCategories().map((category, index) => (
+                <Link 
+                  key={index}
+                  to={`/category/${category.slug}`} 
+                  className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center"
+                  onClick={() => window.scrollTo(0, 0)}
+                >
+                  <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
+                  <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">{category.name}</span>
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -117,22 +106,22 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-amber-700 mb-3 border-b border-amber-200 pb-2">INFORMATION</h3>
             <div className="space-y-1">
-              <a href="#" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+              <Link to="/profile" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">My Account</span>
-              </a>
-              <a href="#" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+              </Link>
+              <Link to="/about" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Privacy Policy</span>
-              </a>
-              <a href="#" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">About Us</span>
+              </Link>
+              <Link to="/contact" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Delivery Information</span>
-              </a>
-              <a href="#" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Contact Us</span>
+              </Link>
+              <Link to="/orders" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Returns & Exchanges</span>
-              </a>
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Order Tracking</span>
+              </Link>
             </div>
           </div>
 
