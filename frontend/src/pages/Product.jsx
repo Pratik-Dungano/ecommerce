@@ -20,6 +20,7 @@ const Product = () => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(null);
   const ZOOM_LEVEL = 2.5;
   const MAGNIFIER_SIZE = 150;
 
@@ -37,14 +38,21 @@ const Product = () => {
 
   const handleMouseMove = (e) => {
     const elem = magnifierRef.current;
-    const { top, left } = elem.getBoundingClientRect();
-    const x = e.clientX - left;
-    const y = e.clientY - top;
-    setXY([x, y]);
+    if (!elem) return;
+    const { top, left, width, height } = elem.getBoundingClientRect();
+    let newX = e.clientX - left;
+    let newY = e.clientY - top;
+
+    // Ensure magnifier stays within image bounds
+    newX = Math.max(MAGNIFIER_SIZE / 2, Math.min(newX, width - MAGNIFIER_SIZE / 2));
+    newY = Math.max(MAGNIFIER_SIZE / 2, Math.min(newY, height - MAGNIFIER_SIZE / 2));
+
+    setXY([newX, newY]);
   };
 
   const handleMouseEnter = () => {
     const elem = magnifierRef.current;
+    if (!elem) return;
     const { width, height } = elem.getBoundingClientRect();
     setImgSize([width, height]);
     setShowMagnifier(true);
@@ -66,7 +74,7 @@ const Product = () => {
         title: productData.name, 
         text: 'Check out this product!', 
         url: productUrl 
-      });
+      }).catch(err => console.error('Share failed:', err));
     } else {
       navigator.clipboard.writeText(productUrl);
       alert('Product link copied to clipboard!');
@@ -80,6 +88,7 @@ const Product = () => {
       } else {
         videoRef.current.play().catch(err => {
           console.error("Error playing video:", err);
+          setVideoError('Failed to play video. Please try again.');
         });
       }
       setIsPlaying(!isPlaying);
@@ -97,6 +106,7 @@ const Product = () => {
                 ? 'text-yellow-400 fill-yellow-400'
                 : 'text-gray-300'
             }`}
+            aria-label={`Star ${star} of ${rating}`}
           />
         ))}
         <span className="text-sm text-gray-600 ml-1">
@@ -107,55 +117,16 @@ const Product = () => {
   };
 
   if (!productData) {
-    return <div>Loading...</div>;
+    return <div className="text-center text-gray-600">Loading...</div>;
   }
 
   const isInWishlist = wishListItems.some(item => item.id === productData._id);
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 ${productData?.ecoFriendly ? 'eco-friendly' : ''}`}>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Left Column - Product Images and Video */}
-        <div className="relative flex gap-6">
-          {/* Thumbnails */}
-          <div className="hidden sm:flex flex-col gap-3 w-28"> {/* Increased width for thumbnails */}
-            {productData.image.map((item, index) => (
-              <div
-                key={index}
-                onClick={() => setImage(item)}
-                className={`cursor-pointer rounded-lg overflow-hidden transition-all ${
-                  image === item 
-                    ? 'ring-1 ring-gray-200' 
-                    : 'hover:ring-1 hover:ring-gray-200'
-                }`}
-              >
-                <img
-                  src={item}
-                  alt={`${productData.name} thumbnail ${index + 1}`}
-                  className="w-full h-24 object-cover"
-                />
-              </div>
-            ))}
-            {productData.video && (
-              <div
-                className="cursor-pointer rounded-lg overflow-hidden transition-all relative group"
-                onClick={() => setImage('video')}
-              >
-                <video
-                  src={productData.video}
-                  className="w-full h-24 object-cover"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <Play className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            )}
-          </div>
-    <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 ${productData?.ecoFriendly ? 'eco-friendly' : ''}`}>
+    <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 ${productData?.ecoFriendly ? 'bg-gradient-to-b from-green-50 to-transparent rounded-lg' : ''}`}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
         {/* Product Image Column */}
         <div className="flex flex-col">
-          {/* Main Product Image/Video Container */}
           <div className="relative flex flex-col sm:flex-row gap-6">
             {/* Thumbnails - Desktop sidebar */}
             <div className="hidden sm:flex flex-col gap-3 w-24 flex-shrink-0">
@@ -163,11 +134,13 @@ const Product = () => {
                 <div
                   key={index}
                   onClick={() => setImage(item)}
-                  className={`cursor-pointer rounded-lg overflow-hidden transition-all w-24 h-24 flex-shrink-0 ${
+                  className={`cursor-pointer rounded-lg overflow-hidden transition-all w-24 h-24 flex-shrink-0 hover:-translate-y-0.5 ${
                     image === item 
                       ? 'ring-2 ring-black' 
                       : 'ring-1 ring-gray-200 hover:ring-gray-400'
                   }`}
+                  role="button"
+                  aria-label={`Select thumbnail ${index + 1}`}
                 >
                   <img
                     src={item}
@@ -179,15 +152,16 @@ const Product = () => {
               ))}
               {productData.video && (
                 <div
-                  className={`cursor-pointer rounded-lg overflow-hidden transition-all relative group w-24 h-24 flex-shrink-0 ${
+                  className={`cursor-pointer rounded-lg overflow-hidden transition-all relative group w-24 h-24 flex-shrink-0 hover:-translate-y-0.5 ${
                     image === 'video' 
                       ? 'ring-2 ring-black' 
                       : 'ring-1 ring-gray-200 hover:ring-gray-400'
                   }`}
                   onClick={() => setImage('video')}
+                  role="button"
+                  aria-label="Select product video"
                 >
                   <div className="w-full h-full bg-gray-100">
-                    {/* Video thumbnail preview */}
                     <video
                       src={productData.video}
                       className="w-full h-full object-cover"
@@ -202,63 +176,6 @@ const Product = () => {
               )}
             </div>
 
-          {/* Main Image/Video Display */}
-          <div className="flex-grow relative max-w-[70%]"> {/* Reduced width for main container */}
-            {image === 'video' && productData.video ? (
-              <div className="relative rounded-lg overflow-hidden bg-gray-100">
-                <video
-                  ref={videoRef}
-                  src={productData.video}
-                  className="w-full h-auto"
-                  controls
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                />
-                <button
-                  onClick={toggleVideo}
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-50 rounded-full p-4 text-white hover:bg-opacity-70 transition-opacity"
-                >
-                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                </button>
-              </div>
-            ) : (
-              <div
-                ref={magnifierRef}
-                className="relative overflow-hidden rounded-lg bg-gray-50"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={() => setShowMagnifier(false)}
-                onMouseMove={handleMouseMove}
-              >
-                <img
-                  src={image}
-                  alt={productData.name}
-                  className="w-full h-auto object-cover rounded-lg"
-                />
-                {showMagnifier && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: `${x - MAGNIFIER_SIZE / 2}px`,
-                      top: `${y - MAGNIFIER_SIZE / 2}px`,
-                      width: `${MAGNIFIER_SIZE}px`,
-                      height: `${MAGNIFIER_SIZE}px`,
-                      opacity: "1",
-                      backgroundColor: "white",
-                      borderRadius: "4px",
-                      pointerEvents: "none",
-                      zIndex: 2,
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      background: `url(${image})`,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: `${-x * ZOOM_LEVEL + MAGNIFIER_SIZE / 2}px ${
-                        -y * ZOOM_LEVEL + MAGNIFIER_SIZE / 2
-                      }px`,
-                      backgroundSize: `${imgWidth * ZOOM_LEVEL}px ${imgHeight * ZOOM_LEVEL}px`
-                    }}
-                  />
-                )}
-              </div>
-            )}
             {/* Main Image/Video Display */}
             <div className="flex-grow relative min-h-[300px] sm:min-h-[400px] bg-gray-50 rounded-lg">
               {image === 'video' && productData.video ? (
@@ -271,21 +188,31 @@ const Product = () => {
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
                     onLoadedData={() => setIsVideoLoaded(true)}
-                    onError={() => setIsVideoLoaded(false)}
+                    onError={() => {
+                      setIsVideoLoaded(false);
+                      setVideoError('Failed to load video.');
+                    }}
                     preload="metadata"
-                    poster={productData.image[0]} // Use first image as poster
+                    poster={productData.image[0]}
+                    aria-label="Product video"
                   />
                   {!isPlaying && (
                     <button
                       onClick={toggleVideo}
                       className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-50 rounded-full p-4 text-white hover:bg-opacity-70 transition-opacity"
+                      aria-label={isPlaying ? "Pause video" : "Play video"}
                     >
                       <Play className="w-6 h-6" />
                     </button>
                   )}
                   {!isVideoLoaded && (
                     <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                      <div className="w-10 h-10 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
+                      <div className="w-10 h-10 border-4 border-gray-300 border-t-black rounded-full animate-spin" aria-label="Loading video"></div>
+                    </div>
+                  )}
+                  {videoError && (
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center text-red-600">
+                      {videoError}
                     </div>
                   )}
                 </div>
@@ -330,19 +257,21 @@ const Product = () => {
               )}
             </div>
           </div>
-          
-          {/* Mobile Thumbnails - Below main image */}
+
+          {/* Mobile Thumbnails */}
           <div className="sm:hidden w-full mb-8 mt-4">
             <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide">
               {productData.image.map((item, index) => (
                 <div
                   key={index}
                   onClick={() => setImage(item)}
-                  className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-all w-20 h-20 ${
+                  className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-all w-24 h-24 hover:-translate-y-0.5 ${
                     image === item 
                       ? 'ring-2 ring-black' 
                       : 'ring-1 ring-gray-200 hover:ring-gray-400'
                   }`}
+                  role="button"
+                  aria-label={`Select thumbnail ${index + 1}`}
                 >
                   <img
                     src={item}
@@ -354,12 +283,14 @@ const Product = () => {
               ))}
               {productData.video && (
                 <div
-                  className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-all relative w-20 h-20 ${
+                  className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-all relative w-24 h-24 hover:-translate-y-0.5 ${
                     image === 'video' 
                       ? 'ring-2 ring-black' 
                       : 'ring-1 ring-gray-200 hover:ring-gray-400'
                   }`}
                   onClick={() => setImage('video')}
+                  role="button"
+                  aria-label="Select product video"
                 >
                   <div className="w-full h-full bg-gray-100">
                     <video
@@ -391,7 +322,7 @@ const Product = () => {
                     <FaLeaf size={16} />
                     <span className="text-sm font-medium">Eco-Friendly Product</span>
                   </div>
-                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
+                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block group-focus-within:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
                     Crafted from eco-friendly organic cotton, this product offers a sustainable, soft, and breathable feel. 
                     Ethically made, it ensures comfort while reducing environmental impact—perfect for conscious consumers seeking quality and sustainability.
                   </div>
@@ -403,7 +334,7 @@ const Product = () => {
                     <Star size={16} />
                     <span className="text-sm font-medium">Bestseller Product</span>
                   </div>
-                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
+                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block group-focus-within:block bg-white/90 backdrop-blur-sm rounded-lg p-3 text-sm text-gray-600 max-w-md leading-relaxed z-10">
                     One of our most popular items! This product consistently ranks among our top sellers, loved by customers for its quality and style.
                   </div>
                 </div>
@@ -443,6 +374,7 @@ const Product = () => {
                     ${item === size 
                       ? 'bg-black text-white' 
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}
+                  aria-label={`Select size ${item}`}
                 >
                   {item}
                 </button>
@@ -455,6 +387,7 @@ const Product = () => {
               onClick={() => addToCart(productData._id, size)}
               className="flex-1 min-w-[200px] bg-black text-white px-8 py-3 rounded-md font-medium
                 hover:bg-gray-800 transition-colors inline-flex items-center justify-center gap-2"
+              aria-label="Add to cart"
             >
               <ShoppingCart className="w-5 h-5" />
               Add to Cart
@@ -463,6 +396,7 @@ const Product = () => {
               onClick={handleBuyNow}
               className="flex-1 min-w-[200px] bg-orange-500 text-white px-8 py-3 rounded-md font-medium
                 hover:bg-orange-600 transition-colors inline-flex items-center justify-center gap-2"
+              aria-label="Buy now"
             >
               <CreditCard className="w-5 h-5" />
               Buy Now
@@ -470,6 +404,7 @@ const Product = () => {
             <button
               onClick={() => addToWishList(productData._id, size)}
               className="p-3 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
+              aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
             >
               <Heart 
                 fill={isInWishlist ? 'red' : 'none'}
@@ -480,7 +415,7 @@ const Product = () => {
             <button 
               onClick={handleShare} 
               className="p-3 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
-              title="Share product"
+              aria-label="Share product"
             >
               <Share2 className="w-6 h-6" />
             </button>
@@ -534,76 +469,5 @@ const Product = () => {
     </div>
   );
 };
-
-<style jsx>{`
-  .eco-friendly {
-    background: linear-gradient(to bottom, rgba(144, 238, 144, 0.1), transparent);
-    border-radius: 8px;
-  }
-
-  .eco-badge {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 8px 16px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .eco-badge span {
-    color: #4CAF50;
-    font-weight: 500;
-  }
-
-  .eco-icon {
-    display: inline-flex;
-    align-items: center;
-    margin-left: 8px;
-    vertical-align: middle;
-  }
-
-  /* Video Control Improvements */
-  video {
-    max-height: 500px;
-    width: 100%;
-    object-fit: contain;
-  }
-
-  video::-webkit-media-controls-timeline {
-    margin-inline: 10px;
-  }
-
-  video::-webkit-media-controls-panel {
-    background: rgba(0, 0, 0, 0.6);
-  }
-
-  video::-webkit-media-controls-play-button {
-    background-color: rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-  }
-
-  /* Hide the scrollbar but allow scrolling */
-  .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari and Opera */
-  }
-  
-  /* Smooth transitions for thumbnails */
-  .flex-shrink-0 {
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .flex-shrink-0:hover {
-    transform: translateY(-2px);
-  }
-`}</style>
 
 export default Product;
