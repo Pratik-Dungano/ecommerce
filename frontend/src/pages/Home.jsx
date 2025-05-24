@@ -31,16 +31,17 @@ const Home = () => {
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
         <ShopLooks />
       </motion.div>
+      
+      {/* Best Seller Section */}
+      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
+        <BestSeller />
+      </motion.div>
 
       {/* Categories Section */}
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
         <CategoryListPage />
       </motion.div>
 
-      {/* Best Seller Section */}
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-        <BestSeller />
-      </motion.div>
 
       {/* Recently Added Section */}
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>

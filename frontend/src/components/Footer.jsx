@@ -1,32 +1,50 @@
-import React from 'react';
-import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, Package, Clock, Truck, Heart, Star } from 'lucide-react';
+import React, { useContext } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { assets } from "../assets/assets";
+import { ShopContext } from '../context/ShopContext';
 
 const Footer = () => {
-  // Replace with actual contact details
   const phoneNumber = "+918800174972";
   const emailAddress = "ORDERS@ADAAJAIPUR.COM";
   const address = "H-5, RIICO Industrial Area, Mansarovar, Jaipur, Rajasthan 302020";
- 
+  const { categories } = useContext(ShopContext);
+  const location = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  const getTopCategories = () => {
+    if (!categories || categories.length === 0) {
+      return [
+        { name: "New Arrivals", slug: "new-arrivals" },
+        { name: "Kurtas", slug: "kurtas" },
+        { name: "Sarees", slug: "sarees" },
+        { name: "Gowns", slug: "gowns" },
+        { name: "Lehengas", slug: "lehengas" }
+      ];
+    }
+
+    return categories
+      .filter(cat => cat.active)
+      .slice(0, 6)
+      .map(cat => ({
+        name: cat.name,
+        slug: cat.slug
+      }));
+  };
+
   return (
     <footer className="relative bg-amber-50 font-serif">
-       {/* Background image layer - hidden on mobile and tablet */}
       <div 
         className="absolute inset-0 bg-center bg-no-repeat hidden md:block"
-        style={{ backgroundImage: `url(${assets.footer_1})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        height: "100%",
-        width: "100%", }}
+        style={{ backgroundImage: `url(${assets.footer_1})`, backgroundSize: "cover", height: "100%", width: "100%" }}
       />
-      {/* Decorative border with Jaipur-inspired pattern */}
       <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-pink-600 via-amber-500 to-pink-600" />
-     
+
       <div className="container mx-auto px-4 py-6 pb-2">
-        {/* Header with decorative elements */}
         <div className="flex flex-col md:flex-row items-center justify-between border-b border-amber-300 pb-4 relative">
-          {/* Decorative Rajasthani motifs */}
           <div className="absolute left-0 top-0 opacity-10 w-24 h-24">
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
               <path d="M50,10 C70,10 85,25 90,50 C85,75 70,90 50,90 C30,90 15,75 10,50 C15,25 30,10 50,10 Z" fill="none" stroke="#D97706" strokeWidth="2" />
@@ -34,28 +52,21 @@ const Footer = () => {
               <path d="M50,30 C60,30 65,40 70,50 C65,60 60,70 50,70 C40,70 35,60 30,50 C35,40 40,30 50,30 Z" fill="none" stroke="#D97706" strokeWidth="2" />
             </svg>
           </div>
-          
+
           <h2 className="text-2xl sm:text-3xl font-bold text-pink-700">ADAA JAIPUR</h2>
-          
+
           <div className="flex space-x-3 mt-3 md:mt-0">
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Instagram size={20} />
             </a>
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Facebook size={20} />
             </a>
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Twitter size={20} />
-            </a>
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
-              <Star size={20} />
-            </a>
-            <a href="#" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
-              <Heart size={20} />
             </a>
           </div>
 
-          {/* Right decorative motif */}
           <div className="absolute right-0 top-0 opacity-10 w-24 h-24">
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
               <path d="M20,20 L80,20 L80,80 L20,80 Z" fill="none" stroke="#DB2777" strokeWidth="2" />
@@ -66,77 +77,44 @@ const Footer = () => {
         </div>
 
         <div className="py-6 pb-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-          {/* Categories section - Modified to have two equal columns */}
           <div>
             <h3 className="text-lg font-semibold text-amber-700 mb-3 border-b border-amber-200 pb-2">CATEGORIES</h3>
             <div className="grid grid-cols-2 gap-y-1">
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">New Arrivals</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Kurtas</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Kurta Pants</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Suit Sets</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Gowns</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Sarees</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">CO-ORD sets</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Tops</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Dresses</span>
-              </a>
-              <a href="#" className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Skirts</span>
-              </a>
+              {getTopCategories().map((category, index) => (
+                <Link key={index} to={`/category/${category.slug}`} className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+                  <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
+                  <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">{category.name}</span>
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* Information section */}
           <div>
             <h3 className="text-lg font-semibold text-amber-700 mb-3 border-b border-amber-200 pb-2">INFORMATION</h3>
             <div className="space-y-1">
-              <a href="#" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+              <Link to="/profile" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">My Account</span>
-              </a>
-              <a href="#" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+              </Link>
+              <Link to="/exchange-return-policy" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Exchange & Return Policy</span>
+              </Link>
+              <Link to="/privacy-policy" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Privacy Policy</span>
-              </a>
-              <a href="#" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+              </Link>
+              <Link to="/refund-cancellation-policy" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Delivery Information</span>
-              </a>
-              <a href="#" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Refund & Cancellation Policy</span>
+              </Link>
+              <Link to="/shipping-policy" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Returns & Exchanges</span>
-              </a>
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Shipping Policy</span>
+              </Link>
             </div>
           </div>
 
-          {/* Customer service section */}
           <div>
             <h3 className="text-lg font-semibold text-amber-700 mb-3 border-b border-amber-200 pb-2">CUSTOMER SERVICE</h3>
             <div className="space-y-3">
@@ -160,7 +138,6 @@ const Footer = () => {
                 <MapPin className="text-pink-600 mt-0 flex-shrink-0" size={16} />
                 <address className="text-sm text-gray-700 not-italic">{address}</address>
               </div>
-              {/* Map moved to the top of the section and given z-index */}
               <div className="w-full h-40 sm:h-48 md:h-60 my-2 mt-0 border border-gray-300 shadow-lg relative z-10">
                 <iframe
                   title="Adaa Jaipur Location"
@@ -174,13 +151,9 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        
 
-        {/* Copyright section with Jaipur-inspired pattern */}
         <div className="text-center py-2 pb-2 border-t border-amber-200 relative">
           <p className="text-xs sm:text-sm text-gray-600">Copyright © 2025 ADAA JAIPUR - Celebrating the Heritage of Jaipur</p>
-          
-          {/* Decorative Rajasthani pattern */}
           <div className="absolute left-0 bottom-0 opacity-10">
             <svg width="100" height="30" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
               <path d="M0,15 C10,5 20,25 30,15 C40,5 50,25 60,15 C70,5 80,25 90,15 C100,5 110,25 120,15" stroke="#DB2777" fill="none" strokeWidth="2" />
@@ -193,8 +166,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      
-      {/* Bottom decorative border */}
+
       <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-pink-600 via-amber-500 to-pink-600" />
     </footer>
   );

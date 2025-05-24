@@ -22,6 +22,10 @@ import Searchbar from './components/Searchbar';
 import {ToastContainer,toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CategoryPage from './pages/CategoryPage'; 
+import ExchangeReturnPolicy from './components/Exchange_Return_Policy';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import RefundAndCancellation from './components/RefundAndcancellationPolicy';
+import ShippingPolicy from './components/ShippingPolicy';
 
 const App = () => {
   return (
@@ -81,6 +85,15 @@ const App = () => {
         {/* Category and Subcategory pages */}
         <Route path="/category/:categorySlug" element={<CategoryPage />} />
         <Route path="/category/:categorySlug/:subcategorySlug" element={<CategoryPage />} />
+        {/* Exchange and Return Policy page */}
+        <Route path="/exchange-return-policy" element={<ExchangeReturnPolicy />} />
+        {/* Privacy Policy page */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        {/* Refund and Cancellation Policy page */}
+        <Route path="/refund-cancellation-policy" element={<RefundAndCancellation />} />
+        {/* Shipping Policy page */}
+        <Route path="/shipping-policy" element={<ShippingPolicy />} />
+        
       </Routes>
 
       <Footer/>

@@ -1,10 +1,9 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
-import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
 import Reviews from '../components/Reviews';
-import { Heart, Search, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard, Star, Award, Play, Pause } from 'react-feather';
+import { Heart, Truck, RefreshCw, Shield, Share2, ShoppingCart, CreditCard, Star, Play, Pause } from 'react-feather';
 import { FaLeaf } from "react-icons/fa";
 
 const Product = () => {
@@ -116,7 +115,7 @@ const Product = () => {
         {/* Left Column - Product Images and Video */}
         <div className="relative flex gap-6">
           {/* Thumbnails */}
-          <div className="hidden sm:flex flex-col gap-3 w-24">
+          <div className="hidden sm:flex flex-col gap-3 w-28"> {/* Increased width for thumbnails */}
             {productData.image.map((item, index) => (
               <div
                 key={index}
@@ -130,7 +129,7 @@ const Product = () => {
                 <img
                   src={item}
                   alt={`${productData.name} thumbnail ${index + 1}`}
-                  className="w-full h-24 object-cover object-top"
+                  className="w-full h-24 object-cover"
                 />
               </div>
             ))}
@@ -151,7 +150,7 @@ const Product = () => {
           </div>
 
           {/* Main Image/Video Display */}
-          <div className="flex-grow relative">
+          <div className="flex-grow relative max-w-[70%]"> {/* Reduced width for main container */}
             {image === 'video' && productData.video ? (
               <div className="relative rounded-lg overflow-hidden bg-gray-100">
                 <video
@@ -207,41 +206,6 @@ const Product = () => {
                 )}
               </div>
             )}
-
-            {/* Mobile Thumbnails */}
-            <div className="flex sm:hidden gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
-              {productData.image.map((item, index) => (
-                <div
-                  key={index}
-                  onClick={() => setImage(item)}
-                  className={`flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-all ${
-                    image === item 
-                      ? 'ring-1 ring-gray-200' 
-                      : 'hover:ring-1 hover:ring-gray-200'
-                  }`}
-                >
-                  <img
-                    src={item}
-                    alt={`${productData.name} thumbnail ${index + 1}`}
-                    className="w-20 h-20 object-cover object-top"
-                  />
-                </div>
-              ))}
-              {productData.video && (
-                <div
-                  className="flex-shrink-0 cursor-pointer rounded-lg overflow-hidden transition-all relative"
-                  onClick={() => setImage('video')}
-                >
-                  <video
-                    src={productData.video}
-                    className="w-20 h-20 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                    <Play className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 

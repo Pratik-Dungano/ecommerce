@@ -25,6 +25,16 @@ export const getAllCategories = async (token) => {
   }
 };
 
+// Get categories for shop display
+export const getShopCategories = async () => {
+  try {
+    const response = await api.get('/shop');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { success: false, message: 'Network error' };
+  }
+};
+
 export const createCategory = async (categoryData, token) => {
   try {
     const response = await api.post('/', categoryData, setAuthHeader(token));

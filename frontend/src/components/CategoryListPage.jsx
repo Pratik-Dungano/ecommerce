@@ -12,6 +12,14 @@ const CategoryListPage = () => {
   
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+  // Hover colors for each category
+  const hoverColors = [
+    "rgba(59, 130, 246, 0.5)", // blue
+    "rgba(147, 51, 234, 0.5)",  // purple
+    "rgba(236, 72, 153, 0.5)",   // pink
+    "rgba(34, 197, 94, 0.5)"     // green
+  ];
+
   // Fetch featured categories
   useEffect(() => {
     const fetchFeaturedCategories = async () => {
@@ -93,15 +101,15 @@ const CategoryListPage = () => {
     ? categories.map(cat => ({
         name: cat.name,
         img: cat.image || assets[cat.slug] || assets.placeholder,
-        link: `/${cat.slug}`,
+        link: `/category/${cat.slug}`,
         slug: cat.slug
       }))
     : fallbackCategories;
 
   if (loading) {
     return (
-      <section className="py-10">
-        <div className="container mx-auto">
+      <section className="bg-transparent py-10">
+        <div className="container mx-auto px-6">
           <div className="flex justify-center items-center h-40">
             <div className="w-8 h-8 border-4 border-gray-300 border-t-black rounded-full animate-spin"></div>
           </div>
@@ -118,34 +126,31 @@ const CategoryListPage = () => {
   return (
     <main>
       <section className="bg-transparent py-10">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800">Shop by Category</h1>
-          <p className="text-lg text-gray-600 mt-4">
-            Discover a variety of categories tailored to your style.
-          </p>
-        </div>
-      </section>
-
-      <section className="my-10">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800">Shop by Category</h1>
+            <p className="text-lg text-gray-600 mt-2">
+              Discover a variety of categories tailored to your style.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {displayCategories.map((category, index) => (
               <Link
                 key={index}
                 to={category.link}
                 ref={(el) => (categoryRefs.current[index] = el)}
-                className="group relative bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-500 transform hover:scale-105"
+                className="cursor-pointer bg-white shadow-lg rounded-xl overflow-hidden transform transition duration-300 hover:scale-110 hover:shadow-2xl relative group"
               >
-                <div className="w-full h-96 overflow-hidden">
-                  <img 
-                    src={category.img} 
-                    alt={category.name} 
-                    className="w-full h-full object-cover object-center transition duration-500 ease-in-out transform group-hover:scale-110"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                <div className="absolute bottom-6 left-6">
-                  <h3 className="text-white text-2xl font-semibold">{category.name}</h3>
+                <img 
+                  src={category.img} 
+                  alt={category.name} 
+                  className="w-full h-full object-cover rounded-md"
+                />
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-md flex items-center justify-center"
+                  style={{ backgroundColor: hoverColors[index % hoverColors.length] }}
+                >
+                  <span className="text-white text-xl font-bold">{category.name}</span>
                 </div>
               </Link>
             ))}
