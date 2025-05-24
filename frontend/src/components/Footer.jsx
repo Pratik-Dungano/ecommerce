@@ -1,7 +1,9 @@
-import React, { useContext } from 'react';
+import React, { useContext }, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { assets } from "../assets/assets";
+import { ShopContext } from '../context/ShopContext';
 import { ShopContext } from '../context/ShopContext';
 
 const Footer = () => {
@@ -34,6 +36,28 @@ const Footer = () => {
         slug: cat.slug
       }));
   };
+  const { categories } = useContext(ShopContext);
+  
+  // Get top categories for the footer
+  const getTopCategories = () => {
+    if (!categories || categories.length === 0) {
+      return [
+        { name: "New Arrivals", slug: "new-arrivals" },
+        { name: "Kurtas", slug: "kurtas" },
+        { name: "Sarees", slug: "sarees" },
+        { name: "Gowns", slug: "gowns" },
+        { name: "Lehengas", slug: "lehengas" }
+      ];
+    }
+    
+    return categories
+      .filter(cat => cat.active)
+      .slice(0, 6)
+      .map(cat => ({
+        name: cat.name,
+        slug: cat.slug
+      }));
+  };
 
   return (
     <footer className="relative bg-amber-50 font-serif">
@@ -57,11 +81,14 @@ const Footer = () => {
 
           <div className="flex space-x-3 mt-3 md:mt-0">
             <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Instagram size={20} />
             </a>
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Facebook size={20} />
             </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-amber-600 transform hover:scale-110 transition-all">
               <Twitter size={20} />
             </a>
@@ -86,12 +113,24 @@ const Footer = () => {
                   <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">{category.name}</span>
                 </Link>
               ))}
+              {getTopCategories().map((category, index) => (
+                <Link 
+                  key={index}
+                  to={`/category/${category.slug}`} 
+                  className="group text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center"
+                  onClick={() => window.scrollTo(0, 0)}
+                >
+                  <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
+                  <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">{category.name}</span>
+                </Link>
+              ))}
             </div>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold text-amber-700 mb-3 border-b border-amber-200 pb-2">INFORMATION</h3>
             <div className="space-y-1">
+              <Link to="/profile" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
               <Link to="/profile" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">My Account</span>
@@ -101,16 +140,26 @@ const Footer = () => {
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Exchange & Return Policy</span>
               </Link>
               <Link to="/privacy-policy" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+              </Link>
+              <Link to="/about" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Privacy Policy</span>
               </Link>
               <Link to="/refund-cancellation-policy" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">About Us</span>
+              </Link>
+              <Link to="/contact" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Refund & Cancellation Policy</span>
               </Link>
               <Link to="/shipping-policy" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Contact Us</span>
+              </Link>
+              <Link to="/orders" className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center">
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Shipping Policy</span>
+              </Link>
+                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Order Tracking</span>
               </Link>
             </div>
           </div>

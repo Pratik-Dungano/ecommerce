@@ -136,11 +136,17 @@ export const editProduct = async (req, res) => {
             });
         }
 
-        let imageUrls = [...product.image];
-        let videoUrl = product.video;
+        // Check if existing images should be preserved
+        let finalImages = [];
+        if (req.body.existingImages) {
+            try {
+                finalImages = JSON.parse(req.body.existingImages);
+            } catch (error) {
+                console.error('Error parsing existingImages:', error);
+            }
+        }
 
         // Process image files
-        const imagesArray = [];
         if (req.files) {
             // Handle image uploads - supports both local and Cloudinary
             for (let i = 1; i <= 4; i++) {
@@ -156,23 +162,24 @@ export const editProduct = async (req, res) => {
                         });
                         
                         if (result) {
-                            imagesArray.push(result.secure_url);
+                            finalImages.push(result.secure_url);
                         } else {
                             // Fallback to local URL if Cloudinary upload fails
                             const imageUrl = `${req.protocol}://${req.get('host')}/${imageFile.path.replace(/\\/g, '/')}`;
-                            imagesArray.push(imageUrl);
+                            finalImages.push(imageUrl);
                         }
                     } catch (error) {
                         console.error(`Error uploading ${imageField}:`, error);
                         const imageUrl = `${req.protocol}://${req.get('host')}/${imageFile.path.replace(/\\/g, '/')}`;
-                        imagesArray.push(imageUrl);
+                        finalImages.push(imageUrl);
                     }
                 }
             }
         }
 
-        // Process video file
-        let videoArray = [];
+        // Handle video file
+        let finalVideo = req.body.existingVideo || null;
+        
         if (req.files && req.files.video && req.files.video[0]) {
             const videoFile = req.files.video[0];
             
@@ -184,16 +191,14 @@ export const editProduct = async (req, res) => {
                 });
                 
                 if (result) {
-                    videoArray.push(result.secure_url);
+                    finalVideo = result.secure_url;
                 } else {
                     // Fallback to local URL if Cloudinary upload fails
-                    const videoUrl = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
-                    videoArray.push(videoUrl);
+                    finalVideo = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
                 }
             } catch (error) {
                 console.error('Error uploading video:', error);
-                const videoUrl = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
-                videoArray.push(videoUrl);
+                finalVideo = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
             }
         }
 
@@ -202,8 +207,8 @@ export const editProduct = async (req, res) => {
             description: req.body.description,
             price: req.body.price,
             discountPercentage: req.body.discountPercentage || 0,
-            image: imagesArray,
-            video: videoArray.length > 0 ? videoArray[0] : null,
+            image: finalImages,
+            video: finalVideo,
             category: req.body.category,
             subcategory: req.body.subcategory,
             categoryId: req.body.categoryId,
