@@ -145,24 +145,7 @@ const Footer = () => {
                 <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
                 <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Privacy Policy</span>
               </Link>
-              <Link 
-                to="/about" 
-                className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                aria-label="View About Us"
-              >
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">About Us</span>
-              </Link>
-              <Link 
-                to="/contact" 
-                className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                aria-label="View Contact Us"
-              >
-                <span className="w-0 group-hover:w-4 h-px bg-pink-600 mr-0 group-hover:mr-1 transition-all duration-300 ease-in-out"></span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-300 ease-in-out">Contact Us</span>
-              </Link>
+              
               <Link 
                 to="/refund-cancellation-policy" 
                 className="group block text-sm text-gray-700 hover:text-pink-600 transition-colors flex items-center"

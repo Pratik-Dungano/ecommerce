@@ -10,6 +10,22 @@ exports.getAllCategories = async (req, res) => {
   }
 };
 
+// Get categories for navbar display
+exports.getNavbarCategories = async (req, res) => {
+  try {
+    const categories = await Category.find({
+      displayInNavbar: true,
+      active: true
+    })
+    .select('name _id')
+    .sort({ displayOrder: 1, name: 1 });
+    
+    res.json({ success: true, categories });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Get categories for shop display
 exports.getShopCategories = async (req, res) => {
   try {
@@ -17,12 +33,19 @@ exports.getShopCategories = async (req, res) => {
       displayInCategorySection: true,
       active: true
     })
-    .sort({ displayOrder: 1 })
-    .select('name description image subcategories');
-    
-    res.json({ success: true, categories });
+    .select('name description image subcategories displayOrder')
+    .sort({ displayOrder: 1, name: 1 });
+
+    res.status(200).json({
+      success: true,
+      data: categories
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching categories',
+      error: error.message
+    });
   }
 };
 
@@ -67,16 +90,16 @@ exports.deleteCategory = async (req, res) => {
   }
 };
 
-// Toggle category featured status
-exports.toggleCategoryFeatured = async (req, res) => {
+// Toggle category display settings
+exports.toggleCategoryDisplay = async (req, res) => {
   try {
     const { displayInNavbar, displayInCategorySection, displayOrder } = req.body;
     
     const category = await Category.findByIdAndUpdate(
       req.params.id,
       {
-        displayInNavbar,
-        displayInCategorySection,
+        displayInNavbar: displayInNavbar !== undefined ? displayInNavbar : false,
+        displayInCategorySection: displayInCategorySection !== undefined ? displayInCategorySection : false,
         displayOrder: displayOrder || 0
       },
       { new: true }

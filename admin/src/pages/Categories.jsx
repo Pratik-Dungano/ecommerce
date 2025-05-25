@@ -271,57 +271,29 @@ const Categories = ({ token }) => {
     setIsAddingSubcategory(true);
   };
 
-  // Handle navbar display toggle
-  const handleToggleNavbarDisplay = async (category) => {
+  // Handle feature toggle
+  const handleToggleFeature = async (category) => {
     try {
-      const newNavbarStatus = !category.displayInNavbar;
+      const newFeaturedStatus = !category.featured;
       const response = await toggleCategoryFeatured(
         category._id, 
         { 
-          displayInNavbar: newNavbarStatus,
-          displayInCategorySection: category.displayInCategorySection || false,
+          featured: newFeaturedStatus,
           displayOrder: category.displayOrder || 0 
         }, 
         token
       );
       
       if (response.success) {
-        toast.success(newNavbarStatus 
-          ? 'Category will now display in navbar!' 
-          : 'Category removed from navbar');
+        toast.success(newFeaturedStatus 
+          ? 'Category added to homepage features!' 
+          : 'Category removed from homepage features');
         fetchCategories();
       } else {
         toast.error(response.message);
       }
     } catch (error) {
-      toast.error(error.message || 'Failed to update navbar display status. Please try again.');
-    }
-  };
-
-  // Handle category section display toggle
-  const handleToggleCategorySectionDisplay = async (category) => {
-    try {
-      const newCategorySectionStatus = !category.displayInCategorySection;
-      const response = await toggleCategoryFeatured(
-        category._id, 
-        { 
-          displayInNavbar: category.displayInNavbar || false,
-          displayInCategorySection: newCategorySectionStatus,
-          displayOrder: category.displayOrder || 0 
-        }, 
-        token
-      );
-      
-      if (response.success) {
-        toast.success(newCategorySectionStatus 
-          ? 'Category will now display in category section!' 
-          : 'Category removed from category section');
-        fetchCategories();
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error) {
-      toast.error(error.message || 'Failed to update category section display status. Please try again.');
+      toast.error(error.message || 'Failed to update featured status. Please try again.');
     }
   };
 
@@ -333,8 +305,7 @@ const Categories = ({ token }) => {
       const response = await toggleCategoryFeatured(
         category._id,
         {
-          displayInNavbar: category.displayInNavbar || false,
-          displayInCategorySection: category.displayInCategorySection || false,
+          featured: category.featured,
           displayOrder: newOrder
         },
         token
@@ -535,48 +506,24 @@ const Categories = ({ token }) => {
                   </div>
                 </div>
                 
-                {/* Display controls */}
-                <div className="flex flex-col space-y-3 mt-2 mb-3">
-                  {/* Navbar Display Toggle */}
-                  <div className="flex items-center space-x-2">
+                {/* Featured controls */}
+                <div className="flex items-center mt-2 mb-3 space-x-2">
+                  <div className="flex items-center">
                     <label className="inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={category.displayInNavbar || false}
-                        onChange={() => handleToggleNavbarDisplay(category)}
+                        checked={category.featured || false}
+                        onChange={() => handleToggleFeature(category)}
                         className="sr-only peer"
                       />
                       <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       <span className="ml-2 text-sm font-medium text-gray-900">
-                        Display in Navbar
+                        {category.featured ? 'Featured on Homepage' : 'Not Featured'}
                       </span>
                     </label>
-                    {category.displayInNavbar && (
-                      <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Active</span>
-                    )}
-                  </div>
-
-                  {/* Category Section Display Toggle */}
-                  <div className="flex items-center space-x-2">
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={category.displayInCategorySection || false}
-                        onChange={() => handleToggleCategorySectionDisplay(category)}
-                        className="sr-only peer"
-                      />
-                      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                      <span className="ml-2 text-sm font-medium text-gray-900">
-                        Display in Category Section
-                      </span>
-                    </label>
-                    {category.displayInCategorySection && (
-                      <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Active</span>
-                    )}
                   </div>
                   
-                  {/* Display Order - only show if at least one display option is active */}
-                  {(category.displayInNavbar || category.displayInCategorySection) && (
+                  {category.featured && (
                     <div className="flex items-center space-x-2">
                       <label className="text-sm text-gray-700">Display Order:</label>
                       <input
@@ -586,23 +533,11 @@ const Categories = ({ token }) => {
                         onChange={(e) => handleDisplayOrderChange(category, parseInt(e.target.value))}
                         className="w-16 p-1 text-sm border rounded"
                       />
-                      <span className="text-xs text-gray-500">(Lower numbers appear first)</span>
                     </div>
                   )}
                 </div>
                 
                 <p className="text-gray-600 text-sm mb-3">{category.description || 'No description'}</p>
-                
-                {/* Category Image Display */}
-                {category.image && (
-                  <div className="mb-3">
-                    <img 
-                      src={category.image} 
-                      alt={category.name} 
-                      className="w-32 h-20 object-cover rounded border"
-                    />
-                  </div>
-                )}
                 
                 {/* Subcategories */}
                 <div className="pl-4 mt-4 border-l-2 border-gray-200">
@@ -645,4 +580,4 @@ const Categories = ({ token }) => {
   );
 };
 
-export default Categories;
+export default Categories; 

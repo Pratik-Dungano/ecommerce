@@ -25,6 +25,16 @@ export const getAllCategories = async (token) => {
   }
 };
 
+// Get categories for navbar display
+export const getNavbarCategories = async () => {
+  try {
+    const response = await api.get('/navbar');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { success: false, message: 'Network error' };
+  }
+};
+
 // Get categories for shop display
 export const getShopCategories = async () => {
   try {
@@ -71,11 +81,25 @@ export const toggleCategoryFeatured = async (id, data, token) => {
   }
 };
 
+// Toggle category display settings
+export const toggleCategoryDisplay = async (categoryId, displaySettings, token) => {
+  try {
+    const response = await api.put(
+      `/${categoryId}/display`,
+      displaySettings,
+      setAuthHeader(token)
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { success: false, message: 'Failed to update category display settings' };
+  }
+};
+
 // Subcategory APIs
 export const addSubcategory = async (categoryId, subcategoryData, token) => {
   try {
     const response = await api.post(
-      `/${categoryId}/subcategory`, 
+      `/${categoryId}/subcategories`, 
       subcategoryData, 
       setAuthHeader(token)
     );
@@ -88,7 +112,7 @@ export const addSubcategory = async (categoryId, subcategoryData, token) => {
 export const updateSubcategory = async (categoryId, subcategoryId, subcategoryData, token) => {
   try {
     const response = await api.put(
-      `/${categoryId}/subcategory/${subcategoryId}`, 
+      `/${categoryId}/subcategories/${subcategoryId}`, 
       subcategoryData, 
       setAuthHeader(token)
     );
@@ -101,7 +125,7 @@ export const updateSubcategory = async (categoryId, subcategoryId, subcategoryDa
 export const deleteSubcategory = async (categoryId, subcategoryId, token) => {
   try {
     const response = await api.delete(
-      `/${categoryId}/subcategory/${subcategoryId}`, 
+      `/${categoryId}/subcategories/${subcategoryId}`, 
       setAuthHeader(token)
     );
     return response.data;
