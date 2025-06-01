@@ -8,7 +8,8 @@ import {
   addSubcategory,
   updateSubcategory,
   deleteSubcategory,
-  toggleCategoryFeatured
+  toggleCategoryFeatured,
+  toggleCategoryDisplay
 } from '../services/categoryService';
 import axios from 'axios';
 import { backendUrl } from '../config';
@@ -24,7 +25,8 @@ const Categories = ({ token }) => {
   const [categoryForm, setCategoryForm] = useState({
     name: '',
     description: '',
-    image: ''
+    image: '',
+    displayInNavbar: false
   });
   const [imageFile, setImageFile] = useState(null);
   const [imageLoading, setImageLoading] = useState(false);
@@ -64,7 +66,7 @@ const Categories = ({ token }) => {
 
   // Reset forms
   const resetCategoryForm = () => {
-    setCategoryForm({ name: '', description: '', image: '' });
+    setCategoryForm({ name: '', description: '', image: '', displayInNavbar: false });
     setEditingCategory(null);
     setIsAddingCategory(false);
     setImageFile(null);
@@ -248,7 +250,8 @@ const Categories = ({ token }) => {
     setCategoryForm({
       name: category.name,
       description: category.description || '',
-      image: category.image || ''
+      image: category.image || '',
+      displayInNavbar: category.displayInNavbar || false
     });
     setIsAddingCategory(true);
     setImagePreview(category.image || '');
@@ -319,6 +322,39 @@ const Categories = ({ token }) => {
       }
     } catch (error) {
       toast.error(error.message || 'Failed to update display order. Please try again.');
+    }
+  };
+
+  // Handle navbar display toggle
+  const handleToggleNavbarDisplay = async (category) => {
+    try {
+      const newDisplayStatus = !category.displayInNavbar;
+      const response = await toggleCategoryDisplay(
+        category._id,
+        { displayInNavbar: newDisplayStatus },
+        token
+      );
+      
+      if (response.success) {
+        setCategories(prevCategories => 
+          prevCategories.map(cat => 
+            cat._id === category._id 
+              ? { ...cat, displayInNavbar: newDisplayStatus }
+              : cat
+          )
+        );
+        toast.success(newDisplayStatus 
+          ? 'Category will now show in navbar' 
+          : 'Category removed from navbar');
+        // Dispatch event to notify all clients to refresh categories
+        window.dispatchEvent(new Event('categoriesUpdated'));
+        await fetchCategories();
+      } else {
+        toast.error(response.message || 'Failed to update navbar display status');
+      }
+    } catch (error) {
+      console.error('Toggle navbar display error:', error);
+      toast.error(error.message || 'Failed to update navbar display status. Please try again.');
     }
   };
 
@@ -404,6 +440,20 @@ const Categories = ({ token }) => {
                 </div>
               )}
             </div>
+
+            {/* Show in Navbar Toggle */}
+            <div className="mb-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={categoryForm.displayInNavbar}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, displayInNavbar: e.target.checked })}
+                  className="form-checkbox h-5 w-5 text-pink-600"
+                />
+                <span className="text-gray-700">Show in Navbar</span>
+              </label>
+            </div>
+
             <div className="flex gap-2">
               <button
                 type="submit"
@@ -506,8 +556,9 @@ const Categories = ({ token }) => {
                   </div>
                 </div>
                 
-                {/* Featured controls */}
-                <div className="flex items-center mt-2 mb-3 space-x-2">
+                {/* Featured and Navbar controls */}
+                <div className="flex items-center mt-2 mb-3 space-x-4">
+                  {/* Featured toggle */}
                   <div className="flex items-center">
                     <label className="inline-flex items-center cursor-pointer">
                       <input
@@ -519,6 +570,22 @@ const Categories = ({ token }) => {
                       <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       <span className="ml-2 text-sm font-medium text-gray-900">
                         {category.featured ? 'Featured on Homepage' : 'Not Featured'}
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Navbar display toggle */}
+                  <div className="flex items-center">
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={category.displayInNavbar || false}
+                        onChange={() => handleToggleNavbarDisplay(category)}
+                        className="sr-only peer"
+                      />
+                      <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+                      <span className="ml-2 text-sm font-medium text-gray-900">
+                        {category.displayInNavbar ? 'Shown in Navbar' : 'Hidden from Navbar'}
                       </span>
                     </label>
                   </div>

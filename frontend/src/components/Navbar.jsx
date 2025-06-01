@@ -82,7 +82,7 @@ const Navbar = () => {
           {/* Right Icons */}
           <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
             <button
-              onClick={() => setShowSearch(true)}
+              onClick={() => setShowSearch(prev => !prev)}
               className="p-2 hidden md:flex hover:bg-gray-100 rounded-full transition-colors duration-200"
             >
               <img src={assets.search_icon} className="w-5 h-5" alt="Search" />

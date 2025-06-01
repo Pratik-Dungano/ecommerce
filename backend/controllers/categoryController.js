@@ -298,4 +298,49 @@ export const toggleFeaturedCategory = async (req, res) => {
         console.error('Error toggling featured status:', error);
         res.status(500).json({ success: false, message: error.message });
     }
+};
+
+// Toggle category display settings
+export const toggleCategoryDisplay = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { displayInNavbar } = req.body;
+
+    console.log('Toggling category display:', { id, displayInNavbar });
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid category ID' 
+      });
+    }
+
+    const category = await CategoryModel.findById(id);
+    
+    if (!category) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Category not found' 
+      });
+    }
+
+    // Update the displayInNavbar field
+    category.displayInNavbar = displayInNavbar;
+    await category.save();
+
+    console.log('Category updated successfully:', category);
+
+    res.status(200).json({ 
+      success: true, 
+      message: `Category ${displayInNavbar ? 'shown' : 'hidden'} in navbar`,
+      category 
+    });
+  } catch (error) {
+    console.error('Error updating category display settings:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error updating category display settings',
+      error: error.message 
+    });
+  }
 }; 

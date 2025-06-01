@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
+import sharp from 'sharp';
 
 dotenv.config();
 
@@ -13,76 +14,205 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_SECRET_KEY
 });
 
-// Local storage setup
-const uploadDir = 'uploads/';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+// Log Cloudinary configuration (without sensitive data)
+console.log('Cloudinary Config:', {
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY ? '***' : 'missing',
+    api_secret: process.env.CLOUDINARY_SECRET_KEY ? '***' : 'missing'
+});
+
+// Verify Cloudinary configuration
+if (!process.env.CLOUDINARY_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_SECRET_KEY) {
+    console.error('Cloudinary configuration is missing. Please check your .env file.');
+    process.exit(1); // Exit if Cloudinary config is missing
 }
 
-// Use disk storage for multer (we'll handle Cloudinary upload separately)
+// Configure multer storage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        const uploadDir = path.join(process.cwd(), 'uploads');
+        console.log('Upload directory:', uploadDir);
+        
+        if (!fs.existsSync(uploadDir)) {
+            console.log('Creating upload directory...');
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+        const ext = path.extname(file.originalname);
+        const filename = file.fieldname + '-' + uniqueSuffix + ext;
+        console.log('Generated filename:', filename);
+        cb(null, filename);
     }
 });
 
+// File filter configuration
 const fileFilter = (req, file, cb) => {
-    if (file.fieldname === 'video') {
-        // Accept common video formats
-        const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
-        if (allowedVideoTypes.includes(file.mimetype)) {
+    console.log('Processing file:', {
+        fieldname: file.fieldname,
+        mimetype: file.mimetype,
+        originalname: file.originalname
+    });
+
+    // Accept images
+    if (file.fieldname.startsWith('image')) {
+        if (file.mimetype.startsWith('image/')) {
+            console.log('Image file accepted:', file.originalname);
             cb(null, true);
         } else {
-            cb(new Error('Invalid video format. Allowed formats: MP4, WebM, QuickTime'), false);
+            console.log('Invalid image file type:', file.mimetype);
+            cb(new Error(`Invalid file type for ${file.fieldname}. Only image files are allowed!`), false);
         }
-    } else if (
-        file.fieldname === 'image' || 
-        file.fieldname === 'thumbnail' || 
-        file.fieldname === 'image1' || 
-        file.fieldname === 'image2' || 
-        file.fieldname === 'image3' || 
-        file.fieldname === 'image4'
-    ) {
-        // Accept common image formats
-        const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        if (allowedImageTypes.includes(file.mimetype)) {
+    }
+    // Accept videos
+    else if (file.fieldname === 'video') {
+        if (file.mimetype.startsWith('video/')) {
+            console.log('Video file accepted:', file.originalname);
             cb(null, true);
         } else {
-            cb(new Error('Invalid image format. Allowed formats: JPEG, PNG, WebP'), false);
+            console.log('Invalid video file type:', file.mimetype);
+            cb(new Error('Only video files are allowed!'), false);
         }
-    } else {
-        console.log('Unexpected field:', file.fieldname);
-        cb(new Error(`Unexpected field: ${file.fieldname}`), false);
+    }
+    else {
+        console.log('Invalid field name:', file.fieldname);
+        cb(new Error(`Invalid field name: ${file.fieldname}`), false);
     }
 };
 
-const limits = {
-    fileSize: 100 * 1024 * 1024, // 100MB limit
-    files: 5 // Max 5 files (4 images + 1 video)
-};
-
-// Create upload middleware
+// Create multer upload instance
 const upload = multer({
-    storage,
-    fileFilter,
-    limits
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB limit
+        files: 5 // Max 5 files (4 images + 1 video)
+    }
 });
 
-// Helper function to upload a file to Cloudinary
+// Function to compress image
+const compressImage = async (inputPath, outputPath) => {
+    try {
+        await sharp(inputPath)
+            .resize(2000, 2000, { // Max dimensions
+                fit: 'inside',
+                withoutEnlargement: true
+            })
+            .jpeg({ quality: 80 }) // Compress to JPEG with 80% quality
+            .toFile(outputPath);
+        
+        return outputPath;
+    } catch (error) {
+        console.error('Error compressing image:', error);
+        return inputPath; // Return original path if compression fails
+    }
+};
+
+// Function to upload file to Cloudinary
 const uploadToCloudinary = async (filePath, options = {}) => {
     try {
-        const result = await cloudinary.uploader.upload(filePath, options);
-        // Delete local file after Cloudinary upload
-        fs.unlinkSync(filePath);
+        console.log('Starting Cloudinary upload for:', filePath);
+        console.log('Upload options:', options);
+        
+        if (!fs.existsSync(filePath)) {
+            console.error('File not found:', filePath);
+            throw new Error(`File not found: ${filePath}`);
+        }
+
+        // Verify Cloudinary configuration before upload
+        if (!cloudinary.config().cloud_name) {
+            console.error('Cloudinary configuration is missing');
+            throw new Error('Cloudinary configuration is missing');
+        }
+
+        // Compress image if it's an image file
+        let uploadPath = filePath;
+        if (options.resource_type === 'image') {
+            const compressedPath = filePath.replace(/\.[^/.]+$/, '') + '-compressed.jpg';
+            uploadPath = await compressImage(filePath, compressedPath);
+            console.log('Image compressed:', uploadPath);
+        }
+
+        console.log('Uploading to Cloudinary...');
+        const result = await cloudinary.uploader.upload(uploadPath, {
+            ...options,
+            resource_type: 'auto',
+            chunk_size: 20000000, // 20MB chunks for large files
+            folder: options.folder || 'products', // Default folder if not specified
+            use_filename: true,
+            unique_filename: true,
+            overwrite: true,
+            invalidate: true
+        });
+
+        if (!result || !result.secure_url) {
+            console.error('Cloudinary upload failed: No secure_url returned');
+            throw new Error('Cloudinary upload failed: No secure_url returned');
+        }
+
+        console.log('Successfully uploaded to Cloudinary:', result.secure_url);
+
+        // Clean up files
+        fs.unlinkSync(filePath); // Delete original file
+        if (uploadPath !== filePath) {
+            fs.unlinkSync(uploadPath); // Delete compressed file if different
+        }
+        console.log('Local files cleaned up');
+        
         return result;
     } catch (error) {
-        console.error('Error uploading to Cloudinary:', error);
-        return null;
+        console.error('Cloudinary upload error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            http_code: error.http_code,
+            name: error.name,
+            stack: error.stack
+        });
+        
+        // Clean up files
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+        if (uploadPath !== filePath && fs.existsSync(uploadPath)) {
+            fs.unlinkSync(uploadPath);
+        }
+        console.log('Local files cleaned up after error');
+        
+        throw error;
     }
 };
 
-export { upload, uploadToCloudinary };
+// Error handling middleware for multer
+const handleMulterError = (err, req, res, next) => {
+    console.error('Multer error:', err);
+    
+    if (err instanceof multer.MulterError) {
+        console.error('Multer error details:', {
+            code: err.code,
+            field: err.field,
+            message: err.message
+        });
+        
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                message: 'File size too large. Maximum size is 50MB.'
+            });
+        }
+        if (err.code === 'LIMIT_FILE_COUNT') {
+            return res.status(400).json({
+                success: false,
+                message: 'Too many files. Maximum 5 files allowed.'
+            });
+        }
+        return res.status(400).json({
+            success: false,
+            message: err.message
+        });
+    }
+    next(err);
+};
+
+export { upload, uploadToCloudinary, handleMulterError };

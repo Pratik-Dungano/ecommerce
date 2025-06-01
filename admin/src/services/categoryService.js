@@ -10,7 +10,8 @@ const api = axios.create({
 const setAuthHeader = (token) => {
   return {
     headers: {
-      token: token,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
     },
   };
 };
@@ -84,14 +85,20 @@ export const toggleCategoryFeatured = async (id, data, token) => {
 // Toggle category display settings
 export const toggleCategoryDisplay = async (categoryId, displaySettings, token) => {
   try {
+    console.log('Making API call to toggle display:', { categoryId, displaySettings });
     const response = await api.put(
       `/${categoryId}/display`,
       displaySettings,
       setAuthHeader(token)
     );
+    console.log('Toggle display response:', response.data);
     return response.data;
   } catch (error) {
-    throw error.response?.data || { success: false, message: 'Failed to update category display settings' };
+    console.error('Toggle display error:', error.response?.data || error);
+    throw error.response?.data || { 
+      success: false, 
+      message: 'Failed to update category display settings' 
+    };
   }
 };
 

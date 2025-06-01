@@ -49,7 +49,10 @@ const Looks = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${backendURL}/api/looks`, {
-        headers: { token: token }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.data.success) {

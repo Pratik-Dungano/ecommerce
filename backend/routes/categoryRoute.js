@@ -10,7 +10,8 @@ import {
     updateSubcategory,
     deleteSubcategory,
     getFeaturedCategories,
-    toggleFeaturedCategory
+    toggleFeaturedCategory,
+    toggleCategoryDisplay
 } from '../controllers/categoryController.js';
 import authUser from '../middleware/auth.js';
 import adminAuth from '../middleware/adminAuth.js';
@@ -28,6 +29,7 @@ router.post('/', adminAuth, createCategory);
 router.put('/:id', adminAuth, updateCategory);
 router.delete('/:id', adminAuth, deleteCategory);
 router.put('/:id/featured', adminAuth, toggleFeaturedCategory);
+router.put('/:id/display', adminAuth, toggleCategoryDisplay);
 
 // Subcategory routes - all admin only
 router.post('/:categoryId/subcategory', adminAuth, addSubcategory);

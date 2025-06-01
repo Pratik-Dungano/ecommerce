@@ -33,7 +33,12 @@ const Orders = ({ token }) => {
       const response = await axios.post(
         `${backendUrl}/api/order/list`,
         {},
-        { headers: { token } }
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       if (response.data.success) {

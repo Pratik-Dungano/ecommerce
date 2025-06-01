@@ -37,7 +37,10 @@ const List = ({ token }) => {
         `${backendUrl}/api/product/remove`,
         { id },
         { 
-          headers: { token },
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
           timeout: 10000
         }
       );
@@ -119,8 +122,8 @@ const List = ({ token }) => {
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
             <option value="">All Categories</option>
-            {[...new Set(list.map((product) => product.category))].map((category) => (
-              <option key={category} value={category}>{category}</option>
+            {[...new Set(list.map((product) => product.category))].map((category, index) => (
+              <option key={`category-${index}-${category}`} value={category}>{category}</option>
             ))}
           </select>
 
@@ -130,8 +133,8 @@ const List = ({ token }) => {
             onChange={(e) => setSelectedSubcategory(e.target.value)}
           >
             <option value="">All Subcategories</option>
-            {[...new Set(list.map((product) => product.subcategory))].map((subcategory) => (
-              <option key={subcategory} value={subcategory}>{subcategory}</option>
+            {[...new Set(list.map((product) => product.subcategory))].map((subcategory, index) => (
+              <option key={`subcategory-${index}-${subcategory}`} value={subcategory}>{subcategory}</option>
             ))}
           </select>
         </div>

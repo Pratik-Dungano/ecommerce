@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Cart from './pages/Cart';
 import Collection from './pages/Collection';
@@ -26,8 +26,10 @@ import ExchangeReturnPolicy from './components/Exchange_Return_Policy';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import RefundAndCancellation from './components/RefundAndcancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
+import { ShopContext } from './context/ShopContext';
 
 const App = () => {
+  const { showSearch } = useContext(ShopContext);
   return (
     // Main container with padding for responsiveness
     <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[0vw]">
@@ -35,7 +37,7 @@ const App = () => {
       {/* Navigation bar */}
       <Navbar />
       <CategoryNav /> 
-      <Searchbar />
+      {showSearch && <Searchbar />}
 
       {/* Routes for different pages */}
       <Routes>

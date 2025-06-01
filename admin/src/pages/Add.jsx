@@ -106,25 +106,61 @@ const Add = ({token}) => {
     setUploadProgress(0);
 
     try {
+      // Validate required fields
+      if (!name || !description || !price || !category || !subcategory) {
+        toast.error("Please fill in all required fields");
+        setIsUploading(false);
+        return;
+      }
+
+      // Validate at least one image is uploaded
+      if (!image1) {
+        toast.error("Please upload at least one product image");
+        setIsUploading(false);
+        return;
+      }
+
       const formData = new FormData();
 
+      // Add text fields
       formData.append("name", name);
       formData.append("description", description);
       formData.append("price", price);
-      formData.append("discountPercentage", discountPercentage);
-      formData.append("category", getCategoryName());
-      formData.append("subcategory", getSubcategoryName()); 
+      formData.append("discountPercentage", discountPercentage || "0");
+      
+      // Add category and subcategory data
+      const categoryName = getCategoryName();
+      const subcategoryName = getSubcategoryName();
+      
+      if (!categoryName || !subcategoryName) {
+        toast.error("Invalid category or subcategory selection");
+        setIsUploading(false);
+        return;
+      }
+
+      // Add category fields
+      formData.append("category", categoryName);
+      formData.append("subcategory", subcategoryName);
       formData.append("categoryId", category);
       formData.append("subcategoryId", subcategory);
-      formData.append("bestseller", bestseller);
-      formData.append("ecoFriendly", ecoFriendly);
+      
+      // Add boolean fields
+      formData.append("bestseller", bestseller.toString());
+      formData.append("ecoFriendly", ecoFriendly.toString());
+      
+      // Add sizes array
       formData.append("sizes", JSON.stringify(sizes));
 
-      image1 && formData.append("image1", image1);
-      image2 && formData.append("image2", image2);
-      image3 && formData.append("image3", image3);
-      image4 && formData.append("image4", image4);
-      video && formData.append("video", video);
+      // Add images
+      if (image1) formData.append("image1", image1);
+      if (image2) formData.append("image2", image2);
+      if (image3) formData.append("image3", image3);
+      if (image4) formData.append("image4", image4);
+      
+      // Add video if present
+      if (video) {
+        formData.append("video", video);
+      }
 
       // Create upload progress handler
       const onUploadProgress = (progressEvent) => {
@@ -132,11 +168,16 @@ const Add = ({token}) => {
         setUploadProgress(percentCompleted);
       };
 
+      console.log('Sending request with token:', token); // Debug log
+
       const response = await axios.post(
         `${backendUrl}/api/product/add`,
         formData,
         { 
-          headers: { token },
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          },
           onUploadProgress
         }
       );
@@ -158,11 +199,11 @@ const Add = ({token}) => {
         setBestseller(false);
         setEcoFriendly(false);
       } else {
-        toast.error(response.data.message);
+        toast.error(response.data.message || "Failed to add product");
       }
     } catch (error) {
-      console.error(error);
-      toast.error(error.message);
+      console.error("Error details:", error.response?.data || error);
+      toast.error(error.response?.data?.message || error.message || "Failed to add product");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
