@@ -3,10 +3,9 @@ import { assets } from '../assets/assets';
 import { Link, NavLink } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 
-const Navbar = () => {
+const Navbar = ({ setShowSearchBar }) => {
   const [visible, setVisible] = useState(false);
   const {
-    setShowSearch,
     getCartCount,
     getWishListCount,
     navigate,
@@ -82,8 +81,10 @@ const Navbar = () => {
           {/* Right Icons */}
           <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
             <button
-              onClick={() => setShowSearch(true)}
-              className="p-2 hidden md:flex hover:bg-gray-100 rounded-full transition-colors duration-200"
+              onClick={() => setShowSearchBar((prev) => !prev)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+              aria-label="Toggle search"
+              type="button"
             >
               <img src={assets.search_icon} className="w-5 h-5" alt="Search" />
             </button>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Cart from './pages/Cart';
 import Collection from './pages/Collection';
@@ -18,7 +18,7 @@ import Kurtas from './pages/Kurtas';
 import Gown from './pages/Gown';
 import Footer from './components/Footer';
 import Wishlist from './pages/Wishlist';
-import Searchbar from './components/Searchbar';
+import SearchBar from './components/SearchBar';
 import {ToastContainer,toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CategoryPage from './pages/CategoryPage'; 
@@ -28,14 +28,16 @@ import RefundAndCancellation from './components/RefundAndcancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
 
 const App = () => {
+  const [showSearchBar, setShowSearchBar] = useState(false);
+
   return (
     // Main container with padding for responsiveness
     <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[0vw]">
       <ToastContainer />
       {/* Navigation bar */}
-      <Navbar />
+      <Navbar setShowSearchBar={setShowSearchBar} />
       <CategoryNav /> 
-      <Searchbar />
+      {showSearchBar && <SearchBar />}
 
       {/* Routes for different pages */}
       <Routes>
