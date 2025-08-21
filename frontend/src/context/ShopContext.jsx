@@ -302,6 +302,15 @@ const ShopContextProvider = (props) => {
     }
   }, [token]);
 
+  // Listen for admin-triggered category updates
+  useEffect(() => {
+    const handleCategoriesUpdated = () => {
+      getCategories();
+    };
+    window.addEventListener('categoriesUpdated', handleCategoriesUpdated);
+    return () => window.removeEventListener('categoriesUpdated', handleCategoriesUpdated);
+  }, []);
+
   // Define the context value
   const value = {
     products,

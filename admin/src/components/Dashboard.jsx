@@ -42,7 +42,10 @@ const Dashboard = ({ token }) => {
 
         // Fetch orders with populated product data
         const response = await axios.post(`${backendUrl}/api/order/list`, {}, {
-          headers: { token },
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
 
         if (response.data.success) {

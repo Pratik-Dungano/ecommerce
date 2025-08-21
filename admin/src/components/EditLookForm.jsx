@@ -27,8 +27,9 @@ import {
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { backendUrl } from '../config';
 
-const EditLookForm = ({ look, onClose }) => {
+const EditLookForm = ({ look, onClose, token }) => {
   const [formData, setFormData] = useState({
     name: look.name || '',
     description: look.description || '',
@@ -46,9 +47,6 @@ const EditLookForm = ({ look, onClose }) => {
   const [thumbnailPreview, setThumbnailPreview] = useState('');
   const [thumbnailLoading, setThumbnailLoading] = useState(false);
   
-  const backendURL = import.meta.env.VITE_BACKEND_URL;
-  const token = localStorage.getItem('token');
-
   // Fetch products with videos and existing look details
   useEffect(() => {
     const fetchData = async () => {
@@ -56,9 +54,15 @@ const EditLookForm = ({ look, onClose }) => {
         setLoading(true);
         
         // Get product details for the look
-        const lookDetailsResponse = await axios.get(`${backendURL}/api/looks/${look._id}`, {
-          headers: { token: token }
-        });
+        const lookDetailsResponse = await axios.get(
+          `${backendUrl}/api/looks/${look._id}`,
+          { 
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
         
         if (lookDetailsResponse.data.success && lookDetailsResponse.data.look) {
           const lookData = lookDetailsResponse.data.look;
@@ -82,9 +86,15 @@ const EditLookForm = ({ look, onClose }) => {
         }
         
         // Get all products with videos for the dropdown
-        const productsResponse = await axios.get(`${backendURL}/api/product/list`, {
-          headers: { token: token }
-        });
+        const productsResponse = await axios.get(
+          `${backendUrl}/api/product/list`,
+          { 
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
 
         if (productsResponse.data.products) {
           // Filter products that have videos
@@ -106,14 +116,14 @@ const EditLookForm = ({ look, onClose }) => {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        toast.error('Failed to fetch look data');
+        toast.error('Failed to fetch look details');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [look._id]);
+  }, [look._id, token]);
 
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
@@ -218,12 +228,12 @@ const EditLookForm = ({ look, onClose }) => {
     
     try {
       const response = await axios.post(
-        `${backendURL}/api/upload/image`,
+        `${backendUrl}/api/upload/image`,
         formData,
         {
           headers: { 
             'Content-Type': 'multipart/form-data',
-            'token': token 
+            'Authorization': `Bearer ${token}` 
           }
         }
       );
@@ -274,9 +284,9 @@ const EditLookForm = ({ look, onClose }) => {
       };
 
       const response = await axios.put(
-        `${backendURL}/api/looks/${look._id}`,
+        `${backendUrl}/api/looks/${look._id}`,
         lookData,
-        { headers: { token: token } }
+        { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
       if (response.data.success) {

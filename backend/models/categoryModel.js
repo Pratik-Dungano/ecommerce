@@ -22,6 +22,7 @@ const categorySchema = new mongoose.Schema({
     },
     active: { type: Boolean, default: true },
     featured: { type: Boolean, default: false },
+    displayInNavbar: { type: Boolean, default: false },
     displayOrder: { type: Number, default: 0 }
 }, { timestamps: true });
 

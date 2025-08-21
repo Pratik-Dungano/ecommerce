@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import { Menu, X, ShoppingCart, Heart, User, Search } from 'lucide-react'; // Added Search icon
@@ -31,6 +32,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50" role="navigation">
+    <nav className="bg-white shadow-md sticky top-0 z-50" role="navigation">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -40,8 +42,21 @@ const Navbar = () => {
             onClick={scrollToTop}
           >
             ADAA JAIPUR
+          <Link 
+            to="/" 
+            className="text-2xl font-serif font-bold text-pink-600 hover:text-amber-600 transition-colors duration-200"
+            onClick={scrollToTop}
+          >
+            ADAA JAIPUR
           </Link>
 
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link 
+              to="/" 
+              className="text-gray-700 hover:text-pink-600 transition-colors duration-200"
+              onClick={scrollToTop}
+            >
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link 
@@ -127,8 +142,24 @@ const Navbar = () => {
               onClick={scrollToTop}
             >
               <User className="w-6 h-6" />
+
+            <Link 
+              to="/account" 
+              className="text-gray-700 hover:text-pink-600 transition-colors duration-200"
+              onClick={scrollToTop}
+            >
+              <User className="w-6 h-6" />
             </Link>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden text-gray-700 hover:text-pink-600 transition-colors duration-200"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
 
           {/* Mobile Menu Button */}
           <button

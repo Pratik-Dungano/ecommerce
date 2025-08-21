@@ -26,6 +26,7 @@ import ExchangeReturnPolicy from './components/Exchange_Return_Policy';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import RefundAndCancellation from './components/RefundAndcancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
+import { ShopContext } from './context/ShopContext';
 
 const App = () => {
   const [showSearchBar, setShowSearchBar] = useState(false);

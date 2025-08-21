@@ -6,69 +6,115 @@ import { uploadToCloudinary } from '../middleware/multer.js';
 // Add Product Controller
 export const addProduct = async (req, res) => {
     try {
+        console.log('Starting addProduct controller...');
+        console.log('Request body:', req.body);
+        console.log('Request files:', req.files);
+
         const imageUrls = [];
         let videoUrl = null;
 
         // Process image files
         if (req.files) {
+            console.log('Processing files...');
             // Handle image uploads - supports both local and Cloudinary
             for (let i = 1; i <= 4; i++) {
                 const imageField = `image${i}`;
+                console.log(`Checking ${imageField}...`);
+                
                 if (req.files[imageField] && req.files[imageField][0]) {
                     const imageFile = req.files[imageField][0];
+                    console.log(`Processing ${imageField}:`, {
+                        filename: imageFile.filename,
+                        path: imageFile.path,
+                        mimetype: imageFile.mimetype,
+                        size: imageFile.size
+                    });
                     
                     // Try to upload to Cloudinary
                     try {
+                        console.log(`Attempting to upload ${imageField} to Cloudinary...`);
                         const result = await uploadToCloudinary(imageFile.path, {
                             folder: 'ecommerce/products',
                             resource_type: 'image'
                         });
                         
                         if (result) {
+                            console.log(`Successfully uploaded ${imageField} to Cloudinary:`, result.secure_url);
                             imageUrls.push(result.secure_url);
                         } else {
-                            // Fallback to local URL if Cloudinary upload fails
+                            console.log(`Cloudinary upload failed for ${imageField}, falling back to local URL`);
                             const imageUrl = `${req.protocol}://${req.get('host')}/${imageFile.path.replace(/\\/g, '/')}`;
                             imageUrls.push(imageUrl);
                         }
                     } catch (error) {
                         console.error(`Error uploading ${imageField}:`, error);
+                        console.error('Error details:', {
+                            message: error.message,
+                            http_code: error.http_code,
+                            name: error.name
+                        });
                         const imageUrl = `${req.protocol}://${req.get('host')}/${imageFile.path.replace(/\\/g, '/')}`;
                         imageUrls.push(imageUrl);
                     }
+                } else {
+                    console.log(`No file found for ${imageField}`);
                 }
             }
+        } else {
+            console.log('No files found in request');
         }
 
         // Process video file
         if (req.files && req.files.video && req.files.video[0]) {
             const videoFile = req.files.video[0];
+            console.log('Processing video file:', {
+                filename: videoFile.filename,
+                path: videoFile.path,
+                mimetype: videoFile.mimetype,
+                size: videoFile.size
+            });
             
             // Try to upload to Cloudinary
             try {
+                console.log('Attempting to upload video to Cloudinary...');
                 const result = await uploadToCloudinary(videoFile.path, {
                     folder: 'ecommerce/products',
                     resource_type: 'video'
                 });
                 
                 if (result) {
+                    console.log('Successfully uploaded video to Cloudinary:', result.secure_url);
                     videoUrl = result.secure_url;
                 } else {
-                    // Fallback to local URL if Cloudinary upload fails
+                    console.log('Cloudinary upload failed for video, falling back to local URL');
                     videoUrl = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
                 }
             } catch (error) {
                 console.error('Error uploading video:', error);
+                console.error('Error details:', {
+                    message: error.message,
+                    http_code: error.http_code,
+                    name: error.name
+                });
                 videoUrl = `${req.protocol}://${req.get('host')}/${videoFile.path.replace(/\\/g, '/')}`;
             }
         }
 
         if (imageUrls.length === 0) {
+            console.log('No images were successfully uploaded');
             return res.status(400).json({
                 success: false,
                 message: 'At least one product image is required'
             });
         }
+
+        console.log('Creating new product with data:', {
+            name: req.body.name,
+            category: req.body.category,
+            subcategory: req.body.subcategory,
+            imageCount: imageUrls.length,
+            hasVideo: !!videoUrl
+        });
 
         const { 
             name, 
@@ -102,6 +148,8 @@ export const addProduct = async (req, res) => {
         });
 
         await product.save();
+        console.log('Product saved successfully:', product._id);
+
         res.status(201).json({ 
             success: true, 
             message: 'Product added successfully', 
@@ -109,13 +157,24 @@ export const addProduct = async (req, res) => {
         });
 
     } catch (error) {
+        console.error('Error in addProduct:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack
+        });
+        
         // Clean up any uploaded files if there's an error
         if (req.files) {
             Object.values(req.files).flat().forEach(file => {
-                fs.unlink(file.path, () => {});
+                if (fs.existsSync(file.path)) {
+                    fs.unlink(file.path, (err) => {
+                        if (err) console.error('Error deleting file:', err);
+                        else console.log('Deleted file:', file.path);
+                    });
+                }
             });
         }
-        console.error('Error in addProduct:', error);
+        
         res.status(500).json({ 
             success: false, 
             message: error.message || 'Internal server error'
@@ -304,4 +363,4 @@ export const removeProduct = async (req, res) => {
             message: error.message || 'Failed to remove product' 
         });
     }
-};
+};  

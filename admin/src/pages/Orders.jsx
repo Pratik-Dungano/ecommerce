@@ -33,7 +33,12 @@ const Orders = ({ token }) => {
       const response = await axios.post(
         `${backendUrl}/api/order/list`,
         {},
-        { headers: { token } }
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       if (response.data.success) {
@@ -96,7 +101,12 @@ const Orders = ({ token }) => {
       const response = await axios.post(
         `${backendUrl}/api/order/status`,
         { orderId, status: newStatus },
-        { headers: { token } }
+        { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       if (response.data.success) {

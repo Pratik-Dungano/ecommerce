@@ -54,7 +54,7 @@ const CategoryNav = () => {
       <div className="max-w-7xl mx-auto px-4">
         <div className="hidden md:flex justify-center">
           <ul className="flex space-x-8">
-            {categories.filter(cat => cat.active).map((category) => (
+            {categories.filter(cat => cat.active && cat.displayInNavbar).map((category) => (
               <li 
                 key={category._id} 
                 className="relative group"
@@ -109,7 +109,7 @@ const CategoryNav = () => {
 
           {isMobileMenuOpen && (
             <div className="mt-2 space-y-1 bg-white rounded-md shadow-md border border-gray-200">
-              {categories.filter(cat => cat.active).map((category) => (
+              {categories.filter(cat => cat.active && cat.displayInNavbar).map((category) => (
                 <div key={category._id} className="border-b border-gray-100 last:border-b-0">
                   <Link
                     to={getCategoryUrl(category.slug)}
