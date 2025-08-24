@@ -3,7 +3,7 @@ import { assets } from '../assets/assets';
 import { Link, NavLink } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 
-const Navbar = ({ setShowSearchBar }) => {
+const Navbar = () => {
   const [visible, setVisible] = useState(false);
   const {
     getCartCount,
@@ -12,6 +12,8 @@ const Navbar = ({ setShowSearchBar }) => {
     token,
     setToken,
     setCartItems,
+    setShowSearch,
+    showSearch,
   } = useContext(ShopContext);
 
   const logout = () => {
@@ -80,8 +82,10 @@ const Navbar = ({ setShowSearchBar }) => {
 
           {/* Right Icons */}
           <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
-            <button
-              onClick={() => setShowSearchBar((prev) => !prev)}
+                         <button
+               onClick={() => {
+                 setShowSearch((prev) => !prev);
+               }}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
               aria-label="Toggle search"
               type="button"

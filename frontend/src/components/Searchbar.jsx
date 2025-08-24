@@ -6,6 +6,9 @@ import axios from '../lib/axios';
 
 const Searchbar = () => {
   const { products, showSearch, setShowSearch } = useContext(ShopContext);
+  
+  console.log('SearchBar component - showSearch value:', showSearch);
+  console.log('SearchBar component - products count:', products?.length || 0);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -176,6 +179,7 @@ const Searchbar = () => {
           setSearchResults([]);
         }
       }}
+
     >
       <div className="w-full max-w-2xl mx-4">
         {/* Search form */}

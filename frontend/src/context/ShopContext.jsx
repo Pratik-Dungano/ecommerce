@@ -45,7 +45,6 @@ const ShopContextProvider = (props) => {
           })
         );
         setProducts(productsWithDetails);
-        console.log('Products loaded:', productsWithDetails.length);
       }
     } catch (error) {
       // Handle error silently without logging or showing a toast
