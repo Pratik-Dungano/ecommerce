@@ -3,7 +3,8 @@ import { assets } from '../assets/assets';
 import axios from 'axios';
 import { backendUrl } from '../config';
 import { toast } from 'react-toastify';
-import { Play, X, Upload } from 'react-feather';
+import { Play, X, Upload, FileText, Download } from 'react-feather';
+import Papa from 'papaparse';
 
 const Add = ({token}) => {
   const [image1,setImage1]=useState(false);
@@ -15,6 +16,13 @@ const Add = ({token}) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const videoRef = useRef(null);
+
+  // CSV upload states
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvData, setCsvData] = useState([]);
+  const [isProcessingCsv, setIsProcessingCsv] = useState(false);
+  const [csvUploadProgress, setCsvUploadProgress] = useState(0);
+  const [showCsvPreview, setShowCsvPreview] = useState(false);
 
   const [name,setName]=useState("");
   const [description,setDescription]=useState("");
@@ -78,6 +86,143 @@ const Add = ({token}) => {
     
     const selectedSubcategory = selectedCategory.subcategories.find(sub => sub._id === subcategory);
     return selectedSubcategory ? selectedSubcategory.name : "";
+  };
+
+  // CSV Processing Functions
+  const handleCsvFileSelect = (file) => {
+    setCsvFile(file);
+    setCsvData([]);
+    setShowCsvPreview(false);
+  };
+
+  const processCsvFile = () => {
+    if (!csvFile) {
+      toast.error("Please select a CSV file first");
+      return;
+    }
+
+    Papa.parse(csvFile, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          toast.error("Error parsing CSV file");
+          console.error("CSV parsing errors:", results.errors);
+          return;
+        }
+        
+        setCsvData(results.data);
+        setShowCsvPreview(true);
+        toast.success(`Successfully parsed ${results.data.length} products from CSV`);
+      },
+      error: (error) => {
+        toast.error("Failed to parse CSV file");
+        console.error("CSV parsing error:", error);
+      }
+    });
+  };
+
+  const downloadCsvTemplate = () => {
+    const csvContent = `image1,image2,image3,image4,video,name,description,category,subcategory,price,discountPercentage,sizes,bestseller,ecoFriendly
+https://example.com/image1.jpg,https://example.com/image2.jpg,https://example.com/image3.jpg,https://example.com/image4.jpg,https://example.com/video1.mp4,Casual T-Shirt,Comfortable cotton t-shirt perfect for everyday wear,Clothing,T-Shirts,25,10,"S,M,L",true,false
+https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.com/image7.jpg,https://example.com/image8.jpg,,Denim Jeans,Classic blue denim jeans with perfect fit,Clothing,Jeans,45,15,"M,L,XL",false,true`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  const uploadProductsFromCsv = async () => {
+    if (csvData.length === 0) {
+      toast.error("No CSV data to process");
+      return;
+    }
+
+    setIsProcessingCsv(true);
+    setCsvUploadProgress(0);
+
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < csvData.length; i++) {
+        const product = csvData[i];
+        setCsvUploadProgress(((i + 1) / csvData.length) * 100);
+
+        try {
+          // Prepare product data
+          const productData = {
+            name: product.name || '',
+            description: product.description || '',
+            price: parseFloat(product.price) || 0,
+            discountPercentage: parseFloat(product.discountPercentage) || 0,
+            category: product.category || '',
+            subcategory: product.subcategory || '',
+            sizes: product.sizes ? product.sizes.split(',').map(s => s.trim()) : [],
+            bestseller: product.bestseller === 'true' || product.bestseller === true,
+            ecoFriendly: product.ecoFriendly === 'true' || product.ecoFriendly === true,
+            image: [
+              product.image1 || '',
+              product.image2 || '',
+              product.image3 || '',
+              product.image4 || ''
+            ].filter(img => img),
+            video: product.video ? [product.video] : [],
+            date: Date.now()
+          };
+
+          // Find category and subcategory IDs
+          const categoryObj = categories.find(cat => 
+            cat.name.toLowerCase() === product.category.toLowerCase()
+          );
+          
+          if (categoryObj) {
+            productData.categoryId = categoryObj._id;
+            const subcategoryObj = categoryObj.subcategories.find(sub => 
+              sub.name.toLowerCase() === product.subcategory.toLowerCase()
+            );
+            if (subcategoryObj) {
+              productData.subcategoryId = subcategoryObj._id;
+            }
+          }
+
+          // Send to backend
+          const response = await axios.post(`${backendUrl}/api/product/add`, productData, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.data.success) {
+            successCount++;
+          } else {
+            errorCount++;
+            console.error(`Failed to add product ${product.name}:`, response.data.message);
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`Error adding product ${product.name}:`, error);
+        }
+      }
+
+      toast.success(`CSV upload completed! ${successCount} products added, ${errorCount} failed`);
+      setCsvData([]);
+      setCsvFile(null);
+      setShowCsvPreview(false);
+    } catch (error) {
+      toast.error("Failed to process CSV upload");
+      console.error("CSV upload error:", error);
+    } finally {
+      setIsProcessingCsv(false);
+      setCsvUploadProgress(0);
+    }
   };
 
   // Generate video thumbnail when video is selected
@@ -225,8 +370,132 @@ const Add = ({token}) => {
   };
 
   return (
-    <form onSubmit={onSubmitHandler} className="flex flex-col w-full items-start gap-5 p-5 bg-gray-50">
-      {/* Upload Image Section */}
+    <div className="flex flex-col w-full items-start gap-5 p-5 bg-gray-50">
+      {/* CSV Upload Section */}
+      <div className="w-full bg-white p-6 rounded-lg border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-800">Bulk Product Upload via CSV</h2>
+          <button
+            type="button"
+            onClick={downloadCsvTemplate}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <Download size={16} />
+            Download Template
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          {/* CSV File Upload */}
+          <div className="flex items-center gap-4">
+            <label htmlFor="csvFile" className="cursor-pointer">
+              <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors">
+                <FileText size={16} />
+                Choose CSV File
+              </div>
+              <input
+                onChange={(e) => handleCsvFileSelect(e.target.files[0])}
+                type="file"
+                id="csvFile"
+                hidden
+                accept=".csv"
+              />
+            </label>
+            
+            {csvFile && (
+              <span className="text-sm text-gray-600">
+                Selected: {csvFile.name}
+              </span>
+            )}
+            
+            {csvFile && (
+              <button
+                type="button"
+                onClick={processCsvFile}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                Process CSV
+              </button>
+            )}
+          </div>
+
+          {/* CSV Preview */}
+          {showCsvPreview && csvData.length > 0 && (
+            <div className="bg-gray-50 p-4 rounded-md">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-700">
+                  CSV Preview ({csvData.length} products)
+                </h3>
+                <button
+                  type="button"
+                  onClick={uploadProductsFromCsv}
+                  disabled={isProcessingCsv}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    isProcessingCsv
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-purple-600 text-white hover:bg-purple-700'
+                  }`}
+                >
+                  {isProcessingCsv ? 'Processing...' : 'Upload All Products'}
+                </button>
+              </div>
+              
+              {/* Progress Bar */}
+              {isProcessingCsv && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                      <div 
+                        className="bg-purple-600 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${csvUploadProgress}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm text-gray-600">{Math.round(csvUploadProgress)}%</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* CSV Data Table */}
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 px-2">Name</th>
+                      <th className="text-left py-2 px-2">Category</th>
+                      <th className="text-left py-2 px-2">Price</th>
+                      <th className="text-left py-2 px-2">Sizes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {csvData.slice(0, 5).map((product, index) => (
+                      <tr key={index} className="border-b border-gray-100">
+                        <td className="py-2 px-2">{product.name || 'N/A'}</td>
+                        <td className="py-2 px-2">{product.category || 'N/A'}</td>
+                        <td className="py-2 px-2">{product.price || 'N/A'}</td>
+                        <td className="py-2 px-2">{product.sizes || 'N/A'}</td>
+                      </tr>
+                    ))}
+                    {csvData.length > 5 && (
+                      <tr>
+                        <td colSpan="4" className="py-2 px-2 text-center text-gray-500">
+                          ... and {csvData.length - 5} more products
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="w-full border-t border-gray-200 my-4"></div>
+      <h2 className="text-xl font-bold text-gray-800">Add Single Product</h2>
+
+      <form onSubmit={onSubmitHandler} className="flex flex-col w-full items-start gap-5">
+        {/* Upload Image Section */}
       <div>
         <p className="mb-2 font-semibold">Upload Images</p>
         <div className="flex gap-3">
@@ -521,6 +790,7 @@ const Add = ({token}) => {
         {isUploading ? 'Uploading...' : 'Add Product'}
       </button>
     </form>
+    </div>
   );
 };
 

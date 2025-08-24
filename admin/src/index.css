@@ -12,3 +12,28 @@
 *{
   font-family:Outfit;
 }
+
+.checkbox-group {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #C586A5;
+}
+
+.checkbox-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+}
