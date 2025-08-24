@@ -18,7 +18,7 @@ import Kurtas from './pages/Kurtas';
 import Gown from './pages/Gown';
 import Footer from './components/Footer';
 import Wishlist from './pages/Wishlist';
-import SearchBar from './components/SearchBar';
+import SearchBar from './components/Searchbar';
 import {ToastContainer,toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CategoryPage from './pages/CategoryPage'; 
