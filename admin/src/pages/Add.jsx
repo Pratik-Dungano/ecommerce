@@ -122,6 +122,16 @@ const Add = ({token}) => {
     });
   };
 
+  // Helper function to parse boolean values from CSV
+  const parseBooleanFromCsv = (value) => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      const lowerValue = value.toLowerCase().trim();
+      return lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes';
+    }
+    return false;
+  };
+
   const downloadCsvTemplate = () => {
     // Get available categories for the template
     let categoryExamples = 'New Arrival,New Arrival';
@@ -140,8 +150,11 @@ const Add = ({token}) => {
     }
     
     const csvContent = `image1,image2,image3,image4,video,name,description,category,subcategory,price,discountPercentage,sizes,bestseller,ecoFriendly
-https://example.com/image1.jpg,https://example.com/image2.jpg,https://example.com/image3.jpg,https://example.com/image4.jpg,https://example.com/video1.mp4,Casual T-Shirt,Comfortable cotton t-shirt perfect for everyday wear,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},25,10,"S,M,L",true,false
-https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.com/image7.jpg,https://example.com/image8.jpg,,Denim Jeans,Classic blue denim jeans with perfect fit,${categoryExamples.split(',')[1]},${subcategoryExamples.split(',')[1]},45,15,"M,L,XL",false,true`;
+https://example.com/image1.jpg,https://example.com/image2.jpg,https://example.com/image3.jpg,https://example.com/image4.jpg,https://example.com/video1.mp4,Casual T-Shirt,Comfortable cotton t-shirt perfect for everyday wear,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},25,10,"S,M,L",TRUE,FALSE
+https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.com/image7.jpg,https://example.com/image8.jpg,,Denim Jeans,Classic blue denim jeans with perfect fit,${categoryExamples.split(',')[1]},${subcategoryExamples.split(',')[1]},45,15,"M,L,XL",FALSE,TRUE
+https://example.com/image9.jpg,https://example.com/image10.jpg,https://example.com/image11.jpg,https://example.com/image12.jpg,https://example.com/video2.mp4,Running Shoes,Lightweight running shoes for maximum comfort,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},80,20,"S,M,L,XL",TRUE,TRUE
+https://example.com/image13.jpg,https://example.com/image14.jpg,https://example.com/image15.jpg,https://example.com/image16.jpg,,Leather Bag,Stylish leather bag for daily use,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},120,5,"One Size",FALSE,FALSE
+https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.com/image19.jpg,https://example.com/image20.jpg,https://example.com/video3.mp4,Wireless Headphones,High-quality wireless headphones with noise cancellation,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},150,25,"One Size",TRUE,TRUE`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -187,8 +200,8 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
             category: product.category || '',
             subcategory: product.subcategory || '',
             sizes: product.sizes ? product.sizes.split(',').map(s => s.trim()) : [],
-            bestseller: product.bestseller === 'true' || product.bestseller === true,
-            ecoFriendly: product.ecoFriendly === 'true' || product.ecoFriendly === true,
+            bestseller: parseBooleanFromCsv(product.bestseller),
+            ecoFriendly: parseBooleanFromCsv(product.ecoFriendly),
             image: [
               product.image1 || '',
               product.image2 || '',
@@ -276,6 +289,18 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
           }
 
           // Debug: Log the data being sent
+          console.log('Raw CSV data for this product:', {
+            bestseller: product.bestseller,
+            ecoFriendly: product.ecoFriendly,
+            bestsellerType: typeof product.bestseller,
+            ecoFriendlyType: typeof product.ecoFriendly
+          });
+          
+          console.log('Parsed boolean values:', {
+            bestseller: parseBooleanFromCsv(product.bestseller),
+            ecoFriendly: parseBooleanFromCsv(product.ecoFriendly)
+          });
+          
           console.log('Final product data being sent:', {
             name: productData.name,
             description: productData.description,
@@ -284,6 +309,8 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
             subcategory: productData.subcategory,
             categoryId: productData.categoryId,
             subcategoryId: productData.subcategoryId,
+            bestseller: productData.bestseller,
+            ecoFriendly: productData.ecoFriendly,
             hasImages: productData.image && productData.image.length > 0,
             imageCount: productData.image ? productData.image.length : 0
           });
