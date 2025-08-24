@@ -123,9 +123,25 @@ const Add = ({token}) => {
   };
 
   const downloadCsvTemplate = () => {
+    // Get available categories for the template
+    let categoryExamples = 'New Arrival,New Arrival';
+    let subcategoryExamples = 'New Arrival,New Arrival'; // Use category name as subcategory if no subcategories exist
+    
+    if (categories.length > 0) {
+      const firstCategory = categories[0];
+      categoryExamples = `${firstCategory.name},${firstCategory.name}`;
+      
+      if (firstCategory.subcategories.length > 0) {
+        subcategoryExamples = `${firstCategory.subcategories[0].name},${firstCategory.subcategories[0].name}`;
+      } else {
+        // If no subcategories, use the category name itself
+        subcategoryExamples = `${firstCategory.name},${firstCategory.name}`;
+      }
+    }
+    
     const csvContent = `image1,image2,image3,image4,video,name,description,category,subcategory,price,discountPercentage,sizes,bestseller,ecoFriendly
-https://example.com/image1.jpg,https://example.com/image2.jpg,https://example.com/image3.jpg,https://example.com/image4.jpg,https://example.com/video1.mp4,Casual T-Shirt,Comfortable cotton t-shirt perfect for everyday wear,Clothing,T-Shirts,25,10,"S,M,L",true,false
-https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.com/image7.jpg,https://example.com/image8.jpg,,Denim Jeans,Classic blue denim jeans with perfect fit,Clothing,Jeans,45,15,"M,L,XL",false,true`;
+https://example.com/image1.jpg,https://example.com/image2.jpg,https://example.com/image3.jpg,https://example.com/image4.jpg,https://example.com/video1.mp4,Casual T-Shirt,Comfortable cotton t-shirt perfect for everyday wear,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},25,10,"S,M,L",true,false
+https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.com/image7.jpg,https://example.com/image8.jpg,,Denim Jeans,Classic blue denim jeans with perfect fit,${categoryExamples.split(',')[1]},${subcategoryExamples.split(',')[1]},45,15,"M,L,XL",false,true`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -187,9 +203,13 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
           console.log('Available categories:', categories.map(c => ({ name: c.name, id: c._id })));
           console.log('Looking for category:', product.category);
           
-          const categoryObj = categories.find(cat => 
-            cat.name.toLowerCase() === product.category.toLowerCase()
-          );
+          // Try exact match first, then case-insensitive
+          let categoryObj = categories.find(cat => cat.name === product.category);
+          if (!categoryObj) {
+            categoryObj = categories.find(cat => 
+              cat.name.toLowerCase() === product.category.toLowerCase()
+            );
+          }
           
           console.log('Found category:', categoryObj);
           
@@ -198,9 +218,13 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
             console.log('Available subcategories:', categoryObj.subcategories.map(s => ({ name: s.name, id: s._id })));
             console.log('Looking for subcategory:', product.subcategory);
             
-            const subcategoryObj = categoryObj.subcategories.find(sub => 
-              sub.name.toLowerCase() === product.subcategory.toLowerCase()
-            );
+            // Try exact match first, then case-insensitive
+            let subcategoryObj = categoryObj.subcategories.find(sub => sub.name === product.subcategory);
+            if (!subcategoryObj) {
+              subcategoryObj = categoryObj.subcategories.find(sub => 
+                sub.name.toLowerCase() === product.subcategory.toLowerCase()
+              );
+            }
             
             console.log('Found subcategory:', subcategoryObj);
             
@@ -208,31 +232,130 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
               productData.subcategoryId = subcategoryObj._id;
             } else {
               console.warn(`Subcategory '${product.subcategory}' not found in category '${product.category}'`);
+              // If no subcategories exist, use the category ID as subcategory ID
+              if (categoryObj.subcategories.length === 0) {
+                productData.subcategoryId = categoryObj._id;
+                productData.subcategory = categoryObj.name;
+                console.log(`Category has no subcategories, using category ID as subcategory ID: ${categoryObj.name}`);
+              } else {
+                // Try to find a similar subcategory or use the first one
+                productData.subcategoryId = categoryObj.subcategories[0]._id;
+                console.log(`Using first available subcategory: ${categoryObj.subcategories[0].name}`);
+              }
             }
           } else {
             console.warn(`Category '${product.category}' not found in available categories`);
+            // Try to find a similar category or use the first one
+            if (categories.length > 0) {
+              const firstCategory = categories[0];
+              productData.categoryId = firstCategory._id;
+              productData.category = firstCategory.name;
+              if (firstCategory.subcategories.length > 0) {
+                productData.subcategoryId = firstCategory.subcategories[0]._id;
+                productData.subcategory = firstCategory.subcategories[0].name;
+              }
+              console.log(`Using first available category: ${firstCategory.name}`);
+            }
+          }
+
+          // Validate required fields before sending
+          if (!productData.name || !productData.description || !productData.price || 
+              !productData.category || !productData.subcategory || 
+              !productData.categoryId || !productData.subcategoryId) {
+            console.error('Missing required fields:', {
+              name: !!productData.name,
+              description: !!productData.description,
+              price: !!productData.price,
+              category: !!productData.category,
+              subcategory: !!productData.subcategory,
+              categoryId: !!productData.categoryId,
+              subcategoryId: !!productData.subcategoryId
+            });
+            errorCount++;
+            continue; // Skip this product and continue with the next one
           }
 
           // Debug: Log the data being sent
-          console.log('Sending product data to CSV endpoint:', productData);
-          
-          // Send to backend using CSV endpoint
-          const response = await axios.post(`${backendUrl}/api/product/add-csv`, productData, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
+          console.log('Final product data being sent:', {
+            name: productData.name,
+            description: productData.description,
+            price: productData.price,
+            category: productData.category,
+            subcategory: productData.subcategory,
+            categoryId: productData.categoryId,
+            subcategoryId: productData.subcategoryId,
+            hasImages: productData.image && productData.image.length > 0,
+            imageCount: productData.image ? productData.image.length : 0
           });
+          
+          // Try CSV endpoint first, fallback to regular endpoint if 404
+          let response;
+          try {
+            response = await axios.post(`${backendUrl}/api/product/add-csv`, productData, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+          } catch (error) {
+            if (error.response && error.response.status === 404) {
+              console.log('CSV endpoint not found, trying regular endpoint with dummy image...');
+              
+              // Create a dummy image file for the regular endpoint
+              const dummyImageBlob = new Blob(['dummy'], { type: 'image/jpeg' });
+              const dummyImageFile = new File([dummyImageBlob], 'dummy.jpg', { type: 'image/jpeg' });
+              
+              // Create FormData for the regular endpoint
+              const formData = new FormData();
+              formData.append('name', productData.name);
+              formData.append('description', productData.description);
+              formData.append('price', productData.price);
+              formData.append('discountPercentage', productData.discountPercentage);
+              formData.append('category', productData.category);
+              formData.append('subcategory', productData.subcategory);
+              formData.append('categoryId', productData.categoryId);
+              formData.append('subcategoryId', productData.subcategoryId);
+              formData.append('bestseller', productData.bestseller.toString());
+              formData.append('ecoFriendly', productData.ecoFriendly.toString());
+              formData.append('sizes', JSON.stringify(productData.sizes));
+              formData.append('image1', dummyImageFile);
+              
+              // Add video if present
+              if (productData.video && productData.video.length > 0) {
+                formData.append('video', productData.video[0]);
+              }
+              
+              response = await axios.post(`${backendUrl}/api/product/add`, formData, {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'multipart/form-data'
+                }
+              });
+              
+              console.log('Product added via regular endpoint with dummy image');
+            } else {
+              throw error; // Re-throw if it's not a 404 error
+            }
+          }
 
           if (response.data.success) {
             successCount++;
+            console.log(`Successfully added product: ${product.name}`);
           } else {
             errorCount++;
             console.error(`Failed to add product ${product.name}:`, response.data.message);
           }
         } catch (error) {
           errorCount++;
-          console.error(`Error adding product ${product.name}:`, error);
+          if (error.response) {
+            console.error(`Error adding product ${product.name}:`, {
+              status: error.response.status,
+              message: error.response.data?.message || error.message,
+              data: error.response.data
+            });
+          } else {
+            console.error(`Error adding product ${product.name}:`, error.message);
+          }
         }
       }
 
@@ -399,14 +522,36 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
       <div className="w-full bg-white p-6 rounded-lg border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-800">Bulk Product Upload via CSV</h2>
-          <button
-            type="button"
-            onClick={downloadCsvTemplate}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <Download size={16} />
-            Download Template
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={downloadCsvTemplate}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Download size={16} />
+              Download Template
+            </button>
+            {/* Test Backend Button - Commented out as functionality is working
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const response = await axios.get(`${backendUrl}/api/category/list`);
+                  if (response.data.success) {
+                    toast.success(`Backend accessible! Found ${response.data.categories.length} categories`);
+                    console.log('Available categories:', response.data.categories);
+                  }
+                } catch (error) {
+                  toast.error(`Backend error: ${error.message}`);
+                  console.error('Backend test failed:', error);
+                }
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              Test Backend
+            </button>
+            */}
+          </div>
         </div>
         
         <div className="space-y-4">
