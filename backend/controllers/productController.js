@@ -363,4 +363,100 @@ export const removeProduct = async (req, res) => {
             message: error.message || 'Failed to remove product' 
         });
     }
+};
+
+// CSV Bulk Upload Controller
+export const addProductFromCsv = async (req, res) => {
+    try {
+        console.log('Starting CSV product upload...');
+        console.log('Request body:', req.body);
+
+        const { 
+            name, 
+            description, 
+            price, 
+            discountPercentage,
+            category,
+            subcategory,
+            categoryId,
+            subcategoryId,
+            bestseller,
+            ecoFriendly,
+            sizes,
+            image,
+            video
+        } = req.body;
+
+        // Validate required fields
+        if (!name || !description || !price || !category || !subcategory || !categoryId || !subcategoryId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required fields: name, description, price, category, subcategory, categoryId, subcategoryId'
+            });
+        }
+
+        // Validate image array
+        if (!image || !Array.isArray(image) || image.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'At least one product image is required'
+            });
+        }
+
+        // Filter out empty image URLs
+        const validImages = image.filter(img => img && img.trim() !== '');
+        
+        if (validImages.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'At least one valid product image URL is required'
+            });
+        }
+
+        console.log('Creating new product from CSV with data:', {
+            name,
+            category,
+            subcategory,
+            imageCount: validImages.length,
+            hasVideo: video && video.length > 0
+        });
+
+        const product = new Product({
+            name,
+            description,
+            price: parseFloat(price) || 0,
+            discountPercentage: parseFloat(discountPercentage) || 0,
+            image: validImages,
+            video: video && video.length > 0 ? video : [],
+            category,
+            subcategory,
+            categoryId,
+            subcategoryId,
+            bestseller: bestseller === true || bestseller === 'true',
+            ecoFriendly: ecoFriendly === true || ecoFriendly === 'true',
+            sizes: Array.isArray(sizes) ? sizes : [],
+            date: Date.now()
+        });
+
+        await product.save();
+        console.log('CSV product saved successfully:', product._id);
+
+        res.status(201).json({ 
+            success: true, 
+            message: 'Product added successfully from CSV', 
+            product 
+        });
+
+    } catch (error) {
+        console.error('Error in addProductFromCsv:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack
+        });
+        
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Internal server error during CSV upload' 
+        });
+    }
 };  

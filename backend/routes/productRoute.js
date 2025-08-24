@@ -4,7 +4,8 @@ import {
     addProduct, 
     singleProduct, 
     removeProduct, 
-    editProduct 
+    editProduct,
+    addProductFromCsv
 } from '../controllers/productController.js';
 import { upload, handleMulterError } from '../middleware/multer.js';
 import adminAuth from '../middleware/adminAuth.js';
@@ -24,6 +25,9 @@ productRouter.post('/add',
     handleMulterError,
     addProduct
 );
+
+// CSV bulk upload endpoint (accepts JSON with image URLs)
+productRouter.post('/add-csv', adminAuth, addProductFromCsv);
 
 productRouter.post('/remove', adminAuth, removeProduct);
 productRouter.post('/single', singleProduct);

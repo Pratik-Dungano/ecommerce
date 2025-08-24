@@ -144,6 +144,12 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
       return;
     }
 
+    // Check if categories are loaded
+    if (categories.length === 0) {
+      toast.error("Categories not loaded. Please wait and try again.");
+      return;
+    }
+
     setIsProcessingCsv(true);
     setCsvUploadProgress(0);
 
@@ -178,22 +184,40 @@ https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.co
           };
 
           // Find category and subcategory IDs
+          console.log('Available categories:', categories.map(c => ({ name: c.name, id: c._id })));
+          console.log('Looking for category:', product.category);
+          
           const categoryObj = categories.find(cat => 
             cat.name.toLowerCase() === product.category.toLowerCase()
           );
           
+          console.log('Found category:', categoryObj);
+          
           if (categoryObj) {
             productData.categoryId = categoryObj._id;
+            console.log('Available subcategories:', categoryObj.subcategories.map(s => ({ name: s.name, id: s._id })));
+            console.log('Looking for subcategory:', product.subcategory);
+            
             const subcategoryObj = categoryObj.subcategories.find(sub => 
               sub.name.toLowerCase() === product.subcategory.toLowerCase()
             );
+            
+            console.log('Found subcategory:', subcategoryObj);
+            
             if (subcategoryObj) {
               productData.subcategoryId = subcategoryObj._id;
+            } else {
+              console.warn(`Subcategory '${product.subcategory}' not found in category '${product.category}'`);
             }
+          } else {
+            console.warn(`Category '${product.category}' not found in available categories`);
           }
 
-          // Send to backend
-          const response = await axios.post(`${backendUrl}/api/product/add`, productData, {
+          // Debug: Log the data being sent
+          console.log('Sending product data to CSV endpoint:', productData);
+          
+          // Send to backend using CSV endpoint
+          const response = await axios.post(`${backendUrl}/api/product/add-csv`, productData, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
