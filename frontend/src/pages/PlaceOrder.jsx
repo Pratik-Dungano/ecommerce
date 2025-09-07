@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
@@ -9,6 +10,9 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
+  const location = useLocation();
+  const selectedItems = location.state?.selectedItems || null;
+  
   const {
     navigate,
     backendUrl,
@@ -19,6 +23,7 @@ const PlaceOrder = () => {
     getProductPrice,
     delivery_fee,
     products,
+    setProducts,
   } = useContext(ShopContext);
 
   const [formData, setFormData] = useState({
@@ -39,14 +44,39 @@ const PlaceOrder = () => {
     setFormData((data) => ({ ...data, [name]: value }));
   };
 
+  // Update product stock after order placement
+  const updateProductStock = (orderedItems) => {
+    setProducts(prevProducts => {
+      return prevProducts.map(product => {
+        const orderedItem = orderedItems.find(item => 
+          item.productId === product._id || item._id === product._id
+        );
+        
+        if (orderedItem) {
+          const newQuantity = Math.max(0, product.quantity - orderedItem.quantity);
+          return {
+            ...product,
+            quantity: newQuantity,
+            isOutOfStock: newQuantity === 0
+          };
+        }
+        
+        return product;
+      });
+    });
+  };
+
   const prepareOrderData = () => {
-    const orderItems = cartItems.map((item) => {
-      const product = products.find((p) => p._id === item.itemId);
+    // Use selected items if available, otherwise use all cart items
+    const itemsToProcess = selectedItems || cartItems;
+    
+    const orderItems = itemsToProcess.map((item) => {
+      const product = products.find((p) => p._id === item.itemId || p._id === item._id);
       return {
-        productId: item.itemId,
+        productId: item.itemId || item._id,
         size: item.size,
         quantity: item.quantity,
-        price: getProductPrice(item.itemId, item.size), // Use discounted price if applicable
+        price: getProductPrice(item.itemId || item._id, item.size), // Use discounted price if applicable
       };
     });
 
@@ -62,7 +92,22 @@ const PlaceOrder = () => {
       phone: formData.phone,
     };
 
-    const totalAmount = getTotal(); // This includes delivery fee
+    // Calculate total for selected items
+    const calculateSelectedTotal = () => {
+      let total = 0;
+      itemsToProcess.forEach((item) => {
+        const product = products.find((p) => p._id === item.itemId || p._id === item._id);
+        if (product) {
+          const itemPrice = product.discountPercentage > 0 
+            ? Math.round(product.price - (product.price * product.discountPercentage / 100))
+            : product.price;
+          total += itemPrice * item.quantity;
+        }
+      });
+      return total + delivery_fee;
+    };
+
+    const totalAmount = selectedItems ? calculateSelectedTotal() : getTotal();
 
     return { orderItems, addressData, totalAmount };
   };
@@ -85,7 +130,21 @@ const PlaceOrder = () => {
       );
 
       if (response.data.success) {
-        setCartItems([]);
+        // Update product stock in context
+        const itemsToProcess = selectedItems || cartItems;
+        updateProductStock(itemsToProcess);
+        
+        // Remove only selected items from cart
+        if (selectedItems) {
+          const remainingItems = cartItems.filter(item => 
+            !selectedItems.some(selected => 
+              selected._id === item.itemId && selected.size === item.size
+            )
+          );
+          setCartItems(remainingItems);
+        } else {
+          setCartItems([]); // Clear entire cart if no selection
+        }
         toast.success("Order placed successfully!");
         navigate("/orders");
       } else {
@@ -128,7 +187,21 @@ const PlaceOrder = () => {
             );
   
             if (orderResponse.data.success) {
-              setCartItems([]); // Clear the cart
+              // Update product stock in context
+              const itemsToProcess = selectedItems || cartItems;
+              updateProductStock(itemsToProcess);
+              
+              // Remove only selected items from cart
+              if (selectedItems) {
+                const remainingItems = cartItems.filter(item => 
+                  !selectedItems.some(selected => 
+                    selected._id === item.itemId && selected.size === item.size
+                  )
+                );
+                setCartItems(remainingItems);
+              } else {
+                setCartItems([]); // Clear entire cart if no selection
+              }
               toast.success("Payment successful! Order placed.");
               navigate("/orders");
             } else {
@@ -166,8 +239,9 @@ const PlaceOrder = () => {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
-    if (cartItems.length === 0) {
-      toast.error("Your cart is empty!");
+    const itemsToCheck = selectedItems || cartItems;
+    if (itemsToCheck.length === 0) {
+      toast.error("No items selected for order!");
       return;
     }
 
@@ -288,7 +362,7 @@ const PlaceOrder = () => {
 
         <div className="mt-8">
           <div className="mt-8 min-w-80">
-            <CartTotal />
+            <CartTotal selectedItems={selectedItems} />
           </div>
 
           <div className="mt-12">

@@ -230,6 +230,7 @@ const Product = () => {
                     className="w-full h-auto max-h-[500px] object-contain rounded-lg"
                     loading="eager"
                   />
+                
                   {showMagnifier && (
                     <div
                       style={{
@@ -361,6 +362,8 @@ const Product = () => {
             )}
           </div>
           <p className="text-sm text-green-600">Inclusive of all taxes</p>
+          
+          
           <p className="text-gray-600 leading-relaxed">{productData.description}</p>
 
           <div className="space-y-4">
@@ -383,6 +386,17 @@ const Product = () => {
           </div>
 
           <div className="flex flex-wrap gap-4">
+      {productData.isOutOfStock || productData.quantity === 0 ? (
+        <button
+          disabled
+          className="flex-1 min-w-[200px] bg-gray-400 text-white px-8 py-3 rounded-md font-medium
+            cursor-not-allowed inline-flex items-center justify-center gap-2"
+          aria-label="Sold out"
+        >
+          <ShoppingCart className="w-5 h-5" />
+          Sold Out
+        </button>
+      ) : (
             <button
               onClick={() => addToCart(productData._id, size)}
               className="flex-1 min-w-[200px] bg-black text-white px-8 py-3 rounded-md font-medium
@@ -392,6 +406,18 @@ const Product = () => {
               <ShoppingCart className="w-5 h-5" />
               Add to Cart
             </button>
+            )}
+            {productData.isOutOfStock || productData.quantity === 0 ? (
+              <button
+                disabled
+                className="flex-1 min-w-[200px] bg-gray-400 text-white px-8 py-3 rounded-md font-medium
+                  cursor-not-allowed inline-flex items-center justify-center gap-2"
+                aria-label="Sold out"
+              >
+                <CreditCard className="w-5 h-5" />
+                Sold Out
+              </button>
+            ) : (
             <button
               onClick={handleBuyNow}
               className="flex-1 min-w-[200px] bg-orange-500 text-white px-8 py-3 rounded-md font-medium
@@ -401,6 +427,7 @@ const Product = () => {
               <CreditCard className="w-5 h-5" />
               Buy Now
             </button>
+            )}
             <button
               onClick={() => addToWishList(productData._id, size)}
               className="p-3 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"

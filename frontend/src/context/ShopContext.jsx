@@ -52,6 +52,28 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // Update product stock after order placement
+  const updateProductStock = (orderedItems) => {
+    setProducts(prevProducts => {
+      return prevProducts.map(product => {
+        const orderedItem = orderedItems.find(item => 
+          item.productId === product._id || item._id === product._id
+        );
+        
+        if (orderedItem) {
+          const newQuantity = Math.max(0, product.quantity - orderedItem.quantity);
+          return {
+            ...product,
+            quantity: newQuantity,
+            isOutOfStock: newQuantity === 0
+          };
+        }
+        
+        return product;
+      });
+    });
+  };
+
   // Fetch categories from the backend
   const getCategories = async () => {
     try {
@@ -107,6 +129,13 @@ const ShopContextProvider = (props) => {
   const addToCart = async (itemId, size) => {
     if (!token) {
       toast.error("Please login to add items to cart");
+      return;
+    }
+
+    // Check if product is sold out
+    const product = products.find(p => p._id === itemId);
+    if (product && (product.isOutOfStock || product.quantity === 0)) {
+      toast.error("This product is currently sold out");
       return;
     }
 
@@ -190,18 +219,36 @@ const ShopContextProvider = (props) => {
   };
 
   // Place an order
-  const placeOrder = async (address) => {
+  const placeOrder = async (address, selectedItems = null) => {
     if (token) {
       try {
-        const items = cartItems.map((item) => {
-          const product = products.find((p) => p._id === item.itemId);
+        // Use selected items if provided, otherwise use all cart items
+        const itemsToProcess = selectedItems || cartItems;
+        
+        const items = itemsToProcess.map((item) => {
+          const product = products.find((p) => p._id === item.itemId || p._id === item._id);
           return {
-            productId: item.itemId,
+            productId: item.itemId || item._id,
             size: item.size,
             quantity: item.quantity,
             price: product.price,
           };
         });
+
+        // Calculate total for selected items
+        const calculateSelectedTotal = () => {
+          let total = 0;
+          itemsToProcess.forEach((item) => {
+            const product = products.find((p) => p._id === item.itemId || p._id === item._id);
+            if (product) {
+              const itemPrice = product.discountPercentage > 0 
+                ? Math.round(product.price - (product.price * product.discountPercentage / 100))
+                : product.price;
+              total += itemPrice * item.quantity;
+            }
+          });
+          return total + delivery_fee;
+        };
 
         const orderData = {
           items,
@@ -216,7 +263,7 @@ const ShopContextProvider = (props) => {
             zipCode: address.zipCode,
             country: address.country,
           },
-          amount: getTotal() + delivery_fee,
+          amount: calculateSelectedTotal(),
         };
 
         const response = await axios.post(
@@ -226,7 +273,20 @@ const ShopContextProvider = (props) => {
         );
 
         if (response.data.success) {
-          setCartItems([]); // Clear cart after order placement
+          // Update product stock in context
+          updateProductStock(itemsToProcess);
+          
+          // Remove only selected items from cart
+          if (selectedItems) {
+            const remainingItems = cartItems.filter(item => 
+              !selectedItems.some(selected => 
+                selected._id === item.itemId && selected.size === item.size
+              )
+            );
+            setCartItems(remainingItems);
+          } else {
+            setCartItems([]); // Clear entire cart if no selection
+          }
           toast.success("Order placed successfully!");
           navigate("/orders");
         }
@@ -313,6 +373,7 @@ const ShopContextProvider = (props) => {
   // Define the context value
   const value = {
     products,
+    setProducts,
     categories,
     currency,
     delivery_fee,

@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
@@ -123,6 +124,7 @@ const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reviewItem, setReviewItem] = useState(null);
   const [reviewedProducts, setReviewedProducts] = useState(new Set());
+  const navigate = useNavigate();
 
   // Add animation styles
   useEffect(() => {
@@ -216,6 +218,11 @@ const Orders = () => {
     }
   };
 
+  const handleProductClick = (productId) => {
+    navigate(`/product/${productId}`);
+    window.scrollTo(0, 0);
+  };
+
   return (
     <div className="border-t pt-16 mx-4 md:mx-10">
       <div className="text-2xl mb-8">
@@ -274,7 +281,8 @@ const Orders = () => {
                           <img
                             src={item.productId?.image?.[0] || '/placeholder.jpg'}
                             alt={item.productId?.name || 'Product'}
-                            className="w-full h-full object-cover object-center rounded-md"
+                            onClick={() => handleProductClick(item.productId._id)}
+                            className="w-full h-full object-cover object-center rounded-md cursor-pointer hover:opacity-80 transition-opacity duration-200"
                           />
                         </div>
                         <div className="flex-grow space-y-1">
@@ -351,7 +359,8 @@ const Orders = () => {
               <img
                 src={reviewItem.productImage}
                 alt={reviewItem.productName}
-                className="w-20 h-20 object-cover rounded"
+                onClick={() => handleProductClick(reviewItem.productId)}
+                className="w-20 h-20 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity duration-200"
               />
               <div>
                 <h3 className="font-medium">{reviewItem.productName}</h3>

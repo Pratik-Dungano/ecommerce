@@ -5,7 +5,7 @@ import { ShopContext } from "../context/ShopContext";
 import { ShoppingCart, Heart, Award, Video } from "react-feather";
 import { FaLeaf } from "react-icons/fa";
 
-const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, ecoFriendly, video, isNew }) => {
+const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, ecoFriendly, video, isNew, quantity, isOutOfStock }) => {
     const { 
         addToCart, 
         addToWishList, 
@@ -111,6 +111,7 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, e
                             <span className="text-xs font-medium text-white">Video</span>
                         </div>
                     )}
+                    
                 </div>
 
                 <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
@@ -118,8 +119,11 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, e
                 {/* Wishlist Button */}
                 <button
                     onClick={handleWishlistClick}
-                    className="absolute top-2 left-2 bg-gray-800 text-white p-1.5 rounded-full opacity-0 
-                            group-hover:opacity-100 transition-all duration-300 hover:bg-gray-600 hover:scale-110"
+                    className={`absolute top-2 left-2 bg-gray-800 text-white p-1.5 rounded-full transition-all duration-300 hover:bg-gray-600 hover:scale-110 ${
+                        isOutOfStock || quantity === 0 
+                            ? 'opacity-100' 
+                            : 'opacity-0 group-hover:opacity-100'
+                    }`}
                     aria-label="Add to Wishlist"
                 >
                     <Heart 
@@ -129,18 +133,24 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, e
                     />
                 </button>
 
-                {/* Cart Button */}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setShowSizeOptions(true);
-                    }}
-                    className="absolute top-2 right-2 bg-gray-800 text-white p-1.5 rounded-full opacity-0 
-                            group-hover:opacity-100 transition-all duration-300 hover:bg-gray-600 hover:scale-110"
-                    aria-label="Add to Cart"
-                >
-                    <ShoppingCart size={16} />
-                </button>
+                {/* Cart Button or Sold Out */}
+                {isOutOfStock || quantity === 0 ? (
+                    <div className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1.5 rounded-full transition-all duration-300">
+                        <span className="text-xs font-medium">Sold Out</span>
+                    </div>
+                ) : (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSizeOptions(true);
+                        }}
+                        className="absolute top-2 right-2 bg-gray-800 text-white p-1.5 rounded-full opacity-0 
+                                group-hover:opacity-100 transition-all duration-300 hover:bg-gray-600 hover:scale-110"
+                        aria-label="Add to Cart"
+                    >
+                        <ShoppingCart size={16} />
+                    </button>
+                )}
 
                 <div className="p-4 flex flex-col flex-grow">
                     <h3 className="text-sm font-medium text-gray-900 mb-1">
@@ -168,6 +178,7 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, e
                             </span>
                         )}
                     </div>
+                    
                 </div>
             </div>
 
@@ -213,7 +224,7 @@ const ProductItem = memo(({ id, image, name, price, sizes, discountPercentage, e
             )}
 
             {/* Cart Size Selection Modal */}
-            {showSizeOptions && (
+            {showSizeOptions && !isOutOfStock && quantity > 0 && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white p-4 rounded-md shadow-lg w-80">
                         <h2 className="text-lg font-semibold mb-3">Select a Size</h2>

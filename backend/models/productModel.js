@@ -8,12 +8,14 @@ const productSchema=new mongoose.Schema({
     image:{type:Array, required:true},
     video:{type:Array, default:[]},
     category:{type:String, required:true},
-    subcategory:{type:String, required:true},
+    subcategory:{type:String, required:false},
     categoryId:{type:mongoose.Schema.Types.ObjectId, ref:'category', required:true},
-    subcategoryId:{type:mongoose.Schema.Types.ObjectId, required:true},
+    subcategoryId:{type:mongoose.Schema.Types.ObjectId, required:false},
     sizes:{type:Array, required:true},
     bestseller:{type:Boolean},
     ecoFriendly:{type:Boolean, default:false},
+    quantity:{type:Number, default:0, min:0},
+    isOutOfStock:{type:Boolean, default:false},
     date:{type:Number,required:true},
     reviews: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
@@ -26,6 +28,12 @@ const productSchema=new mongoose.Schema({
     averageRating: { type: Number, default: 0 },
     totalReviews: { type: Number, default: 0 }
 })
+
+// Pre-save middleware to auto-compute isOutOfStock from quantity
+productSchema.pre('save', function(next) {
+    this.isOutOfStock = this.quantity === 0;
+    next();
+});
 
 const productModel=mongoose.models.product||mongoose.model('product',productSchema)
  

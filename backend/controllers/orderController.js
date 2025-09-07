@@ -3,6 +3,7 @@ import userModel from "../models/userModel.js";
 import cartModel from "../models/cartModels.js";
 import Razorpay from 'razorpay';
 import dotenv from 'dotenv';
+import { checkProductStock, decreaseProductQuantity, increaseProductQuantity } from './productController.js';
 
 dotenv.config();
 
@@ -23,6 +24,17 @@ const placeOrder = async (req, res) => {
             });
         }
 
+        // Validate stock availability for all items before placing order
+        for (const item of items) {
+            const stockCheck = await checkProductStock(item.productId, item.quantity);
+            if (!stockCheck.success) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Insufficient stock for product: ${stockCheck.message}`
+                });
+            }
+        }
+
         const orderData = {
             userId,
             items,
@@ -36,6 +48,15 @@ const placeOrder = async (req, res) => {
 
         const newOrder = new orderModel(orderData);
         await newOrder.save();
+
+        // Reduce stock quantity for all items after successful order creation
+        for (const item of items) {
+            const stockReduction = await decreaseProductQuantity(item.productId, item.quantity);
+            if (!stockReduction.success) {
+                console.error(`Failed to reduce stock for product ${item.productId}:`, stockReduction.message);
+                // Note: In production, you might want to implement a rollback mechanism here
+            }
+        }
 
         // Clear user's cart
         await cartModel.findOneAndDelete({ userId });
@@ -64,6 +85,17 @@ const createRazorpayOrder = async (req, res) => {
                 success: false,
                 message: "Missing required fields"
             });
+        }
+
+        // Validate stock availability for all items before creating Razorpay order
+        for (const item of items) {
+            const stockCheck = await checkProductStock(item.productId, item.quantity);
+            if (!stockCheck.success) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Insufficient stock for product: ${stockCheck.message}`
+                });
+            }
         }
 
         // Create pending order
@@ -102,6 +134,84 @@ const createRazorpayOrder = async (req, res) => {
     }
 };
 
+// Verify Razorpay Payment and Complete Order
+const verifyRazorpayPayment = async (req, res) => {
+    try {
+        const { orderId, paymentId, signature } = req.body;
+
+        if (!orderId || !paymentId || !signature) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required payment verification fields"
+            });
+        }
+
+        // Verify payment signature
+        const crypto = require('crypto');
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+            .update(`${orderId}|${paymentId}`)
+            .digest('hex');
+
+        if (signature !== expectedSignature) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid payment signature"
+            });
+        }
+
+        // Find the order
+        const order = await orderModel.findById(orderId);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        // Check if order is already processed
+        if (order.payment) {
+            return res.status(400).json({
+                success: false,
+                message: "Order already processed"
+            });
+        }
+
+        // Update order with payment details
+        order.payment = true;
+        order.paymentDetails = {
+            paymentId: paymentId,
+            paymentDate: new Date(),
+            paymentMethod: 'Razorpay'
+        };
+        await order.save();
+
+        // Reduce stock quantity for all items after successful payment
+        for (const item of order.items) {
+            const stockReduction = await decreaseProductQuantity(item.productId, item.quantity);
+            if (!stockReduction.success) {
+                console.error(`Failed to reduce stock for product ${item.productId}:`, stockReduction.message);
+                // Note: In production, you might want to implement a rollback mechanism here
+            }
+        }
+
+        // Clear user's cart
+        await cartModel.findOneAndDelete({ userId: order.userId });
+
+        res.json({
+            success: true,
+            message: "Payment verified and order completed successfully",
+            order
+        });
+    } catch (error) {
+        console.error('Razorpay Payment Verification Error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Error verifying payment'
+        });
+    }
+};
+
 // Handle Stripe Webhook
 const handleStripeWebhook = async (req, res) => {
     const sig = req.headers['stripe-signature'];
@@ -118,15 +228,26 @@ const handleStripeWebhook = async (req, res) => {
                 const session = event.data.object;
                 const { orderId, userId } = session.metadata;
 
-                await orderModel.findByIdAndUpdate(orderId, {
-                    payment: true,
-                    status: 'Order Placed',
-                    paymentDetails: {
-                        paymentId: session.payment_intent,
-                        paymentStatus: session.payment_status,
-                        paymentMethod: 'STRIPE',
+                const order = await orderModel.findById(orderId);
+                if (order) {
+                    await orderModel.findByIdAndUpdate(orderId, {
+                        payment: true,
+                        status: 'Order Placed',
+                        paymentDetails: {
+                            paymentId: session.payment_intent,
+                            paymentStatus: session.payment_status,
+                            paymentMethod: 'STRIPE',
+                        }
+                    });
+
+                    // Reduce stock quantity for all items after successful payment
+                    for (const item of order.items) {
+                        const stockReduction = await decreaseProductQuantity(item.productId, item.quantity);
+                        if (!stockReduction.success) {
+                            console.error(`Failed to reduce stock for product ${item.productId}:`, stockReduction.message);
+                        }
                     }
-                });
+                }
 
                 await cartModel.findOneAndDelete({ userId });
                 break;
@@ -257,6 +378,14 @@ const updateStatus = async (req, res) => {
         order.status = status;
         if (status === "Cancelled") {
             order.cancelledBy = "admin";
+            
+            // Restore stock quantity for all items when order is cancelled by admin
+            for (const item of order.items) {
+                const stockRestoration = await increaseProductQuantity(item.productId, item.quantity);
+                if (!stockRestoration.success) {
+                    console.error(`Failed to restore stock for product ${item.productId}:`, stockRestoration.message);
+                }
+            }
         }
         
         await order.save();
@@ -317,6 +446,14 @@ const cancelOrder = async (req, res) => {
         order.cancelledBy = "user";
         await order.save();
 
+        // Restore stock quantity for all items after order cancellation
+        for (const item of order.items) {
+            const stockRestoration = await increaseProductQuantity(item.productId, item.quantity);
+            if (!stockRestoration.success) {
+                console.error(`Failed to restore stock for product ${item.productId}:`, stockRestoration.message);
+            }
+        }
+
         res.json({
             success: true,
             message: "Order cancelled successfully",
@@ -334,6 +471,7 @@ const cancelOrder = async (req, res) => {
 export {
     placeOrder,
     createRazorpayOrder,
+    verifyRazorpayPayment,
     handleStripeWebhook,
     allOrders,
     userOrders,

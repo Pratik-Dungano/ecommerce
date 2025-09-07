@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { ShopContext } from '../context/ShopContext'
 import Title from './Title';
 
-const CartTotal = () => {
+const CartTotal = ({ selectedItems = null }) => {
     const { 
         currency, 
         delivery_fee, 
@@ -11,23 +11,41 @@ const CartTotal = () => {
         getTotalCartAmount,
     } = useContext(ShopContext);
 
-    // Calculate original total (without discounts)
+    // Use selected items if provided, otherwise use all cart items
+    const itemsToCalculate = selectedItems || cartItems;
+
+    // Calculate original total (without discounts) for selected items
     const getOriginalTotal = () => {
-        return cartItems.reduce((total, item) => {
-            const product = products.find(p => p._id === item.itemId);
+        return itemsToCalculate.reduce((total, item) => {
+            const product = products.find(p => p._id === item._id || p._id === item.itemId);
             return total + (product ? product.price * item.quantity : 0);
         }, 0);
     };
 
+    // Calculate discounted total for selected items
+    const getDiscountedTotal = () => {
+        let total = 0;
+        itemsToCalculate.forEach((item) => {
+            const product = products.find(p => p._id === item._id || p._id === item.itemId);
+            if (product) {
+                const itemPrice = product.discountPercentage > 0 
+                    ? Math.round(product.price - (product.price * product.discountPercentage / 100))
+                    : product.price;
+                total += itemPrice * item.quantity;
+            }
+        });
+        return total;
+    };
+
     const originalTotal = getOriginalTotal();
-    const discountedSubtotal = getTotalCartAmount();
+    const discountedSubtotal = getDiscountedTotal();
     const totalSavings = originalTotal - discountedSubtotal;
     const finalTotal = discountedSubtotal + delivery_fee;
     
     return (
         <div className='w-full'>
             <div className='text-2xl'>
-                <Title text1={'CART'} text2={' TOTAL'}/>
+                <Title text1={selectedItems ? 'SELECTED ' : 'CART '} text2={'TOTAL'}/>
             </div>
             <div className='flex flex-col gap-2 mt-2 text-sm'>
                 <div className='flex justify-between'>

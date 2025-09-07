@@ -5,7 +5,9 @@ import {
     singleProduct, 
     removeProduct, 
     editProduct,
-    addProductFromCsv
+    addProductFromCsv,
+    restockProduct,
+    getProductStock
 } from '../controllers/productController.js';
 import { upload, handleMulterError } from '../middleware/multer.js';
 import adminAuth from '../middleware/adminAuth.js';
@@ -46,5 +48,11 @@ productRouter.post('/edit',
     handleMulterError,
     editProduct
 );
+
+// Restock product endpoint
+productRouter.post('/restock', adminAuth, restockProduct);
+
+// Get product stock info endpoint
+productRouter.get('/stock/:id', getProductStock);
 
 export default productRouter;

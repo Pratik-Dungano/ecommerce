@@ -127,10 +127,11 @@ export const addProduct = async (req, res) => {
             subcategoryId,
             bestseller,
             ecoFriendly,
-            sizes 
+            sizes,
+            quantity 
         } = req.body;
 
-        const product = new Product({
+        const productData = {
             name,
             description,
             price,
@@ -140,12 +141,19 @@ export const addProduct = async (req, res) => {
             category,
             subcategory,
             categoryId,
-            subcategoryId,
             bestseller: bestseller === 'true',
             ecoFriendly: ecoFriendly === 'true',
             sizes: JSON.parse(sizes),
+            quantity: parseInt(quantity) || 0,
             date: Date.now()
-        });
+        };
+
+        // Only add subcategoryId if it's not empty
+        if (subcategoryId && subcategoryId.trim() !== '') {
+            productData.subcategoryId = subcategoryId;
+        }
+
+        const product = new Product(productData);
 
         await product.save();
         console.log('Product saved successfully:', product._id);
@@ -185,6 +193,7 @@ export const addProduct = async (req, res) => {
 // Edit Product Controller
 export const editProduct = async (req, res) => {
     try {
+        console.log('Edit product request body:', req.body);
         const { id } = req.body;
         const product = await Product.findById(id);
         
@@ -261,6 +270,19 @@ export const editProduct = async (req, res) => {
             }
         }
 
+        console.log('Quantity field received:', req.body.quantity, 'Type:', typeof req.body.quantity);
+        console.log('Sizes field received:', req.body.sizes, 'Type:', typeof req.body.sizes);
+        
+        // Parse sizes safely
+        let parsedSizes = [];
+        try {
+            parsedSizes = JSON.parse(req.body.sizes);
+        } catch (error) {
+            console.error('Error parsing sizes:', error);
+            parsedSizes = Array.isArray(req.body.sizes) ? req.body.sizes : [];
+        }
+        
+        // Handle subcategoryId - only include if it's not empty
         const updates = {
             name: req.body.name,
             description: req.body.description,
@@ -271,11 +293,18 @@ export const editProduct = async (req, res) => {
             category: req.body.category,
             subcategory: req.body.subcategory,
             categoryId: req.body.categoryId,
-            subcategoryId: req.body.subcategoryId,
             bestseller: req.body.bestseller === 'true',
             ecoFriendly: req.body.ecoFriendly === 'true',
-            sizes: JSON.parse(req.body.sizes)
+            sizes: parsedSizes,
+            quantity: parseInt(req.body.quantity) || 0
         };
+
+        // Only add subcategoryId if it's not empty
+        if (req.body.subcategoryId && req.body.subcategoryId.trim() !== '') {
+            updates.subcategoryId = req.body.subcategoryId;
+        }
+        
+        console.log('Updates object:', updates);
 
         const updatedProduct = await Product.findByIdAndUpdate(
             id,
@@ -384,7 +413,8 @@ export const addProductFromCsv = async (req, res) => {
             ecoFriendly,
             sizes,
             image,
-            video
+            video,
+            quantity
         } = req.body;
 
         // Validate required fields
@@ -421,7 +451,7 @@ export const addProductFromCsv = async (req, res) => {
             hasVideo: video && video.length > 0
         });
 
-        const product = new Product({
+        const productData = {
             name,
             description,
             price: parseFloat(price) || 0,
@@ -431,12 +461,19 @@ export const addProductFromCsv = async (req, res) => {
             category,
             subcategory,
             categoryId,
-            subcategoryId,
             bestseller: bestseller === true || bestseller === 'true',
             ecoFriendly: ecoFriendly === true || ecoFriendly === 'true',
             sizes: Array.isArray(sizes) ? sizes : [],
+            quantity: parseInt(quantity) || 0,
             date: Date.now()
-        });
+        };
+
+        // Only add subcategoryId if it's not empty
+        if (subcategoryId && subcategoryId.trim() !== '') {
+            productData.subcategoryId = subcategoryId;
+        }
+
+        const product = new Product(productData);
 
         await product.save();
         console.log('CSV product saved successfully:', product._id);
@@ -458,5 +495,185 @@ export const addProductFromCsv = async (req, res) => {
             success: false, 
             message: error.message || 'Internal server error during CSV upload' 
         });
+    }
+};
+
+// Restock Product Controller
+export const restockProduct = async (req, res) => {
+    try {
+        const { id, quantity } = req.body;
+        
+        if (!id || quantity === undefined) {
+            return res.status(400).json({
+                success: false,
+                message: 'Product ID and quantity are required'
+            });
+        }
+
+        if (quantity < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Quantity cannot be negative'
+            });
+        }
+
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            id,
+            { quantity: parseInt(quantity) },
+            { new: true }
+        );
+
+        res.json({
+            success: true,
+            message: 'Product restocked successfully',
+            product: updatedProduct
+        });
+
+    } catch (error) {
+        console.error('Error in restockProduct:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Internal server error'
+        });
+    }
+};
+
+// Get Product Stock Controller
+export const getProductStock = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Product ID is required'
+            });
+        }
+
+        const product = await Product.findById(id).select('quantity isOutOfStock name');
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            product: {
+                id: product._id,
+                name: product.name,
+                quantity: product.quantity,
+                isOutOfStock: product.isOutOfStock
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in getProductStock:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Internal server error'
+        });
+    }
+};
+
+// Decrease Product Quantity Controller (for order processing)
+export const decreaseProductQuantity = async (productId, quantityToDecrease = 1) => {
+    try {
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw new Error('Product not found');
+        }
+
+        if (product.quantity < quantityToDecrease) {
+            throw new Error('Insufficient stock');
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            { $inc: { quantity: -quantityToDecrease } },
+            { new: true }
+        );
+
+        return {
+            success: true,
+            product: updatedProduct
+        };
+
+    } catch (error) {
+        console.error('Error in decreaseProductQuantity:', error);
+        return {
+            success: false,
+            message: error.message
+        };
+    }
+};
+
+// Check Product Stock Controller (for order validation)
+export const checkProductStock = async (productId, requiredQuantity = 1) => {
+    try {
+        const product = await Product.findById(productId);
+        if (!product) {
+            return {
+                success: false,
+                message: 'Product not found'
+            };
+        }
+
+        if (product.quantity < requiredQuantity) {
+            return {
+                success: false,
+                message: `Insufficient stock. Available: ${product.quantity}, Required: ${requiredQuantity}`,
+                availableQuantity: product.quantity
+            };
+        }
+
+        return {
+            success: true,
+            availableQuantity: product.quantity
+        };
+
+    } catch (error) {
+        console.error('Error in checkProductStock:', error);
+        return {
+            success: false,
+            message: error.message
+        };
+    }
+};
+
+// Increase Product Quantity Controller (for order cancellation)
+export const increaseProductQuantity = async (productId, quantityToIncrease = 1) => {
+    try {
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw new Error('Product not found');
+        }
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            { $inc: { quantity: quantityToIncrease } },
+            { new: true }
+        );
+
+        return {
+            success: true,
+            product: updatedProduct
+        };
+
+    } catch (error) {
+        console.error('Error in increaseProductQuantity:', error);
+        return {
+            success: false,
+            message: error.message
+        };
     }
 };  

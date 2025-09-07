@@ -28,6 +28,7 @@ const Add = ({token}) => {
   const [description,setDescription]=useState("");
   const [price,setPrice]=useState("");
   const [discountPercentage,setDiscountPercentage]=useState("");
+  const [quantity,setQuantity]=useState("");
   const [category,setCategory]=useState("");
   const [subcategory,setSubCategory]=useState("");
   const [bestseller,setBestseller]=useState(false);
@@ -149,12 +150,12 @@ const Add = ({token}) => {
       }
     }
     
-    const csvContent = `image1,image2,image3,image4,video,name,description,category,subcategory,price,discountPercentage,sizes,bestseller,ecoFriendly
-https://example.com/image1.jpg,https://example.com/image2.jpg,https://example.com/image3.jpg,https://example.com/image4.jpg,https://example.com/video1.mp4,Casual T-Shirt,Comfortable cotton t-shirt perfect for everyday wear,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},25,10,"S,M,L",TRUE,FALSE
-https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.com/image7.jpg,https://example.com/image8.jpg,,Denim Jeans,Classic blue denim jeans with perfect fit,${categoryExamples.split(',')[1]},${subcategoryExamples.split(',')[1]},45,15,"M,L,XL",FALSE,TRUE
-https://example.com/image9.jpg,https://example.com/image10.jpg,https://example.com/image11.jpg,https://example.com/image12.jpg,https://example.com/video2.mp4,Running Shoes,Lightweight running shoes for maximum comfort,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},80,20,"S,M,L,XL",TRUE,TRUE
-https://example.com/image13.jpg,https://example.com/image14.jpg,https://example.com/image15.jpg,https://example.com/image16.jpg,,Leather Bag,Stylish leather bag for daily use,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},120,5,"One Size",FALSE,FALSE
-https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.com/image19.jpg,https://example.com/image20.jpg,https://example.com/video3.mp4,Wireless Headphones,High-quality wireless headphones with noise cancellation,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},150,25,"One Size",TRUE,TRUE`;
+    const csvContent = `image1,image2,image3,image4,video,name,description,category,subcategory,price,discountPercentage,sizes,bestseller,ecoFriendly,quantity
+https://example.com/image1.jpg,https://example.com/image2.jpg,https://example.com/image3.jpg,https://example.com/image4.jpg,https://example.com/video1.mp4,Casual T-Shirt,Comfortable cotton t-shirt perfect for everyday wear,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},25,10,"S,M,L,XL,XXL",TRUE,FALSE,100
+https://example.com/image5.jpg,https://example.com/image6.jpg,https://example.com/image7.jpg,https://example.com/image8.jpg,,Denim Jeans,Classic blue denim jeans with perfect fit,${categoryExamples.split(',')[1]},${subcategoryExamples.split(',')[1]},45,15,"S,M,L,XL,XXL",FALSE,TRUE,50
+https://example.com/image9.jpg,https://example.com/image10.jpg,https://example.com/image11.jpg,https://example.com/image12.jpg,https://example.com/video2.mp4,Running Shoes,Lightweight running shoes for maximum comfort,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},80,20,"S,M,L,XL,XXL",TRUE,TRUE,75
+https://example.com/image13.jpg,https://example.com/image14.jpg,https://example.com/image15.jpg,https://example.com/image16.jpg,,Leather Bag,Stylish leather bag for daily use,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},120,5,"M",FALSE,FALSE,25
+https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.com/image19.jpg,https://example.com/image20.jpg,https://example.com/video3.mp4,Wireless Headphones,High-quality wireless headphones with noise cancellation,${categoryExamples.split(',')[0]},${subcategoryExamples.split(',')[0]},150,25,"L",TRUE,TRUE,30`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -197,6 +198,7 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
             description: product.description || '',
             price: parseFloat(product.price) || 0,
             discountPercentage: parseFloat(product.discountPercentage) || 0,
+            quantity: parseInt(product.quantity) || 0,
             category: product.category || '',
             subcategory: product.subcategory || '',
             sizes: product.sizes ? product.sizes.split(',').map(s => s.trim()) : [],
@@ -271,10 +273,13 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
             }
           }
 
+          // Check if category has subcategories
+          const categoryHasSubcategories = categoryObj && categoryObj.subcategories.length > 0;
+          
           // Validate required fields before sending
           if (!productData.name || !productData.description || !productData.price || 
-              !productData.category || !productData.subcategory || 
-              !productData.categoryId || !productData.subcategoryId) {
+              !productData.category || !productData.categoryId || 
+              (categoryHasSubcategories && (!productData.subcategory || !productData.subcategoryId))) {
             console.error('Missing required fields:', {
               name: !!productData.name,
               description: !!productData.description,
@@ -282,7 +287,8 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
               category: !!productData.category,
               subcategory: !!productData.subcategory,
               categoryId: !!productData.categoryId,
-              subcategoryId: !!productData.subcategoryId
+              subcategoryId: !!productData.subcategoryId,
+              categoryHasSubcategories
             });
             errorCount++;
             continue; // Skip this product and continue with the next one
@@ -426,8 +432,17 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
 
     try {
       // Validate required fields
-      if (!name || !description || !price || !category || !subcategory) {
-        toast.error("Please fill in all required fields");
+      const hasSubcategories = selectedCategoryHasSubcategories();
+      if (!name || !description || !price || !category || !quantity || (hasSubcategories && !subcategory)) {
+        const missingFields = [];
+        if (!name) missingFields.push("Product Name");
+        if (!description) missingFields.push("Description");
+        if (!price) missingFields.push("Price");
+        if (!category) missingFields.push("Category");
+        if (!quantity) missingFields.push("Stock Quantity");
+        if (hasSubcategories && !subcategory) missingFields.push("Subcategory");
+        
+        toast.error(`Please fill in all required fields: ${missingFields.join(", ")}`);
         setIsUploading(false);
         return;
       }
@@ -446,6 +461,7 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
       formData.append("description", description);
       formData.append("price", price);
       formData.append("discountPercentage", discountPercentage || "0");
+      formData.append("quantity", quantity);
       
       // Add category and subcategory data
       const categoryName = getCategoryName();
@@ -514,6 +530,7 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
         setVideoThumbnail(null);
         setPrice('');
         setDiscountPercentage('');
+        setQuantity('');
         setSizes([]);
         setBestseller(false);
         setEcoFriendly(false);
@@ -527,6 +544,12 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
       setIsUploading(false);
       setUploadProgress(0);
     }
+  };
+
+  // Check if selected category has subcategories
+  const selectedCategoryHasSubcategories = () => {
+    const selectedCategory = categories.find(cat => cat._id === category);
+    return selectedCategory && selectedCategory.subcategories.length > 0;
   };
 
   // Handle category change and reset subcategory
@@ -691,7 +714,7 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
       <h2 className="text-xl font-bold text-gray-800">Add Single Product</h2>
 
       <form onSubmit={onSubmitHandler} className="flex flex-col w-full items-start gap-5">
-        {/* Upload Image Section */}
+      {/* Upload Image Section */}
       <div>
         <p className="mb-2 font-semibold">Upload Images</p>
         <div className="flex gap-3">
@@ -866,7 +889,7 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
 
         <div className="flex-1 min-w-[150px]">
           <label className="block mb-1 font-semibold" htmlFor="subCategory">
-            Sub category
+            Sub category {selectedCategoryHasSubcategories() ? <span className="text-red-500">*</span> : <span className="text-gray-500">(Optional)</span>}
           </label>
           {loadingCategories ? (
             <div className="w-full p-2 border border-gray-300 rounded-md bg-gray-100">
@@ -877,7 +900,7 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
               onChange={(e) => setSubCategory(e.target.value)}
               value={subcategory}
               id="subCategory"
-              required
+              required={selectedCategoryHasSubcategories()}
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {getSubcategories().length === 0 ? (
@@ -921,6 +944,22 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
             required
             min="0"
             max="100"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="flex-1 min-w-[150px]">
+          <label className="block mb-1 font-semibold" htmlFor="productQuantity">
+            Stock Quantity
+          </label>
+          <input
+             onChange={(e)=>setQuantity(e.target.value)}
+             value={quantity}
+            type="number"
+            id="productQuantity"
+            placeholder="100"
+            min="0"
+            required
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

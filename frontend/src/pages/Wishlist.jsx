@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext";
 import Title from "../components/Title";
 import { assets } from "../assets/assets";
@@ -7,6 +8,7 @@ const Wishlist = () => {
   const { products, currency, wishListItems, updateWishList, getWishList, addToCart } =
     useContext(ShopContext);
   const [wishlistData, setWishlistData] = useState([]);
+  const navigate = useNavigate();
 
   // Fetch wishlist data on component mount
   useEffect(() => {
@@ -41,6 +43,11 @@ const Wishlist = () => {
     getWishList();
   };
 
+  const handleProductClick = (productId) => {
+    navigate(`/product/${productId}`);
+    window.scrollTo(0, 0);
+  };
+
   const getDiscountedPrice = (product) => {
     if (!product) return 0;
     return product.discountPercentage > 0
@@ -60,17 +67,21 @@ const Wishlist = () => {
             (product) => product._id === item._id
           );
           const discountedPrice = getDiscountedPrice(productData);
+          const isOutOfStock = productData?.isOutOfStock || productData?.quantity === 0;
 
           return (
             <div
               key={index}
-              className="py-4 border-t border-b text-gray-700 grid grid-cols-[4fr_0.5fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr_0.5fr] items-center gap-4"
+              className={`py-4 border-t border-b text-gray-700 grid grid-cols-[4fr_0.5fr_0.5fr_0.5fr] sm:grid-cols-[4fr_2fr_0.5fr_0.5fr] items-center gap-4 ${
+                isOutOfStock ? 'bg-gray-50 opacity-75' : ''
+              }`}
             >
               <div className="flex items-start gap-6">
                 <img
-                  className="w-16 sm:w-20"
+                  className="w-16 sm:w-20 cursor-pointer hover:opacity-80 transition-opacity"
                   src={productData?.image[0]}
                   alt={productData?.name}
+                  onClick={() => handleProductClick(item._id)}
                 />
                 <div>
                   <p className="text-xs sm:text-lg font-medium">
@@ -97,6 +108,11 @@ const Wishlist = () => {
                     <p className="px-2 sm:px-3 sm:py-1 border bg-slate-50">
                       {item.size}
                     </p>
+                    {isOutOfStock && (
+                      <span className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded-full font-medium">
+                        Sold Out
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -108,18 +124,23 @@ const Wishlist = () => {
                 className="border max-w-10 sm:max-w-20 px-1 sm:px-2 py-1"
                 min={1}
                 defaultValue={item.quantity}
+                disabled={isOutOfStock}
               />
               <img
                 onClick={() => handleRemoveItem(item._id, item.size)}
-                className="w-4 mr-4 sm:w-5 cursor-pointer"
+                className="w-4 mr-4 sm:w-5 cursor-pointer hover:opacity-70 transition-opacity"
                 src={assets.bin_icon}
                 alt="Remove"
               />
               <img
-                onClick={() => handleAddToCart(item._id, item.size, item.quantity)}
-                className="w-4 sm:w-5 cursor-pointer"
+                onClick={isOutOfStock ? undefined : () => handleAddToCart(item._id, item.size, item.quantity)}
+                className={`w-4 sm:w-5 transition-opacity ${
+                  isOutOfStock 
+                    ? 'opacity-30 cursor-not-allowed' 
+                    : 'cursor-pointer hover:opacity-70'
+                }`}
                 src={assets.cart_icon}
-                alt="Add to Cart"
+                alt={isOutOfStock ? "Sold Out" : "Add to Cart"}
               />
             </div>
           );

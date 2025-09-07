@@ -25,6 +25,7 @@ const Edit = ({ token }) => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [category, setCategory] = useState("");
   const [subcategory, setSubCategory] = useState("");
   const [bestseller, setBestseller] = useState(false);
@@ -77,6 +78,12 @@ const Edit = ({ token }) => {
     return selectedSubcategory ? selectedSubcategory.name : "";
   };
 
+  // Check if selected category has subcategories
+  const selectedCategoryHasSubcategories = () => {
+    const selectedCategory = categories.find(cat => cat._id === category);
+    return selectedCategory && selectedCategory.subcategories.length > 0;
+  };
+
   // Handle category change and reset subcategory
   const handleCategoryChange = (e) => {
     const newCategoryId = e.target.value;
@@ -101,6 +108,7 @@ const Edit = ({ token }) => {
           setDescription(product.description);
           setPrice(product.price);
           setDiscountPercentage(product.discountPercentage || "");
+          setQuantity(product.quantity || "");
           
           // Store the original category and subcategory name for matching with fetched categories
           const originalCategory = product.category;
@@ -182,6 +190,22 @@ const Edit = ({ token }) => {
     setUploadProgress(0);
 
     try {
+      // Validate required fields
+      const hasSubcategories = selectedCategoryHasSubcategories();
+      if (!name || !description || !price || !quantity || !category || (hasSubcategories && !subcategory)) {
+        const missingFields = [];
+        if (!name) missingFields.push("Product Name");
+        if (!description) missingFields.push("Description");
+        if (!price) missingFields.push("Price");
+        if (!quantity) missingFields.push("Stock Quantity");
+        if (!category) missingFields.push("Category");
+        if (hasSubcategories && !subcategory) missingFields.push("Subcategory");
+        
+        toast.error(`Please fill in all required fields: ${missingFields.join(", ")}`);
+        setIsUploading(false);
+        return;
+      }
+
       const formData = new FormData();
       
       formData.append("id", id);
@@ -189,6 +213,7 @@ const Edit = ({ token }) => {
       formData.append("description", description);
       formData.append("price", price);
       formData.append("discountPercentage", discountPercentage);
+      formData.append("quantity", quantity);
       formData.append("category", getCategoryName());
       formData.append("subcategory", getSubcategoryName());
       formData.append("categoryId", category);
@@ -196,6 +221,14 @@ const Edit = ({ token }) => {
       formData.append("bestseller", bestseller);
       formData.append("ecoFriendly", ecoFriendly);
       formData.append("sizes", JSON.stringify(sizes));
+
+      // Debug: Log the form data being sent
+      console.log('Form data being sent:', {
+        id, name, description, price, discountPercentage, quantity,
+        category: getCategoryName(), subcategory: getSubcategoryName(),
+        categoryId: category, subcategoryId: subcategory,
+        bestseller, ecoFriendly, sizes
+      });
       
       // Add existing images if no new ones are uploaded
       formData.append("existingImages", JSON.stringify(existingImages));
@@ -222,7 +255,7 @@ const Edit = ({ token }) => {
         `${backendUrl}/api/product/edit`,
         formData,
         { 
-          headers: { token },
+          headers: { 'Authorization': `Bearer ${token}` },
           onUploadProgress
         }
       );
@@ -485,7 +518,7 @@ const Edit = ({ token }) => {
 
         <div className="flex-1 min-w-[150px]">
           <label className="block mb-1 font-semibold" htmlFor="subCategory">
-            Sub category
+            Sub category {selectedCategoryHasSubcategories() ? <span className="text-red-500">*</span> : <span className="text-gray-500">(Optional)</span>}
           </label>
           {loadingCategories ? (
             <div className="w-full p-2 border border-gray-300 rounded-md bg-gray-100">
@@ -496,7 +529,7 @@ const Edit = ({ token }) => {
               onChange={(e) => setSubCategory(e.target.value)}
               value={subcategory}
               id="subCategory"
-              required
+              required={selectedCategoryHasSubcategories()}
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {getSubcategories().length === 0 ? (
@@ -540,6 +573,22 @@ const Edit = ({ token }) => {
             required
             min="0"
             max="100"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="flex-1 min-w-[150px]">
+          <label className="block mb-1 font-semibold" htmlFor="productQuantity">
+            Stock Quantity
+          </label>
+          <input
+            onChange={(e) => setQuantity(e.target.value)}
+            value={quantity}
+            type="number"
+            id="productQuantity"
+            placeholder="100"
+            min="0"
+            required
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
