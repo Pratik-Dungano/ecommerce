@@ -3,6 +3,7 @@ import {
     placeOrder,
     createRazorpayOrder,
     verifyRazorpayPayment,
+    handleRazorpayWebhook,
     allOrders,
     userOrders,
     updateStatus,
@@ -23,5 +24,8 @@ orderRouter.post('/create-razorpay-order', authUser, createRazorpayOrder);
 orderRouter.post('/verify-razorpay-payment', authUser, verifyRazorpayPayment);
 orderRouter.post('/userorders', authUser, userOrders);
 orderRouter.post('/cancel', authUser, cancelOrder);
+
+// Webhook routes (no auth required)
+orderRouter.post('/razorpay-webhook', handleRazorpayWebhook);
 
 export default orderRouter;

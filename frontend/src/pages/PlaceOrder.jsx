@@ -26,6 +26,20 @@ const PlaceOrder = () => {
     setProducts,
   } = useContext(ShopContext);
 
+  // Get userId from token
+  const getUserIdFromToken = () => {
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.userId || payload.id;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  };
+
+  const userId = getUserIdFromToken();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -114,9 +128,16 @@ const PlaceOrder = () => {
 
   const handleCODOrder = async (orderItems, addressData, totalAmount) => {
     try {
+      // Check if userId is available
+      if (!userId) {
+        toast.error("User not authenticated. Please login again.");
+        return;
+      }
+
       const response = await axios.post(
         `${backendUrl}/api/order/place`,
         {
+          userId: userId,
           items: orderItems,
           amount: totalAmount,
           address: addressData,
@@ -158,35 +179,58 @@ const PlaceOrder = () => {
 
   const initializeRazorpay = async (orderItems, addressData, totalAmount) => {
     try {
-      // Configure Razorpay options
+      // Check if userId is available
+      if (!userId) {
+        toast.error("User not authenticated. Please login again.");
+        return;
+      }
+
+      // Step 1: Create Razorpay order on backend
+      const razorpayOrderResponse = await axios.post(
+        `${backendUrl}/api/order/create-razorpay-order`,
+        {
+          userId: userId,
+          items: orderItems,
+          address: addressData,
+          amount: totalAmount,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!razorpayOrderResponse.data.success) {
+        throw new Error("Failed to create Razorpay order");
+      }
+
+      const { orderId: razorpayOrderId, order: dbOrder } = razorpayOrderResponse.data;
+
+      // Step 2: Configure Razorpay options
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: totalAmount * 100, // Razorpay expects amount in paise
         currency: "INR",
-        name: "Your Company Name",
-        description: "Test Transaction",
+        name: "Adaa Jaipur",
+        description: `Order for ${orderItems.length} item(s)`,
+        order_id: razorpayOrderId, // Use the Razorpay order ID
         handler: async function (razorpayResponse) {
           try {
-            // Create the order in your database after payment is successful
-            const orderResponse = await axios.post(
-              `${backendUrl}/api/order/place`,
+            // Step 3: Verify payment with backend
+            const verificationResponse = await axios.post(
+              `${backendUrl}/api/order/verify-razorpay-payment`,
               {
-                items: orderItems,
-                amount: totalAmount,
-                address: addressData,
-                paymentMethod: "razorpay",
-                payment: true,
-                status: "Paid",
-                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-                razorpay_order_id: razorpayResponse.razorpay_order_id,
-                razorpay_signature: razorpayResponse.razorpay_signature,
+                orderId: dbOrder._id, // Database order ID
+                razorpayOrderId: razorpayOrderId, // Fallback
+                razorpay_order_id: razorpayResponse.razorpay_order_id, // Primary source from Razorpay
+                paymentId: razorpayResponse.razorpay_payment_id,
+                signature: razorpayResponse.razorpay_signature,
               },
               {
                 headers: { Authorization: `Bearer ${token}` },
               }
             );
-  
-            if (orderResponse.data.success) {
+
+            if (verificationResponse.data.success) {
               // Update product stock in context
               const itemsToProcess = selectedItems || cartItems;
               updateProductStock(itemsToProcess);
@@ -205,11 +249,11 @@ const PlaceOrder = () => {
               toast.success("Payment successful! Order placed.");
               navigate("/orders");
             } else {
-              throw new Error("Failed to create order");
+              throw new Error("Payment verification failed");
             }
           } catch (error) {
-            console.error("Razorpay Order Error:", error);
-            toast.error("Error creating order after payment!");
+            console.error("Razorpay Payment Verification Error:", error);
+            toast.error("Payment verification failed! Please contact support.");
           }
         },
         prefill: {
@@ -220,13 +264,17 @@ const PlaceOrder = () => {
         theme: {
           color: "#3399cc",
         },
+        notes: {
+          orderId: dbOrder._id.toString(), // Add database order ID to notes for webhook
+        },
       };
   
       // Initialize Razorpay
       const rzp = new window.Razorpay(options);
   
       rzp.on('payment.failed', function (response) {
-        toast.error("Payment failed! Please try again.");
+        console.error("Payment failed:", response.error);
+        toast.error(`Payment failed: ${response.error.description}`);
       });
   
       rzp.open();

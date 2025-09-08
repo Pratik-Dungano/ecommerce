@@ -3,6 +3,7 @@ import userModel from "../models/userModel.js";
 import cartModel from "../models/cartModels.js";
 import Razorpay from 'razorpay';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import { checkProductStock, decreaseProductQuantity, increaseProductQuantity } from './productController.js';
 
 dotenv.config();
@@ -116,6 +117,9 @@ const createRazorpayOrder = async (req, res) => {
             amount: amount * 100, // amount in the smallest currency unit
             currency: "INR",
             receipt: order._id.toString(),
+            notes: {
+                orderId: order._id.toString(), // Add database order ID to notes for webhook
+            },
         };
 
         const razorpayOrder = await razorpay.orders.create(options);
@@ -137,9 +141,11 @@ const createRazorpayOrder = async (req, res) => {
 // Verify Razorpay Payment and Complete Order
 const verifyRazorpayPayment = async (req, res) => {
     try {
-        const { orderId, paymentId, signature } = req.body;
+        const { orderId, razorpayOrderId, razorpay_order_id, paymentId, signature } = req.body;
 
-        if (!orderId || !paymentId || !signature) {
+        const orderIdForSignature = razorpayOrderId || razorpay_order_id;
+
+        if (!orderId || !orderIdForSignature || !paymentId || !signature) {
             return res.status(400).json({
                 success: false,
                 message: "Missing required payment verification fields"
@@ -147,10 +153,9 @@ const verifyRazorpayPayment = async (req, res) => {
         }
 
         // Verify payment signature
-        const crypto = require('crypto');
         const expectedSignature = crypto
             .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-            .update(`${orderId}|${paymentId}`)
+            .update(`${orderIdForSignature}|${paymentId}`)
             .digest('hex');
 
         if (signature !== expectedSignature) {
@@ -208,6 +213,140 @@ const verifyRazorpayPayment = async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message || 'Error verifying payment'
+        });
+    }
+};
+
+// Handle Razorpay Webhook
+const handleRazorpayWebhook = async (req, res) => {
+    try {
+        const signature = req.headers['x-razorpay-signature'];
+        const body = JSON.stringify(req.body);
+        
+        // Verify webhook signature
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
+            .update(body)
+            .digest('hex');
+
+        if (signature !== expectedSignature) {
+            console.error('Invalid Razorpay webhook signature');
+            return res.status(400).json({ success: false, message: 'Invalid signature' });
+        }
+
+        const event = req.body;
+        console.log('Razorpay Webhook Event:', event.event);
+
+        switch (event.event) {
+            case 'payment.captured': {
+                const payment = event.payload.payment.entity;
+                const orderId = payment.notes?.orderId;
+                
+                if (orderId) {
+                    const order = await orderModel.findById(orderId);
+                    if (order && !order.payment) {
+                        // Update order with payment details
+                        order.payment = true;
+                        order.status = 'Order Placed';
+                        order.paymentDetails = {
+                            paymentId: payment.id,
+                            paymentDate: new Date(),
+                            paymentMethod: 'Razorpay',
+                            razorpayOrderId: payment.order_id
+                        };
+                        await order.save();
+
+                        // Reduce stock quantity for all items after successful payment
+                        for (const item of order.items) {
+                            const stockReduction = await decreaseProductQuantity(item.productId, item.quantity);
+                            if (!stockReduction.success) {
+                                console.error(`Failed to reduce stock for product ${item.productId}:`, stockReduction.message);
+                            }
+                        }
+
+                        // Clear user's cart
+                        await cartModel.findOneAndDelete({ userId: order.userId });
+                        
+                        console.log(`Order ${orderId} payment captured successfully`);
+                    }
+                }
+                break;
+            }
+
+            case 'payment.failed': {
+                const payment = event.payload.payment.entity;
+                const orderId = payment.notes?.orderId;
+                
+                if (orderId) {
+                    await orderModel.findByIdAndUpdate(orderId, {
+                        status: 'Payment Failed',
+                        paymentDetails: {
+                            paymentId: payment.id,
+                            paymentStatus: 'failed',
+                            paymentMethod: 'Razorpay',
+                            failureReason: payment.error_description
+                        }
+                    });
+                    
+                    console.log(`Order ${orderId} payment failed`);
+                }
+                break;
+            }
+
+            case 'refund.created': {
+                const refund = event.payload.refund.entity;
+                const paymentId = refund.payment_id;
+                
+                // Find order by payment ID and update status
+                const order = await orderModel.findOne({
+                    'paymentDetails.paymentId': paymentId
+                });
+                
+                if (order) {
+                    order.status = 'Refunded';
+                    order.paymentDetails.refundId = refund.id;
+                    order.paymentDetails.refundAmount = refund.amount / 100; // Convert from paise
+                    order.paymentDetails.refundDate = new Date();
+                    await order.save();
+
+                    // Restore stock quantity for all items after refund
+                    for (const item of order.items) {
+                        const stockRestoration = await increaseProductQuantity(item.productId, item.quantity);
+                        if (!stockRestoration.success) {
+                            console.error(`Failed to restore stock for product ${item.productId}:`, stockRestoration.message);
+                        }
+                    }
+                    
+                    console.log(`Order ${order._id} refunded: ${refund.amount / 100} INR`);
+                }
+                break;
+            }
+
+            case 'refund.processed': {
+                const refund = event.payload.refund.entity;
+                const paymentId = refund.payment_id;
+                
+                const order = await orderModel.findOne({
+                    'paymentDetails.paymentId': paymentId
+                });
+                
+                if (order) {
+                    order.status = 'Refund Processed';
+                    order.paymentDetails.refundStatus = 'processed';
+                    await order.save();
+                    
+                    console.log(`Order ${order._id} refund processed successfully`);
+                }
+                break;
+            }
+        }
+
+        res.json({ success: true, received: true });
+    } catch (error) {
+        console.error('Razorpay Webhook Error:', error);
+        return res.status(400).json({
+            success: false,
+            message: `Webhook Error: ${error.message}`
         });
     }
 };
@@ -472,6 +611,7 @@ export {
     placeOrder,
     createRazorpayOrder,
     verifyRazorpayPayment,
+    handleRazorpayWebhook,
     handleStripeWebhook,
     allOrders,
     userOrders,

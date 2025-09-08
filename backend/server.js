@@ -22,8 +22,9 @@ const port = process.env.PORT || 4000
 connectDB()
 
 //middlewares
-// Important: Raw body parser for Stripe webhook must come before JSON parser
+// Important: Raw body parser for webhooks must come before JSON parser
 app.use('/api/order/stripe-webhook', express.raw({ type: 'application/json' }));
+app.use('/api/order/razorpay-webhook', express.raw({ type: 'application/json' }));
 
 // Regular middleware for other routes
 app.use(express.json())
