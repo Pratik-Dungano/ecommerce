@@ -4,7 +4,7 @@ import bcrypt from "bcrypt"
 import jwt from 'jsonwebtoken'
 
 const createToken=(id)=>{
-    return jwt.sign({id},process.env.JWT_SECRET)
+    return jwt.sign({id},process.env.JWT_SECRET,{ expiresIn: '2h' })
 }
 const loginUser = async (req, res) => {
     try {
@@ -72,7 +72,7 @@ const adminLogin=async(req,res)=>{
  try {
     const {email,password}=req.body
     if(email===process.env.ADMIN_EMAIL && password===process.env.ADMIN_PASSWORD){
-        const token=jwt.sign(email+password,process.env.JWT_SECRET);
+        const token = jwt.sign({ email, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '2h' });
         res.json({success:true,token})
     }
     else{

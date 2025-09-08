@@ -26,6 +26,26 @@ const orderSchema = new mongoose.Schema({
     enum: ['Order Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
     default: 'Order Placed',
   },
+  deliveredAt: { type: Date },
+  returnRequest: {
+    type: new mongoose.Schema({
+      type: { type: String, enum: ['return'], default: 'return' },
+      reason: { type: String },
+      requestedAt: { type: Date },
+      photos: [{ type: String }],
+      status: { type: String, enum: ['requested', 'approved', 'pickup_scheduled', 'picked', 'received', 'refunded', 'rejected', 'processed'], default: 'requested' },
+      trackingStatus: { type: String, enum: ['requested', 'approved', 'pickup_scheduled', 'picked', 'received', 'refunded', 'closed'], default: 'requested' },
+      timeline: [{ status: String, note: String, at: { type: Date, default: Date.now } }],
+      adminNote: { type: String },
+      codRefundDetails: {
+        upiId: { type: String },
+        accountName: { type: String },
+        accountNumber: { type: String },
+        ifsc: { type: String }
+      }
+    }, { _id: false }),
+    default: null
+  },
   cancelledBy: {
     type: String,
     enum: ['user', 'admin'],

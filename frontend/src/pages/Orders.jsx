@@ -10,23 +10,44 @@ const TrackingModal = ({ isOpen, onClose, order }) => {
   if (!isOpen) return null;
 
   const getStatusSteps = () => {
+    // Map known statuses and attach real timestamps where available
+    const placedAt = order.date ? new Date(order.date) : null;
+    const deliveredAt = order.deliveredAt ? new Date(order.deliveredAt) : null;
     const steps = [
-      { status: "Processing", date: "Order Placed" },
-      { status: "Shipped", date: "Order Shipped" },
-      { status: "Out for Delivery", date: "Out for Delivery" },
-      { status: "Delivered", date: "Delivered" }
+      { status: "Processing", at: placedAt },
+      { status: "Shipped", at: null },
+      { status: "Out for Delivery", at: null },
+      { status: "Delivered", at: deliveredAt }
     ];
 
     const currentIndex = steps.findIndex(step => step.status === order.status);
     return steps.map((step, index) => ({
       ...step,
       completed: index <= currentIndex,
+      dateLabel: step.at ? step.at.toLocaleString() : ""
     }));
   };
 
+  const getReturnSteps = () => {
+    if (!order.returnRequest) return [];
+    const base = [
+      { key: 'approved', label: 'Approved' },
+      { key: 'pickup_scheduled', label: 'Pickup Scheduled' },
+      { key: 'picked', label: 'Item Picked' },
+      { key: 'received', label: 'Received & Inspected' },
+      { key: 'refunded', label: 'Return Processed' },
+    ];
+    const currentKey = order.returnRequest.trackingStatus || order.returnRequest.status;
+    const currentIdx = base.findIndex(s => s.key === currentKey);
+    // Map dates from timeline
+    const timeline = Array.isArray(order.returnRequest.timeline) ? order.returnRequest.timeline : [];
+    const dateMap = timeline.reduce((acc, t) => { acc[t.status] = new Date(t.at).toLocaleString(); return acc; }, {});
+    return base.map((s, idx) => ({ ...s, completed: currentIdx >= 0 ? idx <= currentIdx : false, dateLabel: dateMap[s.key] || "" }));
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-lg w-full relative animate-fadeIn">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50">
+      <div className="bg-white rounded-lg w-full max-w-lg max-h-[85vh] overflow-y-auto relative animate-fadeIn">
         <button 
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
@@ -34,7 +55,7 @@ const TrackingModal = ({ isOpen, onClose, order }) => {
           ×
         </button>
         
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <h2 className="text-xl font-bold mb-6">Order Status</h2>
           
           <div className="space-y-8">
@@ -84,7 +105,7 @@ const TrackingModal = ({ isOpen, onClose, order }) => {
                       <p className={`font-medium ${step.completed ? 'text-blue-500' : 'text-gray-500'}`}>
                         {step.status}
                       </p>
-                      <p className="text-sm text-gray-500">{step.date}</p>
+                      {step.dateLabel && (<p className="text-xs text-gray-500 mt-0.5">{step.dateLabel}</p>)}
                     </div>
                   </div>
                 ))}
@@ -110,6 +131,54 @@ const TrackingModal = ({ isOpen, onClose, order }) => {
               </div>
             </div>
           </div>
+
+          {/* Return / Replacement Tracking */}
+          {order.returnRequest && (
+            <div className="border-t pt-6">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium">Return Tracking</h4>
+                <span className="text-xs px-2 py-1 rounded bg-gray-100">return</span>
+              </div>
+              {/* Status banner */}
+              <div className="p-3 rounded bg-gray-50 text-sm mb-4">
+                Current: {order.returnRequest.trackingStatus || order.returnRequest.status}
+              </div>
+              {/* Timeline */}
+              <div className="relative">
+                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                {getReturnSteps().map((step, index) => (
+                  <div key={index} className="relative flex items-center mb-6 last:mb-0">
+                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 ${step.completed ? 'bg-green-500 border-green-500' : 'bg-white border-gray-300'}`}>
+                      {step.completed && (
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="ml-4">
+                      <p className={`font-medium ${step.completed ? 'text-green-600' : 'text-gray-500'}`}>{step.label}</p>
+                      {step.dateLabel && (<p className="text-xs text-gray-500 mt-0.5">{step.dateLabel}</p>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Timeline notes */}
+              {Array.isArray(order.returnRequest.timeline) && (
+                (() => {
+                  const refunded = order.returnRequest.timeline.find(t => t.status === 'refunded');
+                  if (!refunded) return null;
+                  return (
+                    <div className="mt-4 text-sm">
+                      <p className="font-medium mb-1">Update</p>
+                      <p className="text-gray-600">
+                        Refunded on {new Date(refunded.at).toLocaleString()}. Amount will be credited to customer’s bank account within 5-7 working days after the refund has processed.
+                      </p>
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -124,6 +193,8 @@ const Orders = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reviewItem, setReviewItem] = useState(null);
   const [reviewedProducts, setReviewedProducts] = useState(new Set());
+  const [returnModal, setReturnModal] = useState({ open: false, orderId: null, type: 'return', reason: '', photos: [] });
+  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
   // Add animation styles
@@ -223,6 +294,65 @@ const Orders = () => {
     window.scrollTo(0, 0);
   };
 
+  const isWithin7Days = (deliveredAt) => {
+    if (!deliveredAt) return false;
+    const diffDays = (Date.now() - new Date(deliveredAt).getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays <= 7;
+  };
+
+  const canRequestReturn = (order) => {
+    return order.status === 'Delivered' && isWithin7Days(order.deliveredAt) && !order.returnRequest;
+  };
+
+  const openReturnModal = (order) => {
+    if (order) setSelectedOrder(order);
+    setReturnModal({ open: true, orderId: order?._id || null, type: 'return', reason: '', photos: [] });
+  };
+
+  const submitReturnRequest = async () => {
+    try {
+      const { orderId, type, reason, photos, upiId, accountName, accountNumber, ifsc } = returnModal;
+      const payload = { orderId, type, reason, photos };
+      // Only attach COD refund details when the order was COD
+      if (selectedOrder?.paymentMethod === 'COD') {
+        payload.codRefundDetails = { upiId, accountName, accountNumber, ifsc };
+      }
+      const res = await axios.post(`${backendUrl}/api/order/request-return`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.data.success) {
+        toast.success('Request submitted');
+        setReturnModal({ open: false, orderId: null, type: 'return', reason: '', photos: [], upiId: '', accountName: '', accountNumber: '', ifsc: '' });
+        loadOrders();
+      } else {
+        toast.error(res.data.message || 'Failed to submit request');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to submit request');
+    }
+  };
+
+  const handleReturnImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []).slice(0, 5 - returnModal.photos.length);
+    if (files.length === 0) return;
+    try {
+      setUploading(true);
+      const uploaded = [];
+      for (const file of files) {
+        const form = new FormData();
+        form.append('image', file);
+        const resp = await axios.post(`${backendUrl}/api/upload/returns-image`, form, {
+          headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
+        });
+        if (resp.data?.success && resp.data.imageUrl) uploaded.push(resp.data.imageUrl);
+      }
+      setReturnModal(prev => ({ ...prev, photos: [...prev.photos, ...uploaded].slice(0, 5) }));
+    } catch (err) {
+      toast.error('Image upload failed');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
   return (
     <div className="border-t pt-16 mx-4 md:mx-10">
       <div className="text-2xl mb-8">
@@ -261,6 +391,17 @@ const Orders = () => {
                       >
                         Cancel Order
                       </button>
+                    )}
+                    {canRequestReturn(order) && (
+                      <button
+                        onClick={() => openReturnModal(order)}
+                        className="text-sm bg-white border border-gray-300 text-gray-800 px-4 py-1.5 rounded-md hover:bg-gray-50 transition-colors"
+                      >
+                        Return
+                      </button>
+                    )}
+                    {order.returnRequest && (
+                      <p className="text-xs text-gray-600">Return status: {order.returnRequest.status}</p>
                     )}
                     <p className={`text-sm font-medium ${
                       order.status === "Delivered" ? "text-green-600" :
@@ -372,6 +513,109 @@ const Orders = () => {
               orderId={reviewItem.orderId}
               onReviewSubmitted={handleReviewSubmitted}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Return / Replacement Modal */}
+      {returnModal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 animate-fadeIn relative">
+            <button
+              onClick={() => setReturnModal({ open: false, orderId: null, type: 'return', reason: '' })}
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+              ×
+            </button>
+            <h2 className="text-lg font-semibold mb-4">Request Return</h2>
+            <div className="space-y-4">
+              <div className="text-sm font-medium">Request Type: Return</div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Reason (optional)</label>
+                <textarea
+                  className="w-full border rounded-md p-2 text-sm"
+                  rows={3}
+                  value={returnModal.reason}
+                  onChange={(e) => setReturnModal(prev => ({ ...prev, reason: e.target.value }))}
+                  placeholder="Brief reason"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Photos (optional, up to 5)</label>
+                <input type="file" accept="image/*" multiple onChange={handleReturnImageUpload} className="text-sm" />
+                {uploading && <p className="text-xs text-gray-500 mt-1">Uploading...</p>}
+                {returnModal.photos && returnModal.photos.length > 0 && (
+                  <div className="mt-2 grid grid-cols-5 gap-2">
+                    {(returnModal.photos || []).map((url, idx) => (
+                      <img key={idx} src={url} alt="evidence" className="w-16 h-16 object-cover rounded border" />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {selectedOrder?.paymentMethod === 'COD' && (
+                <div className="border rounded-md p-3">
+                  <p className="text-sm font-medium mb-2">Refund Method (COD orders)</p>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">UPI ID (optional)</label>
+                      <input
+                        type="text"
+                        className="w-full border rounded-md p-2 text-sm"
+                        placeholder="example@upi"
+                        value={returnModal.upiId || ''}
+                        onChange={(e)=> setReturnModal(prev => ({ ...prev, upiId: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Account Holder Name (optional)</label>
+                      <input
+                        type="text"
+                        className="w-full border rounded-md p-2 text-sm"
+                        placeholder="Name as per bank"
+                        value={returnModal.accountName || ''}
+                        onChange={(e)=> setReturnModal(prev => ({ ...prev, accountName: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Account Number (optional)</label>
+                      <input
+                        type="text"
+                        className="w-full border rounded-md p-2 text-sm"
+                        placeholder="Account number"
+                        value={returnModal.accountNumber || ''}
+                        onChange={(e)=> setReturnModal(prev => ({ ...prev, accountNumber: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">IFSC (optional)</label>
+                      <input
+                        type="text"
+                        className="w-full border rounded-md p-2 text-sm"
+                        placeholder="IFSC code"
+                        value={returnModal.ifsc || ''}
+                        onChange={(e)=> setReturnModal(prev => ({ ...prev, ifsc: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Provide UPI ID or bank details. One is required for COD refunds.</p>
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setReturnModal({ open: false, orderId: null, type: 'return', reason: '' })}
+                  className="px-4 py-2 text-sm border rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitReturnRequest}
+                  className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

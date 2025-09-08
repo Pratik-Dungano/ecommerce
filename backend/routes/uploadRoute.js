@@ -1,6 +1,7 @@
 import express from 'express';
 import { upload, uploadToCloudinary } from '../middleware/multer.js';
 import adminAuth from '../middleware/adminAuth.js';
+import authUser from '../middleware/auth.js';
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import path from 'path';
@@ -86,6 +87,38 @@ router.post('/video', adminAuth, upload.single('video'), async (req, res) => {
             message: 'Video upload failed',
             error: error.message
         });
+    }
+});
+
+// User return-evidence image upload (authUser)
+router.post('/returns-image', authUser, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No file uploaded' });
+        }
+
+        const result = await uploadToCloudinary(req.file.path, {
+            folder: 'ecommerce/returns',
+            resource_type: 'image'
+        });
+
+        if (result) {
+            return res.status(200).json({ success: true, imageUrl: result.secure_url, publicId: result.public_id });
+        }
+
+        const fileName = path.basename(req.file.path);
+        const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
+        return res.status(200).json({ success: true, imageUrl: fileUrl, localPath: req.file.path });
+    } catch (error) {
+        console.error('Error uploading return image:', error);
+        try {
+            if (req.file?.path) {
+                const fileName = path.basename(req.file.path);
+                const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${fileName}`;
+                return res.status(200).json({ success: true, imageUrl: fileUrl, localPath: req.file.path });
+            }
+        } catch {}
+        return res.status(500).json({ success: false, message: 'Image upload failed', error: error.message });
     }
 });
 

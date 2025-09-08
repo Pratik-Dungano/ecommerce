@@ -465,10 +465,9 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
       
       // Add category and subcategory data
       const categoryName = getCategoryName();
-      const subcategoryName = getSubcategoryName();
-      
-      if (!categoryName || !subcategoryName) {
-        toast.error("Invalid category or subcategory selection");
+      const subcategoryName = selectedCategoryHasSubcategories() ? getSubcategoryName() : '';
+      if (!categoryName) {
+        toast.error("Invalid category selection");
         setIsUploading(false);
         return;
       }
@@ -477,7 +476,9 @@ https://example.com/image17.jpg,https://example.com/image18.jpg,https://example.
       formData.append("category", categoryName);
       formData.append("subcategory", subcategoryName);
       formData.append("categoryId", category);
-      formData.append("subcategoryId", subcategory);
+      if (selectedCategoryHasSubcategories()) {
+        formData.append("subcategoryId", subcategory);
+      }
       
       // Add boolean fields
       formData.append("bestseller", bestseller.toString());

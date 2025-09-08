@@ -20,7 +20,15 @@ const adminAuth = async (req, res, next) => {
         }
 
         const token_decode = jwt.verify(token, process.env.JWT_SECRET);
-        if (token_decode !== process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD) {
+        let authorized = false;
+        if (typeof token_decode === 'string') {
+            // Legacy token format: email+password string
+            authorized = (token_decode === process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD);
+        } else {
+            // New token format: object payload
+            authorized = (token_decode.email === process.env.ADMIN_EMAIL && token_decode.role === 'admin');
+        }
+        if (!authorized) {
             return res.status(401).json({
                 success: false,
                 message: "Not Authorized. Please login again."

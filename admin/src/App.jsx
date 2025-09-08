@@ -12,6 +12,7 @@ import Dashboard from "./components/Dashboard";
 import Edit from './components/Edit';
 import Categories from './pages/Categories';
 import Looks from './pages/Looks';
+import Returns from './pages/Returns';
 import { backendUrl } from './config';
 
 const App = () => {
@@ -58,6 +59,7 @@ const App = () => {
                 <Route path="/add" element={<Add token={token} />} />
                 <Route path="/list" element={<List token={token} />} />
                 <Route path="/orders" element={<Orders token={token} />} />
+                <Route path="/returns" element={<Returns token={token} />} />
                 <Route path="/dashboard" element={<Dashboard token={token} />} />
                 <Route path="/edit/:id" element={<Edit token={token} />} />
                 <Route path="/categories" element={<Categories token={token} />} />

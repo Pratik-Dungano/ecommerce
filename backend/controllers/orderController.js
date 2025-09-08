@@ -217,12 +217,115 @@ const verifyRazorpayPayment = async (req, res) => {
     }
 };
 
-// Handle Razorpay Webhook
+// Request Return/Replacement (User)
+const requestReturn = async (req, res) => {
+    try {
+        const { orderId, type, reason, photos, userId, codRefundDetails } = req.body;
+        const order = await orderModel.findById(orderId);
+        if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+        if (order.userId.toString() !== userId.toString()) return res.status(403).json({ success: false, message: 'Unauthorized' });
+        if (order.status !== 'Delivered' || !order.deliveredAt) return res.status(400).json({ success: false, message: 'Return allowed only after delivery' });
+        const daysSinceDelivery = (Date.now() - new Date(order.deliveredAt).getTime()) / (1000*60*60*24);
+        if (daysSinceDelivery > 7) return res.status(400).json({ success: false, message: 'Return/replacement window expired' });
+
+        // If COD, require refund details: either UPI or basic bank fields
+        let codDetails = undefined;
+        if (order.paymentMethod === 'COD') {
+            const upiId = codRefundDetails?.upiId?.trim();
+            const accountNumber = codRefundDetails?.accountNumber?.trim();
+            const ifsc = codRefundDetails?.ifsc?.trim();
+            const accountName = codRefundDetails?.accountName?.trim();
+
+            const hasUpi = !!upiId;
+            const hasBank = !!(accountNumber && ifsc && accountName);
+            if (!hasUpi && !hasBank) {
+                return res.status(400).json({ success: false, message: 'Provide UPI ID or bank details (account name, number, IFSC) for COD refund' });
+            }
+            codDetails = { upiId: upiId || undefined, accountNumber: accountNumber || undefined, ifsc: ifsc || undefined, accountName: accountName || undefined };
+        }
+
+        order.returnRequest = {
+            type,
+            reason: reason || '',
+            photos: Array.isArray(photos) ? photos.slice(0, 5) : [],
+            requestedAt: new Date(),
+            status: 'requested',
+            codRefundDetails: codDetails
+        };
+        await order.save();
+        return res.json({ success: true, message: 'Request submitted', order });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Handle Return/Replacement (Admin)
+const handleReturn = async (req, res) => {
+    try {
+        const { orderId, action, adminNote } = req.body;
+        const order = await orderModel.findById(orderId);
+        if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+        if (!order.returnRequest) return res.status(400).json({ success: false, message: 'No return request found' });
+
+        if (action === 'approve') {
+            order.returnRequest.status = 'approved';
+            order.returnRequest.trackingStatus = 'approved';
+            order.returnRequest.timeline.push({ status: 'approved', note: adminNote || '' });
+        } else if (action === 'pickup_scheduled') {
+            order.returnRequest.status = 'pickup_scheduled';
+            order.returnRequest.trackingStatus = 'pickup_scheduled';
+            order.returnRequest.timeline.push({ status: 'pickup_scheduled', note: adminNote || '' });
+        } else if (action === 'picked') {
+            order.returnRequest.status = 'picked';
+            order.returnRequest.trackingStatus = 'picked';
+            order.returnRequest.timeline.push({ status: 'picked', note: adminNote || '' });
+        } else if (action === 'received') {
+            order.returnRequest.status = 'received';
+            order.returnRequest.trackingStatus = 'received';
+            order.returnRequest.timeline.push({ status: 'received', note: adminNote || '' });
+        } else if (action === 'refunded') {
+            // Trigger automated refund for Razorpay payments
+            if (order.paymentMethod === 'Razorpay' && order.paymentDetails?.paymentId) {
+                try {
+                    // Create refund for maximum refundable amount (omit amount for full refund)
+                    await razorpay.payments.refund(order.paymentDetails.paymentId, {
+                        notes: { orderId: String(order._id), reason: 'Admin initiated return/refund' }
+                    });
+                    // Webhook (refund.created / refund.processed) will update order state definitively
+                } catch (e) {
+                    // If refund API fails, keep timeline entry but report error with details
+                    const detail = (e?.error && (e.error.description || e.error.code)) || e?.message || 'Refund API error';
+                    order.returnRequest.timeline.push({ status: 'refund_initiation_failed', note: detail });
+                }
+            }
+            // For COD (or when refund API fails), mark as refunded logically (admin-initiated)
+            order.returnRequest.status = 'refunded';
+            order.returnRequest.trackingStatus = 'refunded';
+            order.returnRequest.timeline.push({ status: 'refunded', note: adminNote || '' });
+        } else if (action === 'reject') {
+            order.returnRequest.status = 'rejected';
+            order.returnRequest.trackingStatus = 'closed';
+            order.returnRequest.timeline.push({ status: 'rejected', note: adminNote || '' });
+        } else if (action === 'process') {
+            order.returnRequest.status = 'processed';
+            order.returnRequest.trackingStatus = 'closed';
+            order.returnRequest.timeline.push({ status: 'processed', note: adminNote || '' });
+            // For returns, you may trigger refund manually via dashboard/webhook; for replacements, create workflow here
+        }
+        if (adminNote) order.returnRequest.adminNote = adminNote;
+        await order.save();
+        return res.json({ success: true, message: 'Return request updated', order });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Handle Razorpay Webhook (fast 2xx, minimal logging)
 const handleRazorpayWebhook = async (req, res) => {
     try {
         const signature = req.headers['x-razorpay-signature'];
         const body = JSON.stringify(req.body);
-        
+
         // Verify webhook signature
         const expectedSignature = crypto
             .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
@@ -230,13 +333,11 @@ const handleRazorpayWebhook = async (req, res) => {
             .digest('hex');
 
         if (signature !== expectedSignature) {
-            console.error('Invalid Razorpay webhook signature');
-            return res.status(400).json({ success: false, message: 'Invalid signature' });
+            // Acknowledge to avoid repeated retries but do nothing
+            return res.status(200).json({ received: true });
         }
 
         const event = req.body;
-        console.log('Razorpay Webhook Event:', event.event);
-
         switch (event.event) {
             case 'payment.captured': {
                 const payment = event.payload.payment.entity;
@@ -270,7 +371,7 @@ const handleRazorpayWebhook = async (req, res) => {
                         console.log(`Order ${orderId} payment captured successfully`);
                     }
                 }
-                break;
+                return res.status(200).json({ received: true });
             }
 
             case 'payment.failed': {
@@ -287,10 +388,8 @@ const handleRazorpayWebhook = async (req, res) => {
                             failureReason: payment.error_description
                         }
                     });
-                    
-                    console.log(`Order ${orderId} payment failed`);
                 }
-                break;
+                return res.status(200).json({ received: true });
             }
 
             case 'refund.created': {
@@ -313,13 +412,11 @@ const handleRazorpayWebhook = async (req, res) => {
                     for (const item of order.items) {
                         const stockRestoration = await increaseProductQuantity(item.productId, item.quantity);
                         if (!stockRestoration.success) {
-                            console.error(`Failed to restore stock for product ${item.productId}:`, stockRestoration.message);
+                            // swallow
                         }
                     }
-                    
-                    console.log(`Order ${order._id} refunded: ${refund.amount / 100} INR`);
                 }
-                break;
+                return res.status(200).json({ received: true });
             }
 
             case 'refund.processed': {
@@ -334,20 +431,15 @@ const handleRazorpayWebhook = async (req, res) => {
                     order.status = 'Refund Processed';
                     order.paymentDetails.refundStatus = 'processed';
                     await order.save();
-                    
-                    console.log(`Order ${order._id} refund processed successfully`);
                 }
-                break;
+                return res.status(200).json({ received: true });
             }
         }
-
-        res.json({ success: true, received: true });
+        // Unhandled events
+        return res.status(200).json({ received: true });
     } catch (error) {
-        console.error('Razorpay Webhook Error:', error);
-        return res.status(400).json({
-            success: false,
-            message: `Webhook Error: ${error.message}`
-        });
+        // Always acknowledge to prevent retries
+        return res.status(200).json({ received: true });
     }
 };
 
@@ -515,6 +607,9 @@ const updateStatus = async (req, res) => {
         }
 
         order.status = status;
+        if (status === 'Delivered') {
+            order.deliveredAt = new Date();
+        }
         if (status === "Cancelled") {
             order.cancelledBy = "admin";
             
@@ -616,5 +711,7 @@ export {
     allOrders,
     userOrders,
     updateStatus,
-    cancelOrder
+    cancelOrder,
+    requestReturn,
+    handleReturn
 };

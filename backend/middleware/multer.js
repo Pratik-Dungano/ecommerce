@@ -48,38 +48,36 @@ const storage = multer.diskStorage({
     }
 });
 
-// File filter configuration
-const fileFilter = (req, file, cb) => {
-    console.log('Processing file:', {
-        fieldname: file.fieldname,
-        mimetype: file.mimetype,
-        originalname: file.originalname
-    });
+// File filter configuration (strict whitelist)
+const ALLOWED_IMAGE_MIME = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_VIDEO_MIME = ['video/mp4', 'video/quicktime', 'video/x-matroska'];
+const ALLOWED_IMAGE_EXT = ['.jpg', '.jpeg', '.png', '.webp'];
+const ALLOWED_VIDEO_EXT = ['.mp4', '.mov', '.qt', '.mkv'];
 
-    // Accept images
-    if (file.fieldname.startsWith('image')) {
-        if (file.mimetype.startsWith('image/')) {
-            console.log('Image file accepted:', file.originalname);
-            cb(null, true);
-        } else {
-            console.log('Invalid image file type:', file.mimetype);
-            cb(new Error(`Invalid file type for ${file.fieldname}. Only image files are allowed!`), false);
+const fileFilter = (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const type = file.mimetype.toLowerCase();
+
+    const isImageField = file.fieldname.startsWith('image');
+    const isVideoField = file.fieldname === 'video';
+
+    if (isImageField) {
+        const ok = ALLOWED_IMAGE_MIME.includes(type) && ALLOWED_IMAGE_EXT.includes(ext);
+        if (!ok) {
+            return cb(new Error(`Invalid image type. Allowed: ${ALLOWED_IMAGE_EXT.join(', ')}`), false);
         }
+        return cb(null, true);
     }
-    // Accept videos
-    else if (file.fieldname === 'video') {
-        if (file.mimetype.startsWith('video/')) {
-            console.log('Video file accepted:', file.originalname);
-            cb(null, true);
-        } else {
-            console.log('Invalid video file type:', file.mimetype);
-            cb(new Error('Only video files are allowed!'), false);
+
+    if (isVideoField) {
+        const ok = ALLOWED_VIDEO_MIME.includes(type) && ALLOWED_VIDEO_EXT.includes(ext);
+        if (!ok) {
+            return cb(new Error(`Invalid video type. Allowed: ${ALLOWED_VIDEO_EXT.join(', ')}`), false);
         }
+        return cb(null, true);
     }
-    else {
-        console.log('Invalid field name:', file.fieldname);
-        cb(new Error(`Invalid field name: ${file.fieldname}`), false);
-    }
+
+    return cb(new Error(`Invalid field name: ${file.fieldname}`), false);
 };
 
 // Create multer upload instance
@@ -87,7 +85,7 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 50 * 1024 * 1024, // 50MB limit
+        fileSize: 50 * 1024 * 1024, // 50MB total per file (frontend should compress/resize before upload)
         files: 5 // Max 5 files (4 images + 1 video)
     }
 });
@@ -171,14 +169,8 @@ const uploadToCloudinary = async (filePath, options = {}) => {
             stack: error.stack
         });
         
-        // Clean up files
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
-        if (uploadPath !== filePath && fs.existsSync(uploadPath)) {
-            fs.unlinkSync(uploadPath);
-        }
-        console.log('Local files cleaned up after error');
+        // Important: Keep the local file on error so callers can fall back to serving from /uploads
+        // Cleanup of local files will be handled by the caller if desired.
         
         throw error;
     }
